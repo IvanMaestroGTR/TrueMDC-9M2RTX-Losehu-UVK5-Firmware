@@ -1504,7 +1504,7 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_CH ||
         UI_MENU_GetCurrentMenuId() == MENU_DEL_CH ||
         UI_MENU_GetCurrentMenuId() == MENU_1_CALL ||
-        UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) {    // enter 3-digit channel number
+        UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) {    // enter 1-3 digit channel number
 
         if (gInputBoxIndex < 3) {
 #ifdef ENABLE_VOICE
@@ -1516,7 +1516,19 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 
         gInputBoxIndex = 0;
 
-        Value = ((gInputBox[0] * 100) + (gInputBox[1] * 10) + gInputBox[2]) - 1;
+        Value = 0;
+        if (gInputBox[0] >= 1 && gInputBox[0] <= 9) {
+            if (gInputBox[1] == 10 && gInputBox[2] == 10) {
+                // 1 digit input
+                Value = gInputBox[0] - 1;
+            } else if (gInputBox[1] >= 0 && gInputBox[1] <= 9 && gInputBox[2] == 10) {
+                // 2 digit input
+                Value = ((gInputBox[0] * 10) + gInputBox[1]) - 1;
+            } else if (gInputBox[1] >= 0 && gInputBox[1] <= 9 && gInputBox[2] >= 0 && gInputBox[2] <= 9) {
+                // 3 digit input
+                Value = ((gInputBox[0] * 100) + (gInputBox[1] * 10) + gInputBox[2]) - 1;
+            }
+        }
 
         if (IS_MR_CHANNEL(Value)) {
 #ifdef ENABLE_VOICE

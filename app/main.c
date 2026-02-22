@@ -315,33 +315,40 @@ static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
         gRequestDisplayScreen = DISPLAY_MAIN;
 
         if (IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE)) {    // user is entering channel number
-
-            if (gInputBoxIndex != 3) {
 #ifdef ENABLE_VOICE
-                gAnotherVoiceID   = (VOICE_ID_t)Key;
+            gAnotherVoiceID = (VOICE_ID_t)Key;
 #endif
-                gRequestDisplayScreen = DISPLAY_MAIN;
+            // Build channel number from digits entered so far
+            uint16_t Channel = 0;
+            for (uint8_t i = 0; i < gInputBoxIndex; i++) {
+                Channel = (Channel * 10) + gInputBox[i];
+            }
+
+            // Channel numbers are 1-based on display, 0-based internally
+            if (Channel > 0) {
+                // Live preview: tune to the channel as digits are typed
+                if (RADIO_CheckValidChannel(Channel - 1, false, 0)) {
+                    gEeprom.MrChannel[Vfo]     = (uint8_t)(Channel - 1);
+                    gEeprom.ScreenChannel[Vfo] = (uint8_t)(Channel - 1);
+                    gVfoConfigureMode          = VFO_CONFIGURE_RELOAD;
+                }
+            }
+
+            // After 3 digits always commit and reset input
+            if (gInputBoxIndex >= 3) {
+                if (!RADIO_CheckValidChannel(Channel - 1, false, 0)) {
+                    gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+                }
+                gInputBoxIndex = 0;
+                gRequestSaveVFO = true;
+                gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
                 return;
             }
 
-            gInputBoxIndex = 0;
+            // Use a shorter timeout so the user can confirm quickly by waiting
+            gKeyInputCountdown = (key_input_timeout_500ms / 4);
 
-            const uint16_t Channel = ((gInputBox[0] * 100) + (gInputBox[1] * 10) + gInputBox[2]) - 1;
-
-            if (!RADIO_CheckValidChannel(Channel, false, 0)) {
-                gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-                return;
-            }
-
-#ifdef ENABLE_VOICE
-            gAnotherVoiceID        = (VOICE_ID_t)Key;
-#endif
-
-            gEeprom.MrChannel[Vfo] = (uint8_t) Channel;
-            gEeprom.ScreenChannel[Vfo] = (uint8_t) Channel;
-            gRequestSaveVFO = true;
-            gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
-
+            gRequestDisplayScreen = DISPLAY_MAIN;
             return;
         }
 
@@ -554,6 +561,34 @@ static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
         }
 #endif
 
+        // Process pending channel input (1-3 digits) when M key is pressed
+        if (gInputBoxIndex >= 1 && gInputBoxIndex <= 3 && gScreenToDisplay == DISPLAY_MAIN) {
+            const unsigned int Vfo = gEeprom.TX_VFO;
+            if (IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE)) {
+                uint16_t Channel = 0;
+                if (gInputBox[0] >= 1 && gInputBox[0] <= 9) {
+                    if (gInputBox[1] == 10 && gInputBox[2] == 10) {
+                        // 1 digit input
+                        Channel = gInputBox[0] - 1;
+                    } else if (gInputBox[1] >= 0 && gInputBox[1] <= 9 && gInputBox[2] == 10) {
+                        // 2 digit input
+                        Channel = ((gInputBox[0] * 10) + gInputBox[1]) - 1;
+                    } else if (gInputBox[1] >= 0 && gInputBox[1] <= 9 && gInputBox[2] >= 0 && gInputBox[2] <= 9) {
+                        // 3 digit input
+                        Channel = ((gInputBox[0] * 100) + (gInputBox[1] * 10) + gInputBox[2]) - 1;
+                    }
+                }
+                if (RADIO_CheckValidChannel(Channel, false, 0)) {
+                    gEeprom.MrChannel[Vfo] = (uint8_t) Channel;
+                    gEeprom.ScreenChannel[Vfo] = (uint8_t) Channel;
+                    gRequestSaveVFO = true;
+                    gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
+                }
+                gInputBoxIndex = 0;
+                gRequestDisplayScreen = DISPLAY_MAIN;
+                return;
+            }
+        }
 
         const bool bFlag = !gInputBoxIndex;
         gInputBoxIndex = 0;

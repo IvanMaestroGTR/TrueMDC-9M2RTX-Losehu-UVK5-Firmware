@@ -63,7 +63,19 @@ static void SCANNER_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) 
 
             gInputBoxIndex = 0;
 
-            uint16_t chan = ((gInputBox[0] * 100) + (gInputBox[1] * 10) + gInputBox[2]) - 1;
+            uint16_t chan = 0;
+            if (gInputBox[0] >= 1 && gInputBox[0] <= 9) {
+                if (gInputBox[1] == 10 && gInputBox[2] == 10) {
+                    // 1 digit input
+                    chan = gInputBox[0] - 1;
+                } else if (gInputBox[1] >= 0 && gInputBox[1] <= 9 && gInputBox[2] == 10) {
+                    // 2 digit input
+                    chan = ((gInputBox[0] * 10) + gInputBox[1]) - 1;
+                } else if (gInputBox[1] >= 0 && gInputBox[1] <= 9 && gInputBox[2] >= 0 && gInputBox[2] <= 9) {
+                    // 3 digit input
+                    chan = ((gInputBox[0] * 100) + (gInputBox[1] * 10) + gInputBox[2]) - 1;
+                }
+            }
             if (IS_MR_CHANNEL(chan)) {
 #ifdef ENABLE_VOICE
                 gAnotherVoiceID = (VOICE_ID_t)Key;
