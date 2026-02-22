@@ -127,7 +127,7 @@ SpectrumSettings settings = {.stepsCount = STEPS_64,
 uint32_t fMeasure = 0;
 uint32_t currentFreq, tempFreq;
 uint16_t rssiHistory[128];
-// Waterfall display buffers (8 levels × 8 lines = 1KB)
+// Waterfall display buffers (16 levels × 8 lines = 1KB)
 uint8_t waterfallHistory[128][8];  // 128 frequencies × 8 history depth
 uint8_t waterfallIndex = 0;
 int vfo;
@@ -983,7 +983,7 @@ static void InitWaterfall(void)
 }
 
 /**
- * @brief Update waterfall display data with 8-level grayscale processing
+ * @brief Update waterfall display data with 16-level grayscale processing
  */
 static void UpdateWaterfall(void)
 {
@@ -1005,7 +1005,7 @@ static void UpdateWaterfall(void)
         }
     }
 
-    // Waterfall processing with 8-level grayscale (3-bit)
+    // Waterfall processing with 16-level grayscale (4-bit)
     for (uint8_t x = 0; x < 128; x++)
     {
         uint16_t rssi = rssiHistory[x];
@@ -1017,13 +1017,13 @@ static void UpdateWaterfall(void)
         }
         else if (validSamples > 0)
         {
-            // Convert RSSI to 8-level grayscale (0-7)
+            // Convert RSSI to 16-level grayscale (0-15)
             uint16_t range = (maxRssi > minRssi) ? (maxRssi - minRssi) : 1;
-            uint32_t normalized = ((rssi - minRssi) * 7) / range;
-            level = (uint8_t)(normalized & 0x07);
+            uint32_t normalized = ((rssi - minRssi) * 15) / range;
+            level = (uint8_t)(normalized & 0x0F);
             
             // Boost visibility for weak signals
-            if (level > 0 && level < 2) level = 2;
+            if (level > 0 && level < 3) level = 3;
         }
         else
         {
@@ -1035,16 +1035,16 @@ static void UpdateWaterfall(void)
 }
 
 /**
- * @brief Render waterfall display with 4x4 Bayer dithering (8-level grayscale)
+ * @brief Render waterfall display with 4x4 Bayer dithering (16-level grayscale)
  */
 static void DrawWaterfall(void)
 {
-    // 4x4 Bayer dithering matrix for 8 levels (0-7)
+    // 4x4 Bayer dithering matrix for 16 levels (0-15)
     static const uint8_t bayerMatrix[4][4] = {
-        { 0, 4, 1, 5 },
-        { 6, 2, 7, 3 },
-        { 1, 5, 0, 4 },
-        { 7, 3, 6, 2 }
+        {  0,  8,  2, 10 },
+        { 12,  4, 14,  6 },
+        {  3, 11,  1,  9 },
+        { 15,  7, 13,  5 }
     };
 
     const uint8_t WATERFALL_START_Y = 41;
@@ -1082,7 +1082,7 @@ static void DrawWaterfall(void)
                                     (uint16_t)l1 * fracNumerator) / fracDenom;
             
             uint8_t level = (uint8_t)interpValue;
-            if (level > 7) level = 7;
+            if (level > 15) level = 15;
 
             // 4x4 Bayer dithering
             uint8_t matrixX = x & 3;

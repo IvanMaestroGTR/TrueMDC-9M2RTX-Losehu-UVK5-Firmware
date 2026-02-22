@@ -71,12 +71,22 @@ void UI_DisplayWelcome(void) {
 #endif
     UI_PrintStringSmall(WelcomeString0, 0, 127, 0);
     UI_PrintStringSmall(WelcomeString1, 0, 127, 2);
+    
+    // Firmware version text on line 4
+    UI_PrintStringSmall(Version, 0, 127, 4);
+    
+    // Invert box around firmware version (line 4 only, full width)
+    for (uint8_t i = 0; i < 128; i++)
+    {
+        gFrameBuffer[4][i] ^= 0xFF;
+    }
+    
+    // Voltage and battery level (line 6)
     sprintf(WelcomeString1, "%u.%02uV %u%%",
             gBatteryVoltageAverage / 100,
             gBatteryVoltageAverage % 100,
             BATTERY_VoltsToPercent(gBatteryVoltageAverage));
-    UI_PrintStringSmall(WelcomeString1, 0, 127, 4);
-    UI_PrintStringSmall(Version, 0, 127, 6);
+    UI_PrintStringSmall(WelcomeString1, 0, 127, 6);
 #if ENABLE_CHINESE_FULL == 4
     }
     else if(gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_PIC)

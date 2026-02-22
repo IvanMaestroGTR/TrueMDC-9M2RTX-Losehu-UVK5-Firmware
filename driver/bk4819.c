@@ -326,8 +326,11 @@ void BK4819_PlayRoger(void) {
 #ifdef ENABLE_MESSENGER
     if(stop_mdc_flag) return;
 #endif
-    if (gEeprom.ROGER == ROGER_MODE_ROGER || gEeprom.ROGER == ROGER_MODE_MDC_HEAD_ROGER)
+    if (gEeprom.ROGER == ROGER_MODE_ROGER)
         BK4819_PlayRogerNormal();
+    else
+    if (gEeprom.ROGER == ROGER_MODE_ROGER_2)
+        BK4819_PlayRogerTwo();
 #ifdef ENABLE_MDC1200
     else
     if ((gEeprom.ROGER == ROGER_MODE_MDC_END||gEeprom.ROGER==ROGER_MODE_MDC_BOTH)
@@ -335,13 +338,19 @@ void BK4819_PlayRoger(void) {
 
     ) {
 
+        // Mute mic before POST-ID MDC delay
+        BK4819_MuteMic();
+        
         // small delay before sending the POST-ID MDC packet (≈100 ms)
-        SYSTEM_DelayMs(200);
+        SYSTEM_DelayMs(50);
 
         // Determine preamble duration based on MDC preamble settings
         uint8_t preamble_duration = (gEeprom.MDC1200_PREAMBLE_WHEN == MDC_PREAMBLE_WHEN_PRE) ? 
                                      0 : gEeprom.MDC1200_PREAMBLE_DURATION;
         BK4819_send_MDC1200(MDC1200_OP_CODE_POST_ID, 0x00, gEeprom.MDC1200_ID, preamble_duration);
+        
+        // Short delay after POST-ID MDC before ending TX (20ms) - mic stays muted
+        SYSTEM_DelayMs(20);
 
     }
 #endif
@@ -782,7 +791,7 @@ void BK4819_SetupSquelch(
             // original (*)
                          (1u << 14) |                  //  1 ???
                          (5u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
-                         (6u << 9) |                  // *3  squelch = close delay .. 0 ~ 3
+                         (0u << 9) |                  // *0  squelch = close delay .. 0 ~ 3 (0 = shortest tail)
                          SquelchOpenGlitchThresh);     //  0 ~ 255
 
 
@@ -1687,7 +1696,6 @@ void BK4819_PrepareFSKReceive(void) {
 
 
 void BK4819_PlayRogerNormal(void) {
-    // Puxing style: F7, DFlat7, BFlat6 - each 250ms, no spacing
     const uint32_t tone1_Hz = 1397;  // F7
     const uint32_t tone2_Hz = 1109;  // DFlat7
     const uint32_t tone3_Hz = 932;  // BFlat6
@@ -1714,6 +1722,41 @@ void BK4819_PlayRogerNormal(void) {
 
     // Third tone: BFlat6 (1865 Hz) - 250ms - no gap
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone3_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(50);
+    BK4819_EnterTxMute();
+
+    BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);   // 1 1 0000 0 1 1111 1 1 1 0
+}
+
+void BK4819_PlayRogerTwo(void) {
+    const uint32_t tone1_Hz = 1001;  
+
+    BK4819_EnterTxMute();
+    BK4819_SetAF(BK4819_AF_MUTE);
+
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+
+    BK4819_EnableTXLink();
+    SYSTEM_DelayMs(25);
+
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(25);
+    BK4819_EnterTxMute();
+
+    SYSTEM_DelayMs(25);
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(25);
+    BK4819_EnterTxMute();
+
+    SYSTEM_DelayMs(25);
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
     BK4819_ExitTxMute();
     SYSTEM_DelayMs(50);
     BK4819_EnterTxMute();
@@ -2039,19 +2082,21 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
         BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
         BK4819_WriteRegister(0x59, fsk_reg59);
 
-        // Load entire combined packet (preamble + MDC) into FIFO
+        // Load entire combined packet (preamble + MDC) into FIFO, skipping initial 2 mdc1200_pre_amble bytes
         // Load as 16-bit words, then handle any remaining byte
         {
             unsigned int i;
-            const uint16_t *p = (const uint16_t *)combined_packet;
+            const uint16_t *p = (const uint16_t *)(combined_packet + 2);  // Start from offset 2 to skip {0x00, 0xFF}
+            const uint8_t *p8 = combined_packet;
+            unsigned int load_size = (combined_size > 2) ? (combined_size - 2) : 0;
+            
             // Load all complete 16-bit words
-            for (i = 0; i < (combined_size / 2); i++)
+            for (i = 0; i < (load_size / 2); i++)
                 BK4819_WriteRegister(0x5F, p[i]);
             
             // If there's an odd byte remaining, load it as the low byte of a 16-bit word
-            if (combined_size & 1) {
-                const uint8_t *p8 = (const uint8_t *)combined_packet;
-                BK4819_WriteRegister(0x5F, (uint16_t)p8[combined_size - 1]);
+            if (load_size & 1) {
+                BK4819_WriteRegister(0x5F, (uint16_t)p8[2 + load_size - 1]);
             }
         }
 

@@ -168,8 +168,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep) {
 }
 
 void AUDIO_PlayBootBeep(void) {
-    // A5 D5 A5 pattern: long beep (A5=880Hz), short beep (D5=587Hz), long beep (A5=880Hz)
-    // This plays the boot beep sound if BOOT_BEEP_CONTROL is enabled
+    // Classic Motorola boot beep: ascending tone pattern (440Hz -> 880Hz -> 1320Hz)
     
     if (!gEeprom.BOOT_BEEP_CONTROL)
         return;

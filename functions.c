@@ -204,13 +204,16 @@ void FUNCTION_Transmit() {
 #ifdef ENABLE_MESSENGER
     if(!stop_mdc_flag){
 #endif
-    if ((gEeprom.ROGER == ROGER_MODE_MDC_HEAD || gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||gEeprom.ROGER == ROGER_MODE_MDC_HEAD_ROGER)
+    if ((gEeprom.ROGER == ROGER_MODE_MDC_HEAD || gEeprom.ROGER == ROGER_MODE_MDC_BOTH)
 
 
         ) {
 //        BK4819_start_tone(740, 60, true, true);
 //                            SYSTEM_DelayMs(120);
 //                            BK4819_stop_tones(true);    //off as they get quite annoying sometimes...
+        // Mute mic before PRE-ID MDC transmission
+        BK4819_MuteMic();
+        
         // 325ms delay before sending the PRE-ID MDC packet
         SYSTEM_DelayMs(325);
         
@@ -224,16 +227,16 @@ void FUNCTION_Transmit() {
         BK4819_send_MDC1200(1, 0x80, gEeprom.MDC1200_ID, preamble_duration);
 
 #ifdef ENABLE_MDC1200_SIDE_BEEP
-        BK4819_start_tone(1175, 60, true, true);
+        BK4819_start_tone(880, 50, true, true);
                                     SYSTEM_DelayMs(150);
                                     BK4819_stop_tones(true);
         //BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
         
 #endif
     } else {
-        // Play side tone sequence only when PRE MDC ID is not enabled
+         //Play side tone sequence only when PRE MDC ID is not enabled
 #ifdef ENABLE_MDC1200_SIDE_BEEP
-        BK4819_start_tone(1175, 60, true, true);
+        BK4819_start_tone(880, 50, true, true);
                                     SYSTEM_DelayMs(150);
                                     BK4819_stop_tones(true);
         //BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);

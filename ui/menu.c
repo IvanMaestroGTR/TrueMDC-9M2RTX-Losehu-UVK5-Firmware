@@ -388,11 +388,11 @@ const char gSubMenu_ROGER[][13] =
 //                "MDC"
 
                 关闭,
-                ROGER尾音,
-                MDC尾音,
-                MDC首音,
-                MDC首尾音,
-                MDC首音加ROGER
+                Roger_1,
+                Roger_2,
+                Post_MDC,
+                Pre_MDC,
+                Both_MDC
         };
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
 
