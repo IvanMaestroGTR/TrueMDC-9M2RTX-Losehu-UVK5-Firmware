@@ -202,13 +202,31 @@ const char gSubMenu_SFT_D[][10] =//4
 
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
 #ifdef ENABLE_ENGLISH
+const char gSubMenu_STE[][8] =  // 0=OFF, 1=ON (180°)
+{
+    "OFF",
+    "ON"
+};
+
 const char gSubMenu_OFF_ON[][4] =
 
 #else
+const char gSubMenu_STE[][8] =
+{
+    "关闭",
+    "开启"
+};
+
 const char gSubMenu_OFF_ON[][3] =//4
 #endif
 
 #else
+        const char gSubMenu_STE[][8] =
+{
+    "关闭",       // OFF
+    "开启"        // ON (180°)
+};
+
         const char gSubMenu_OFF_ON[][5] =//4
 #endif
         {
@@ -911,6 +929,9 @@ void UI_DisplayMenu(void) {
 //        case MENU_S_ADD1:
 //        case MENU_S_ADD2:
         case MENU_STE:
+            strcpy(String, gSubMenu_STE[gSubMenuSelection]);
+            break;
+
         case MENU_D_ST:
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS

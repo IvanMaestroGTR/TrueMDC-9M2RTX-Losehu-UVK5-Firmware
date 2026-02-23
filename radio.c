@@ -649,7 +649,6 @@ void RADIO_SetupRegisters(bool switchToForeground) {
                 default:
                 case CODE_TYPE_OFF:
                     BK4819_SetCTCSSFrequency(670);
-
                     //#ifndef ENABLE_CTCSS_TAIL_PHASE_SHIFT
                     BK4819_SetTailDetection(550);        // QS's 55Hz tone method
                     //#else
@@ -669,11 +668,6 @@ void RADIO_SetupRegisters(bool switchToForeground) {
                                 BK4819_SetCTCSSFrequency(CTCSS_Options_read);
 
 #endif
-                    //#ifndef ENABLE_CTCSS_TAIL_PHASE_SHIFT
-                    BK4819_SetTailDetection(550);        // QS's 55Hz tone method
-                    //#else
-                    //	BK4819_SetTailDetection(CTCSS_Options[Code]);
-                    //#endif
 
                     InterruptMask = 0
                                     | BK4819_REG_3F_CxCSS_TAIL
@@ -1058,16 +1052,25 @@ void RADIO_PrepareTX(void) {
 }
 
 void RADIO_SendCssTail(void) {
-    switch (gCurrentVfo->pTX->CodeType) {
+    uint8_t CodeType = gCurrentVfo->pTX->CodeType;
+    
+    // Only send phase shift tail for CTCSS/DCS coded channels
+    if (CodeType == CODE_TYPE_OFF) {
+        return;  // No code configured, skip tail
+    }
+    
+    switch (CodeType) {
         case CODE_TYPE_DIGITAL:
         case CODE_TYPE_REVERSE_DIGITAL:
             BK4819_PlayCDCSSTail();
             break;
+        case CODE_TYPE_CONTINUOUS_TONE:
         default:
-            BK4819_PlayCTCSSTail();
+            BK4819_PlayCTCSSTail();  // 180° phase shift
             break;
     }
 
+    // Fixed 200ms delay for 180° phase shift
     SYSTEM_DelayMs(200);
 }
 
@@ -1075,6 +1078,7 @@ void RADIO_PrepareCssTX(void) {
     RADIO_PrepareTX();
 
     SYSTEM_DelayMs(200);
+
 
     if (gEeprom.TAIL_TONE_ELIMINATION)
         RADIO_SendCssTail();

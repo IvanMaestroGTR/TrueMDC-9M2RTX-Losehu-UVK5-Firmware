@@ -64,6 +64,7 @@
 #include "driver/system.h"
 #include "am_fix.h"
 #include "dtmf.h"
+#include "tx_compressor.h"
 //#include "external/printf/printf.h"
 #include "frequencies.h"
 #include "functions.h"
@@ -723,6 +724,7 @@ static void CheckRadioInterrupts(void) {
 
 void APP_EndTransmission(bool inmediately) {
     // back to RX mode
+    TX_COMPRESSOR_Stop();
     RADIO_SendEndOfTransmission();
     if (gMonitor) {
         //turn the monitor back on
@@ -1221,6 +1223,9 @@ gAlarmState = ALARM_STATE_SITE_ALARM;
                 gUpdateDisplay = true;
             }
         }
+
+        // TX processing
+        TX_COMPRESSOR_Process();
     }
 
 #ifdef ENABLE_FMRADIO

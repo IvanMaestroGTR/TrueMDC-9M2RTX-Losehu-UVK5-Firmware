@@ -46,6 +46,7 @@
 #include "misc.h"
 #include "radio.h"
 #include "settings.h"
+#include "tx_compressor.h"
 #include "ui/status.h"
 #include "ui/ui.h"
 
@@ -61,6 +62,8 @@ bool FUNCTION_IsRx()
 
 void FUNCTION_Init(void)
 {
+    TX_COMPRESSOR_Init();
+
     g_CxCSS_TAIL_Found = false;
     g_CDCSS_Lost       = false;
     g_CTCSS_Lost       = false;
@@ -236,6 +239,8 @@ void FUNCTION_Transmit() {
     } else {
          //Play side tone sequence only when PRE MDC ID is not enabled
 #ifdef ENABLE_MDC1200_SIDE_BEEP
+        BK4819_MuteMic();
+        SYSTEM_DelayMs(150);
         BK4819_start_tone(880, 50, true, true);
                                     SYSTEM_DelayMs(150);
                                     BK4819_stop_tones(true);
@@ -282,6 +287,8 @@ void FUNCTION_Transmit() {
 //    if (gSetting_backlight_on_tx_rx & BACKLIGHT_ON_TR_TX) {
     BACKLIGHT_TurnOn();
 //    }
+
+    TX_COMPRESSOR_Start();
 }
 
 
