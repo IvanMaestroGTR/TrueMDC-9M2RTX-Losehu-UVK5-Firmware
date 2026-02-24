@@ -240,7 +240,7 @@ void FUNCTION_Transmit() {
          //Play side tone sequence only when PRE MDC ID is not enabled
 #ifdef ENABLE_MDC1200_SIDE_BEEP
         BK4819_MuteMic();
-        SYSTEM_DelayMs(150);
+        SYSTEM_DelayMs(200);
         BK4819_start_tone(880, 50, true, true);
                                     SYSTEM_DelayMs(150);
                                     BK4819_stop_tones(true);
