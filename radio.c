@@ -1052,26 +1052,44 @@ void RADIO_PrepareTX(void) {
 }
 
 void RADIO_SendCssTail(void) {
-    uint8_t CodeType = gCurrentVfo->pTX->CodeType;
+    STE_Mode_t STE_Mode = gCurrentVfo->pTX->STE_Mode;
     
-    // Only send phase shift tail for CTCSS/DCS coded channels
-    if (CodeType == CODE_TYPE_OFF) {
-        return;  // No code configured, skip tail
+    // Mode OFF: Send no squelch tail eliminator
+    if (STE_Mode == STE_OFF) {
+        return;
     }
     
-    switch (CodeType) {
-        case CODE_TYPE_DIGITAL:
-        case CODE_TYPE_REVERSE_DIGITAL:
-            BK4819_PlayCDCSSTail();
-            break;
-        case CODE_TYPE_CONTINUOUS_TONE:
-        default:
-            BK4819_PlayCTCSSTail();  // 180° phase shift
-            break;
+    // Mode 55Hz: Send 55Hz tone for all channels
+    if (STE_Mode == STE_55Hz) {
+        BK4819_GenTail(4);       // 55Hz tone freq
+        BK4819_WriteRegister(BK4819_REG_51, 0x904A);
+        SYSTEM_DelayMs(200);
+        return;
     }
-
-    // Fixed 200ms delay for 180° phase shift
-    SYSTEM_DelayMs(200);
+    
+    // Mode 180°: Send 180° phase shift, but only for CTCSS/DCS channels
+    if (STE_Mode == STE_180) {
+        uint8_t CodeType = gCurrentVfo->pTX->CodeType;
+        
+        // Only send phase shift tail for CTCSS/DCS coded channels
+        if (CodeType == CODE_TYPE_OFF) {
+            return;  // No code configured, skip tail
+        }
+        
+        switch (CodeType) {
+            case CODE_TYPE_DIGITAL:
+            case CODE_TYPE_REVERSE_DIGITAL:
+                BK4819_PlayCDCSSTail();
+                break;
+            case CODE_TYPE_CONTINUOUS_TONE:
+            default:
+                BK4819_PlayCTCSSTail();  // 180° phase shift
+                break;
+        }
+        
+        // Fixed 200ms delay for 180° phase shift
+        SYSTEM_DelayMs(200);
+    }
 }
 
 void RADIO_PrepareCssTX(void) {

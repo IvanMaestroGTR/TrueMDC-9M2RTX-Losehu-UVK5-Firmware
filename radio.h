@@ -70,12 +70,20 @@ typedef enum {
 
 extern const char gModulationStr[MODULATION_UKNOWN][4];
 
+enum STE_Mode_t {
+    STE_OFF = 0,      // No squelch tail eliminator
+    STE_55Hz,         // 55Hz squelch tail eliminator
+    STE_180           // 180° phase shift squelch tail eliminator
+};
+typedef enum STE_Mode_t STE_Mode_t;
+
 typedef struct
 {
     uint32_t       Frequency;
     DCS_CodeType_t CodeType;
     uint8_t        Code;
-    uint8_t        Padding[2];
+    STE_Mode_t     STE_Mode;
+    uint8_t        Padding[1];
 } FREQ_Config_t;
 
 typedef struct VFO_Info_t

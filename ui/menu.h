@@ -183,14 +183,14 @@ extern const char gSubMenu_W_N[2][5];//7
 #endif
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
 #ifdef ENABLE_ENGLISH
-extern const char gSubMenu_STE[2][8];      // 0=OFF, 1=ON (180°)
+extern const char gSubMenu_STE[3][8];      // 0=OFF, 1=55Hz, 2=180°
 extern const char        gSubMenu_OFF_ON[2][4];//4
 #else
-extern const char gSubMenu_STE[2][8];      // 0=OFF, 1=ON (180°)
+extern const char gSubMenu_STE[3][8];      // 0=OFF, 1=55Hz, 2=180°
 extern const char        gSubMenu_OFF_ON[2][3];//4
 #endif
 #else
-extern const char gSubMenu_STE[2][8];      // 0=OFF, 1=ON (180°)
+extern const char gSubMenu_STE[3][8];      // 0=OFF, 1=55Hz, 2=180°
 extern const char gSubMenu_OFF_ON[2][5];//4
 #endif
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)

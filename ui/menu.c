@@ -202,10 +202,11 @@ const char gSubMenu_SFT_D[][10] =//4
 
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
 #ifdef ENABLE_ENGLISH
-const char gSubMenu_STE[][8] =  // 0=OFF, 1=ON (180°)
+const char gSubMenu_STE[][8] =  // 0=OFF, 1=55Hz, 2=180°
 {
     "OFF",
-    "ON"
+    "55Hz",
+    "180"
 };
 
 const char gSubMenu_OFF_ON[][4] =
@@ -214,7 +215,8 @@ const char gSubMenu_OFF_ON[][4] =
 const char gSubMenu_STE[][8] =
 {
     "关闭",
-    "开启"
+    "55Hz",
+    "180°"
 };
 
 const char gSubMenu_OFF_ON[][3] =//4
@@ -224,7 +226,8 @@ const char gSubMenu_OFF_ON[][3] =//4
         const char gSubMenu_STE[][8] =
 {
     "关闭",       // OFF
-    "开启"        // ON (180°)
+    "55Hz",      // 55Hz
+    "180°"       // 180°
 };
 
         const char gSubMenu_OFF_ON[][5] =//4

@@ -270,6 +270,11 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMin = 0;
             *pMax = 50;
             break;
+
+        case MENU_STE:
+            *pMin = 0;
+            *pMax = ARRAY_SIZE(gSubMenu_STE) - 1;
+            break;
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
 
             case MENU_W_N:
@@ -313,7 +318,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             //case MENU_AUTOLK:
             //case MENU_S_ADD1:
             //case MENU_S_ADD2:
-        case MENU_STE:
+//        case MENU_STE:
         case MENU_D_ST:
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
@@ -689,7 +694,8 @@ void MENU_AcceptSetting(void) {
 //			return;
 
         case MENU_STE:
-            gEeprom.TAIL_TONE_ELIMINATION = gSubMenuSelection;
+            gTxVfo->freq_config_TX.STE_Mode = gSubMenuSelection;
+            gRequestSaveChannel = 1;
             break;
 
         case MENU_RP_STE:
@@ -1105,7 +1111,7 @@ void MENU_ShowCurrentSetting(void) {
 //			break;
 
         case MENU_STE:
-            gSubMenuSelection = gEeprom.TAIL_TONE_ELIMINATION;
+            gSubMenuSelection = gTxVfo->freq_config_TX.STE_Mode;
             break;
 
         case MENU_RP_STE:
