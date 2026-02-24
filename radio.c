@@ -1052,7 +1052,7 @@ void RADIO_PrepareTX(void) {
 }
 
 void RADIO_SendCssTail(void) {
-    STE_Mode_t STE_Mode = gCurrentVfo->pTX->STE_Mode;
+    STE_Mode_t STE_Mode = (STE_Mode_t)gEeprom.TAIL_TONE_ELIMINATION;
     
     // Mode OFF: Send no squelch tail eliminator
     if (STE_Mode == STE_OFF) {

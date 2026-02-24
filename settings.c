@@ -68,7 +68,7 @@ void SETTINGS_InitEEPROM(void)
     gEeprom.BATTERY_SAVE          = (Data[3] < 5) ? Data[3] : 4;
     gEeprom.DUAL_WATCH            = (Data[4] < 3) ? Data[4] : DUAL_WATCH_CHAN_A;
     gEeprom.BACKLIGHT_TIME        = (Data[5] < ARRAY_SIZE(gSubMenu_BACKLIGHT)) ? Data[5] : 3;
-    gEeprom.TAIL_TONE_ELIMINATION = (Data[6] < 2) ? Data[6] : 0;  // 0=OFF, 1=ON (180°)
+    gEeprom.TAIL_TONE_ELIMINATION = (Data[6] < 3) ? Data[6] : 0;  // 0=OFF, 1=ON (180°)
     gEeprom.VFO_OPEN              = (Data[7] < 2) ? Data[7] : true;
 
     // 0E80..0E87

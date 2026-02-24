@@ -694,8 +694,7 @@ void MENU_AcceptSetting(void) {
 //			return;
 
         case MENU_STE:
-            gTxVfo->freq_config_TX.STE_Mode = gSubMenuSelection;
-            gRequestSaveChannel = 1;
+            gEeprom.TAIL_TONE_ELIMINATION = gSubMenuSelection;
             break;
 
         case MENU_RP_STE:
@@ -1111,7 +1110,7 @@ void MENU_ShowCurrentSetting(void) {
 //			break;
 
         case MENU_STE:
-            gSubMenuSelection = gTxVfo->freq_config_TX.STE_Mode;
+            gSubMenuSelection = gEeprom.TAIL_TONE_ELIMINATION;
             break;
 
         case MENU_RP_STE:
