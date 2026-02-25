@@ -99,7 +99,7 @@
 #define 关闭 "OFF"
 #define Roger_1 "Roger 1\n(PXNG)"
 #define Roger_2 "Roger 2\n(TPT)"
-#define Roger_3 "Roger 3\n(F1)"
+#define Roger_3 "Roger 3\n(TRBO)"
 #define Post_MDC "Post MDC"
 #define Pre_MDC "Pre MDC"
 #define Both_MDC "Both MDC"

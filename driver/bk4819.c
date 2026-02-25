@@ -1774,10 +1774,8 @@ void BK4819_PlayRogerTwo(void) {
 }
 
 void BK4819_PlayRogerThree(void) {
-    const uint32_t tone1_Hz = 526;
-    const uint32_t tone2_Hz = 779;
-    const uint32_t tone3_Hz = 1179;
-    const uint32_t tone4_Hz = 992;
+    const uint32_t tone1_Hz = 627;
+    const uint32_t tone2_Hz = 959;
 
     BK4819_EnterTxMute();
     AUDIO_AudioPathOn();
@@ -1790,25 +1788,12 @@ void BK4819_PlayRogerThree(void) {
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
     BK4819_ExitTxMute();
-    SYSTEM_DelayMs(75);
+    SYSTEM_DelayMs(100);
     BK4819_EnterTxMute();
-    SYSTEM_DelayMs(10);
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone2_Hz));
     BK4819_ExitTxMute();
-    SYSTEM_DelayMs(50);
-    BK4819_EnterTxMute();
-    SYSTEM_DelayMs(10);
-
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone3_Hz));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(50);
-    BK4819_EnterTxMute();
-    SYSTEM_DelayMs(10);
-
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone4_Hz));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(50);
+    SYSTEM_DelayMs(40);
     BK4819_EnterTxMute();
 
     BK4819_WriteRegister(BK4819_REG_70, 0x0000);
