@@ -97,7 +97,7 @@
 #define 上线加下线码 "UP+DOWN\nCODE"
 #define Quindar码 "APOLLO\nQUINDAR"
 #define 关闭 "OFF"
-#define Roger_1 "Roger 1\n(Puxing)"
+#define Roger_1 "Roger 1\n(PXNG)"
 #define Roger_2 "Roger 2\n(TPT)"
 #define Roger_3 "Roger 3\n(F1)"
 #define Post_MDC "Post MDC"
