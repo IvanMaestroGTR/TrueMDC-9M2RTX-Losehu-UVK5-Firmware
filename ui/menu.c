@@ -411,6 +411,7 @@ const char gSubMenu_ROGER[][13] =
                 关闭,
                 Roger_1,
                 Roger_2,
+                Roger_3,
                 Post_MDC,
                 Pre_MDC,
                 Both_MDC
