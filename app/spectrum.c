@@ -127,9 +127,6 @@ SpectrumSettings settings = {.stepsCount = STEPS_64,
 uint32_t fMeasure = 0;
 uint32_t currentFreq, tempFreq;
 uint16_t rssiHistory[128];
-// Waterfall display buffers (16 levels × 8 lines = 1KB)
-uint8_t waterfallHistory[128][8];  // 128 frequencies × 8 history depth
-uint8_t waterfallIndex = 0;
 int vfo;
 uint8_t freqInputIndex = 0;
 uint8_t freqInputDotIndex = 0;
@@ -969,138 +966,6 @@ static void DrawArrow(uint8_t x) {
     }
 }
 
-// =============================================================================
-// WATERFALL DISPLAY FUNCTIONS
-// =============================================================================
-
-/**
- * @brief Initialize waterfall display buffers
- */
-static void InitWaterfall(void)
-{
-    memset(waterfallHistory, 0, sizeof(waterfallHistory));
-    waterfallIndex = 0;
-}
-
-/**
- * @brief Update waterfall display data with 16-level grayscale processing
- */
-static void UpdateWaterfall(void)
-{
-    waterfallIndex = (waterfallIndex + 1) % 8;
-
-    // Calculate noise floor and signal detection threshold
-    uint16_t minRssi = 65535, maxRssi = 0;
-    uint16_t validSamples = 0;
-
-    // Analyze current spectrum for dynamic thresholding
-    for (uint8_t x = 0; x < 128; x++)
-    {
-        uint16_t rssi = rssiHistory[x];
-        if (rssi != RSSI_MAX_VALUE && rssi != 0)
-        {
-            if (rssi < minRssi) minRssi = rssi;
-            if (rssi > maxRssi) maxRssi = rssi;
-            validSamples++;
-        }
-    }
-
-    // Waterfall processing with 16-level grayscale (4-bit)
-    for (uint8_t x = 0; x < 128; x++)
-    {
-        uint16_t rssi = rssiHistory[x];
-        uint8_t level;
-
-        if (rssi == RSSI_MAX_VALUE || rssi == 0)
-        {
-            level = 0;  // No data
-        }
-        else if (validSamples > 0)
-        {
-            // Convert RSSI to 16-level grayscale (0-15)
-            uint16_t range = (maxRssi > minRssi) ? (maxRssi - minRssi) : 1;
-            uint32_t normalized = ((rssi - minRssi) * 15) / range;
-            level = (uint8_t)(normalized & 0x0F);
-            
-            // Boost visibility for weak signals
-            if (level > 0 && level < 3) level = 3;
-        }
-        else
-        {
-            level = 0;
-        }
-
-        waterfallHistory[x][waterfallIndex] = level;
-    }
-}
-
-/**
- * @brief Render waterfall display with 4x4 Bayer dithering (16-level grayscale)
- */
-static void DrawWaterfall(void)
-{
-    // 4x4 Bayer dithering matrix for 16 levels (0-15)
-    static const uint8_t bayerMatrix[4][4] = {
-        {  0,  8,  2, 10 },
-        { 12,  4, 14,  6 },
-        {  3, 11,  1,  9 },
-        { 15,  7, 13,  5 }
-    };
-
-    const uint8_t WATERFALL_START_Y = 41;
-    const uint8_t WATERFALL_HEIGHT = 8;
-    const uint8_t WATERFALL_WIDTH = 128;
-    const uint16_t SPEC_WIDTH = GetStepsCount();
-    
-    // Calculate scaling factor
-    const float xScale = (float)SPEC_WIDTH / WATERFALL_WIDTH;
-
-    for (uint8_t y_offset = 0; y_offset < WATERFALL_HEIGHT; y_offset++)
-    {
-        // Circular buffer indexing
-        int8_t historyRow = (int8_t)waterfallIndex - (int8_t)y_offset;
-        if (historyRow < 0) historyRow += 8;
-
-        uint8_t y_pos = WATERFALL_START_Y + y_offset;
-        if (y_pos > 63) break;
-
-        for (uint8_t x = 0; x < WATERFALL_WIDTH; x++)
-        {
-            // Linear interpolation between adjacent frequency bins
-            uint16_t specIdx = (uint16_t)(x * xScale);
-            if (specIdx >= SPEC_WIDTH - 1) specIdx = SPEC_WIDTH - 2;
-            
-            uint8_t l0 = waterfallHistory[specIdx][historyRow];
-            uint8_t l1 = waterfallHistory[specIdx + 1][historyRow];
-            
-            // Fractional part for interpolation
-            uint16_t fracNumerator = (uint16_t)(((uint32_t)x * SPEC_WIDTH * 256) / WATERFALL_WIDTH) % 256;
-            uint16_t fracDenom = 256;
-            
-            // Blend levels (no fading - all rows same brightness)
-            uint16_t interpValue = ((uint16_t)l0 * (fracDenom - fracNumerator) + 
-                                    (uint16_t)l1 * fracNumerator) / fracDenom;
-            
-            uint8_t level = (uint8_t)interpValue;
-            if (level > 15) level = 15;
-
-            // 4x4 Bayer dithering
-            uint8_t matrixX = x & 3;
-            uint8_t matrixY = y_offset & 3;
-            uint8_t threshold = bayerMatrix[matrixY][matrixX];
-
-            // Draw pixel if level exceeds threshold
-            if (level > threshold) {
-                PutPixel(x, y_pos, true);
-            }
-        }
-    }
-}
-
-// =============================================================================
-// END OF WATERFALL FUNCTIONS
-// =============================================================================
-
 static void OnKeyDown(uint8_t key) {
     switch (key) {
         case KEY_3:
@@ -1376,7 +1241,6 @@ static void RenderSpectrum() {
     DrawRssiTriggerLevel();
     DrawF(peak.f);
     DrawNums();
-    DrawWaterfall();  // Render waterfall display
 }
 
 #ifdef ENABLE_DOPPLER
@@ -1603,9 +1467,6 @@ static void UpdateScan() {
         return;
     }
 
-    // Scan complete - update waterfall with complete scan data
-    UpdateWaterfall();
-
     if (scanInfo.measurementsCount < 128)
         memset(&rssiHistory[scanInfo.measurementsCount], 0,
                sizeof(rssiHistory) - scanInfo.measurementsCount * sizeof(rssiHistory[0]));
@@ -1758,7 +1619,6 @@ static void Tick() {
     RelaunchScan();
 
     memset(rssiHistory, 0, sizeof(rssiHistory));
-    InitWaterfall();  // Initialize waterfall display
     isInitialized = true;
 #ifdef ENABLE_DOPPLER
     statuslineUpdateTimer = 4097;

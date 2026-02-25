@@ -12,8 +12,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- * 
- * Waterfall features added - 16-level grayscale with 4x4 Bayer dithering
  */
 
 #ifndef SPECTRUM_H

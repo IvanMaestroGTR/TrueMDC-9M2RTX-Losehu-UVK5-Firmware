@@ -171,13 +171,13 @@ void UI_DisplayStatus() {
 //                break;
 //
 //            case 1:	{	// voltage
-//                const uint16_t voltage = (gBatteryVoltageAverage <= 999) ? gBatteryVoltageAverage : 999; // limit to 9.99V
-//                sprintf(s, "%u.%02uV", voltage / 100, voltage % 100);
+        const uint16_t voltage = (gBatteryVoltageAverage <= 999) ? gBatteryVoltageAverage : 999; // limit to 9.99V
+        sprintf(s, "%u.%02uV", voltage / 100, voltage % 100);
 //                break;
 //            }
 //
 //            case 2:		// percentage
-        sprintf(s, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+//        sprintf(s, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
 //                break;
 //        }
 
