@@ -331,8 +331,17 @@ void BK4819_PlayRoger(void) {
     else
     if (gEeprom.ROGER == ROGER_MODE_ROGER_2)
         BK4819_PlayRogerTwo();
+    else
     if (gEeprom.ROGER == ROGER_MODE_ROGER_3)
         BK4819_PlayRogerThree();
+    else
+    if (gEeprom.ROGER == ROGER_MODE_ROGER_4)
+        BK4819_PlayRogerFour();
+    else
+    if (gEeprom.ROGER == ROGER_MODE_ROGER_5)
+        BK4819_PlayRogerFive();    
+    
+    
 #ifdef ENABLE_MDC1200
     else
     if ((gEeprom.ROGER == ROGER_MODE_MDC_END||gEeprom.ROGER==ROGER_MODE_MDC_BOTH)
@@ -1794,6 +1803,70 @@ void BK4819_PlayRogerThree(void) {
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone2_Hz));
     BK4819_ExitTxMute();
     SYSTEM_DelayMs(40);
+    BK4819_EnterTxMute();
+
+    BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    AUDIO_AudioPathOff();
+    BK4819_SetAF(BK4819_AF_MUTE);
+    BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
+}
+
+void BK4819_PlayRogerFour(void) {
+    const uint32_t tone1_Hz = 1001;
+    const uint32_t tone2_Hz = 798;
+
+    BK4819_EnterTxMute();
+    AUDIO_AudioPathOn();
+    BK4819_SetAF(BK4819_AF_BEEP);
+
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+
+    BK4819_EnableTXLink();
+    SYSTEM_DelayMs(50);
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(90);
+    BK4819_EnterTxMute();
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone2_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(90);
+    BK4819_EnterTxMute();
+
+    BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    AUDIO_AudioPathOff();
+    BK4819_SetAF(BK4819_AF_MUTE);
+    BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
+}
+
+void BK4819_PlayRogerFive(void) {
+    const uint32_t tone1_Hz = 493;
+    const uint32_t tone2_Hz = 988;
+    const uint32_t tone3_Hz = 1976;
+
+    BK4819_EnterTxMute();
+    AUDIO_AudioPathOn();
+    BK4819_SetAF(BK4819_AF_BEEP);
+
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+
+    BK4819_EnableTXLink();
+    SYSTEM_DelayMs(50);
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(100);
+    BK4819_EnterTxMute();
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone2_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(100);
+    BK4819_EnterTxMute();
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone3_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(100);
     BK4819_EnterTxMute();
 
     BK4819_WriteRegister(BK4819_REG_70, 0x0000);
