@@ -47,7 +47,6 @@
 #include "radio.h"
 #include "settings.h"
 #include "tx_compressor.h"
-#include "dnr.h"
 #include "ui/status.h"
 #include "ui/ui.h"
 
@@ -64,7 +63,6 @@ bool FUNCTION_IsRx()
 void FUNCTION_Init(void)
 {
     TX_COMPRESSOR_Init();
-    DNR_Init();
 
     g_CxCSS_TAIL_Found = false;
     g_CDCSS_Lost       = false;

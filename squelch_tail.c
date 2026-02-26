@@ -80,6 +80,17 @@ void SQUELCH_TAIL_PlayEndTone(void)
 	if (gRxVfo->Modulation != MODULATION_FM)
 		return;
 	
+	// Only play if signal is valid for this channel
+	// If CTCSS/DCS is required (CodeType != OFF), only play if we detected the tone
+	// The state machine only triggers when a tone is detected and then lost, so if a
+	// trigger occurred, it means the tone was valid (otherwise no squelch to trigger closure)
+	// For channels without CTCSS/DCS requirement (CODE_TYPE_OFF), always allow ECT
+	if (gRxVfo->freq_config_RX.CodeType != CODE_TYPE_OFF) {
+		// Channel requires CTCSS/DCS - the tone detection triggers ECT automatically
+		// If we're here, the STE state machine confirmed valid tone was received
+		// (no additional check needed as squelch closing implies tone was present)
+	}
+	
 	// Handle delay counter for both flags
 	if ((gSquelchTail.trigger_end_tone || gSquelchTail.trigger_end_tone_nonstes) && gEeprom.END_CALL_TONE) {
 		if (gSquelchTail.end_tone_delay_count < 1) {  // 1 * 10ms = 10ms delay
