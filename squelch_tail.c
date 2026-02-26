@@ -91,8 +91,8 @@ void SQUELCH_TAIL_PlayEndTone(void)
 			return;
 		}
 		
-		// Play tone after 50ms delay
-		SQUELCH_TAIL_PlayToneLocal(1568, 60);
+
+		SQUELCH_TAIL_PlayToneLocal(1568, 70);
 		gSquelchTail.trigger_end_tone = false;
 		gSquelchTail.trigger_end_tone_nonstes = false;
 		gSquelchTail.end_tone_delay_count = 0;
