@@ -11,6 +11,7 @@ typedef struct {
 	uint8_t  attack_ms;      // 2-20
 	uint16_t release_ms;     // 50-1000
 	uint8_t  makeup_gain;    // 0-10
+	uint8_t  noise_gate_threshold;  // 0-31, signals below this are attenuated (noise removal)
 } CompressorConfig_t;
 
 extern CompressorConfig_t gCompressorConfig;

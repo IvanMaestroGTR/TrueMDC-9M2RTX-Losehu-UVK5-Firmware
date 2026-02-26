@@ -5,11 +5,12 @@
 // Configuration (user-adjustable via menu in future)
 CompressorConfig_t gCompressorConfig = {
 	.enabled     = true,
-	.threshold   = 18,    // 0-31 mic level where compression starts
-	.ratio_x10   = 30,    // 30 = 3:1 compression ratio
-	.attack_ms   = 5,     // Fast attack catches peaks
-	.release_ms  = 300,   // Slow release avoids pumping
-	.makeup_gain = 3      // Post-compression boost
+	.threshold   = 15,    // 0-31 mic level where compression starts (aggressive: catch early)
+	.ratio_x10   = 40,    // 40 = 4:1 compression ratio (aggressive squashing for feedback)
+	.attack_ms   = 3,     // Fast attack catches feedback peaks immediately
+	.release_ms  = 200,   // Faster release for natural tracking without pumping
+	.makeup_gain = 6,     // Higher post-compression boost to compensate
+	.noise_gate_threshold = 8  // 0-31, signals below this are attenuated (removes background noise)
 };
 
 static uint16_t original_reg_7d;
@@ -91,18 +92,28 @@ void TX_COMPRESSOR_Process(void) {
 
 	uint16_t env_actual = (uint16_t)(envelope >> ENVELOPE_SHIFT);
 
-	// Step 4: Compute gain reduction
-	uint8_t gain_reduction = 0;
+	// Step 4: Noise gate - suppress signals below threshold to remove background noise
+	uint8_t noise_gate_reduction = 0;
+	if (env_actual < gCompressorConfig.noise_gate_threshold) {
+		// Signal is below noise floor - heavily attenuate it
+		noise_gate_reduction = 12;  // ~12dB reduction for background noise
+	}
+
+	// Step 5: Compute compression gain reduction
+	uint8_t compression_reduction = 0;
 	if (env_actual > gCompressorConfig.threshold) {
 		uint16_t excess = env_actual - gCompressorConfig.threshold;
 		// reduction = excess * (1 - 10/ratio)
 		uint16_t red_x10 = (excess * (gCompressorConfig.ratio_x10 - 10)) / gCompressorConfig.ratio_x10;
-		gain_reduction = (uint8_t)(red_x10 >> 1);  // scale to gain steps
-		if (gain_reduction > 15) gain_reduction = 15;
+		compression_reduction = (uint8_t)(red_x10 >> 1);  // scale to gain steps
+		if (compression_reduction > 15) compression_reduction = 15;
 	}
 
-	// Step 5: Apply to REG_7D
-	int16_t final_gain = (int16_t)base_gain - gain_reduction + gCompressorConfig.makeup_gain;
+	// Combined: noise gate + compressor reduction
+	uint8_t total_reduction = (noise_gate_reduction > 0) ? noise_gate_reduction : compression_reduction;
+
+	// Step 6: Apply to REG_7D
+	int16_t final_gain = (int16_t)base_gain - total_reduction + gCompressorConfig.makeup_gain;
 	if (final_gain < MIC_GAIN_MIN) final_gain = MIC_GAIN_MIN;
 	if (final_gain > MIC_GAIN_MAX) final_gain = MIC_GAIN_MAX;
 
@@ -120,6 +131,13 @@ uint8_t TX_COMPRESSOR_GetGainReduction(void) {
 	// For UI display: current gain reduction in steps
 	if (!compressor_active) return 0;
 	uint16_t env_actual = (uint16_t)(envelope >> ENVELOPE_SHIFT);
+	
+	// Noise gate takes priority
+	if (env_actual < gCompressorConfig.noise_gate_threshold) {
+		return 12;  // Noise gate reduction
+	}
+	
+	// Otherwise show compression reduction
 	if (env_actual <= gCompressorConfig.threshold) return 0;
 	uint16_t excess = env_actual - gCompressorConfig.threshold;
 	uint16_t red = (excess * (gCompressorConfig.ratio_x10 - 10)) / gCompressorConfig.ratio_x10;

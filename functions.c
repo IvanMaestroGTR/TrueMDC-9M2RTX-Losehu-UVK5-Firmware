@@ -47,6 +47,7 @@
 #include "radio.h"
 #include "settings.h"
 #include "tx_compressor.h"
+#include "dnr.h"
 #include "ui/status.h"
 #include "ui/ui.h"
 
@@ -63,6 +64,7 @@ bool FUNCTION_IsRx()
 void FUNCTION_Init(void)
 {
     TX_COMPRESSOR_Init();
+    DNR_Init();
 
     g_CxCSS_TAIL_Found = false;
     g_CDCSS_Lost       = false;
@@ -230,7 +232,7 @@ void FUNCTION_Transmit() {
         BK4819_send_MDC1200(1, 0x80, gEeprom.MDC1200_ID, preamble_duration);
 
 #ifdef ENABLE_MDC1200_SIDE_BEEP
-        BK4819_start_tone(880, 50, true, true);
+        BK4819_start_tone(880, 40, true, true);
                                     SYSTEM_DelayMs(150);
                                     BK4819_stop_tones(true);
         //BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
@@ -241,7 +243,7 @@ void FUNCTION_Transmit() {
 #ifdef ENABLE_MDC1200_SIDE_BEEP
         BK4819_MuteMic();
         SYSTEM_DelayMs(200);
-        BK4819_start_tone(880, 50, true, true);
+        BK4819_start_tone(880, 40, true, true);
                                     SYSTEM_DelayMs(150);
                                     BK4819_stop_tones(true);
         //BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
