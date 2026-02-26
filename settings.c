@@ -165,6 +165,7 @@ void SETTINGS_InitEEPROM(void)
 #endif
     gEeprom.ROGER                          = (Data[1] <  9) ? Data[1] : ROGER_MODE_OFF;
     gEeprom.REPEATER_TAIL_TONE_ELIMINATION = (Data[2] < 11) ? Data[2] : 0;
+    gEeprom.END_CALL_TONE                  = (Data[7] <  2) ? Data[7] : 0;
     gEeprom.TX_VFO                         = (Data[3] <  2) ? Data[3] : 0;
     gEeprom.BATTERY_TYPE                   = (Data[4] < BATTERY_TYPE_UNKNOWN) ? Data[4] : BATTERY_TYPE_1600_MAH;
 #ifdef ENABLE_MDC1200
@@ -607,6 +608,7 @@ void SETTINGS_SaveSettings(void)
     State[5] = 0xFF;
     State[6] = 0xFF;
 #endif
+    State[7] = gEeprom.END_CALL_TONE;
     EEPROM_WriteBuffer(0x0EA8, State,8);
 
     State[0] = gEeprom.DTMF_SIDE_TONE;

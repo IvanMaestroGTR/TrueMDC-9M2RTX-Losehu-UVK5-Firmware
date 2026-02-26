@@ -71,6 +71,7 @@ enum {
     MENU_S_ADD2,
     MENU_STE,
     MENU_RP_STE,
+    MENU_END_CALL_TONE,
     MENU_MIC,
 //#ifdef ENABLE_AUDIO_BAR
     //MENU_MIC_BAR,

@@ -72,6 +72,7 @@
 #include "misc.h"
 #include "radio.h"
 #include "settings.h"
+#include "squelch_tail.h"
 
 #if defined(ENABLE_OVERLAY)
 #include "sram-overlay.h"
@@ -695,6 +696,8 @@ static void CheckRadioInterrupts(void) {
         if (interrupts.sqlFound) {
             g_SquelchLost = false;
             BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+            // Set flag to play end-call tone (will be played in main loop by APP_Update)
+            gSquelchTail.trigger_end_tone_nonstes = true;
         }
 
 #ifdef ENABLE_AIRCOPY
@@ -809,6 +812,9 @@ void APP_Update(void) {
             gFlagPlayQueuedVoice = false;
     }
 #endif
+
+    // Check if we need to play end-call tone
+    SQUELCH_TAIL_PlayEndTone();
 
     if (gCurrentFunction == FUNCTION_TRANSMIT &&
         (gTxTimeoutReached || SerialConfigInProgress())) {    // transmitter timed out or must de-key
@@ -1111,6 +1117,10 @@ void APP_TimeSlice10ms(void) {
         AM_fix_10ms(gEeprom.RX_VFO);
     }
 #endif
+
+    // Process squelch tail elimination and end-call tone
+    SQUELCH_TAIL_Process();
+
 #ifdef ENABLE_UART
 
     if (UART_IsCommandAvailable()) {

@@ -93,6 +93,7 @@ const t_menu_item MenuList[] =
 
                 {/*"STE",*/    VOICE_ID_INVALID, MENU_STE, 尾音消除},
                 {/*"RP STE",*/ VOICE_ID_INVALID, MENU_RP_STE, 过中继尾音消除},
+                {/*"ECT",*/    VOICE_ID_INVALID, MENU_END_CALL_TONE, "ECT"},
                 {/*"1 Call",*/ VOICE_ID_INVALID, MENU_1_CALL, 按键即呼},
 
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
@@ -936,6 +937,10 @@ void UI_DisplayMenu(void) {
 //        case MENU_S_ADD2:
         case MENU_STE:
             strcpy(String, gSubMenu_STE[gSubMenuSelection]);
+            break;
+
+        case MENU_END_CALL_TONE:
+            strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
             break;
 
         case MENU_D_ST:
