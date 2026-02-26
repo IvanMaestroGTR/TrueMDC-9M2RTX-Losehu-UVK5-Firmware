@@ -76,6 +76,10 @@ void SQUELCH_TAIL_PlayEndTone(void)
 	if (gCurrentFunction == FUNCTION_MONITOR)
 		return;
 	
+	// Only play on FM modulation, not on AM or USB
+	if (gRxVfo->Modulation != MODULATION_FM)
+		return;
+	
 	// Handle delay counter for both flags
 	if ((gSquelchTail.trigger_end_tone || gSquelchTail.trigger_end_tone_nonstes) && gEeprom.END_CALL_TONE) {
 		if (gSquelchTail.end_tone_delay_count < 1) {  // 1 * 10ms = 10ms delay
