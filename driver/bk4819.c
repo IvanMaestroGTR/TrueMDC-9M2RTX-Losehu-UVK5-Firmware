@@ -757,7 +757,9 @@ void BK4819_SetupSquelch(
         uint8_t SquelchOpenNoiseThresh,
         uint8_t SquelchCloseNoiseThresh,
         uint8_t SquelchCloseGlitchThresh,
-        uint8_t SquelchOpenGlitchThresh) {
+        uint8_t SquelchOpenGlitchThresh,
+        uint8_t OpenDelay,
+        uint8_t CloseDelay) {
     // REG_70
     //
     // <15>   0 Enable TONE1
@@ -786,25 +788,22 @@ void BK4819_SetupSquelch(
     //
     // <15:14> 1 ???
     //
-    // <13:11> 5 Squelch = open  Delay Setting
-    //         0 ~ 7
+    // <13:11> Squelch = open  Delay Setting
+    //         0 ~ 7  (0 = fastest open)
     //
-    // <10:9>  7 Squelch = close Delay Setting
-    //         0 ~ 3
+    // <10:9>  Squelch = close Delay Setting
+    //         0 ~ 3  (0 = shortest tail)
     //
     // <8>     0 ???
     //
-    // <7:0>   8 Glitch threshold for Squelch = open
+    // <7:0>   Glitch threshold for Squelch = open
     //         0 ~ 255
     //
-    BK4819_WriteRegister(BK4819_REG_4E,  // 01 101 11 1 00000000
-
-            // original (*)
-                         (1u << 14) |                  //  1 ???
-                         (5u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
-                         (0u << 9) |                  // *0  squelch = close delay .. 0 ~ 3 (0 = shortest tail)
-                         SquelchOpenGlitchThresh);     //  0 ~ 255
-
+    BK4819_WriteRegister(BK4819_REG_4E,
+                         (1u << 14) |                          //  1 ???
+                         (uint16_t)(OpenDelay  << 11) |        // squelch = open  delay .. 0 ~ 7
+                         (uint16_t)(CloseDelay <<  9) |        // squelch = close delay .. 0 ~ 3
+                         SquelchOpenGlitchThresh);             //  0 ~ 255
 
     // REG_4F
     //
