@@ -243,13 +243,13 @@ extern const char *const gSubMenu_PTT_ID[5];
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
 
 #ifdef ENABLE_ENGLISH
-extern const char        gSubMenu_ROGER[9][15];
+extern const char        gSubMenu_ROGER[10][15];
 #else
-extern const char        gSubMenu_ROGER[9][13];
+extern const char        gSubMenu_ROGER[10][13];
 #endif
 
 #else
-extern const char gSubMenu_ROGER[9][15];
+extern const char gSubMenu_ROGER[10][15];
 #endif
 
 #ifdef ENABLE_MDC1200

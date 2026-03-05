@@ -169,6 +169,7 @@ void BK4819_PlayRoger(void);
  void	 BK4819_PlayRogerThree(void);
  void	 BK4819_PlayRogerFour(void);
  void    BK4819_PlayRogerFive(void);
+ void	 BK4819_PlayRogerSix(void);
 void     BK4819_PlayRogerMDC(void);
 	    
 void     BK4819_Enable_AfDac_DiscMode_TxDsp(void);
