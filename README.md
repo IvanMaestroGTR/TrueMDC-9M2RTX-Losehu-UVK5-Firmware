@@ -6,7 +6,7 @@ Please refer to the releases for changelog.
 
 Custom features: 
 Custom length MDC preamble (menu 26, 27)
-5 different roger beeps (menu 28)
+6 different roger beeps (menu 28)
 Power on beep (F+down)
 End call tone (menu 31)
 
