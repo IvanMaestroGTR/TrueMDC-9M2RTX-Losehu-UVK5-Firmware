@@ -1878,10 +1878,13 @@ void BK4819_PlayRogerFive(void) {
 }
 
 void BK4819_PlayRogerSix(void) {
-    const uint32_t tone1_Hz = 526;
-    const uint32_t tone2_Hz = 779;
-    const uint32_t tone3_Hz = 1179;
-    const uint32_t tone4_Hz = 992;
+    const uint32_t tone1_Hz = 1538;
+    const uint32_t tone2_Hz = 1938;
+    const uint32_t tone3_Hz = 1838;
+    const uint32_t tone4_Hz = 487;
+    const uint32_t tone5_Hz = 788;
+    const uint32_t tone6_Hz = 938;
+    const uint32_t tone7_Hz = 1238;
 
     BK4819_EnterTxMute();
     AUDIO_AudioPathOn();
@@ -1894,23 +1897,38 @@ void BK4819_PlayRogerSix(void) {
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
     BK4819_ExitTxMute();
-    SYSTEM_DelayMs(75);
+    SYSTEM_DelayMs(60);
     BK4819_EnterTxMute();
-    SYSTEM_DelayMs(10);
+//    SYSTEM_DelayMs(10);
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone2_Hz));
     BK4819_ExitTxMute();
     SYSTEM_DelayMs(50);
     BK4819_EnterTxMute();
-    SYSTEM_DelayMs(10);
+//    SYSTEM_DelayMs(10);
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone3_Hz));
     BK4819_ExitTxMute();
     SYSTEM_DelayMs(50);
     BK4819_EnterTxMute();
-    SYSTEM_DelayMs(10);
+//    SYSTEM_DelayMs(10);
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone4_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(50);
+    BK4819_EnterTxMute();
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone5_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(50);
+    BK4819_EnterTxMute();
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone6_Hz));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(50);
+    BK4819_EnterTxMute();
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone7_Hz));
     BK4819_ExitTxMute();
     SYSTEM_DelayMs(50);
     BK4819_EnterTxMute();
