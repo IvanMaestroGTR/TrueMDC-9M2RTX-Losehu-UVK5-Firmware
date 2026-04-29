@@ -577,10 +577,21 @@ void RADIO_SetupRegisters(bool switchToForeground) {
             Bandwidth = BK4819_FILTER_BW_WIDE;
             [[fallthrough]];
         case BK4819_FILTER_BW_WIDE:
-        case BK4819_FILTER_BW_NARROW:
 #ifdef ENABLE_AM_FIX
             //				BK4819_SetFilterBandwidth(Bandwidth, gRxVfo->Modulation == MODULATION_AM && gSetting_AM_fix);
                 BK4819_SetFilterBandwidth(Bandwidth, true);
+#else
+            BK4819_SetFilterBandwidth(Bandwidth, false);
+#endif
+            break;
+
+        case BK4819_FILTER_BW_NARROW:
+            // For AM mode in narrow, use narrower (6.25kHz) for better filtering
+            if (gRxVfo->Modulation == MODULATION_AM) {
+                Bandwidth = BK4819_FILTER_BW_NARROWER;
+            }
+#ifdef ENABLE_AM_FIX
+            BK4819_SetFilterBandwidth(Bandwidth, true);
 #else
             BK4819_SetFilterBandwidth(Bandwidth, false);
 #endif
@@ -814,10 +825,21 @@ void RADIO_SetTxParameters(void) {
             Bandwidth = BK4819_FILTER_BW_WIDE;
             [[fallthrough]];
         case BK4819_FILTER_BW_WIDE:
-        case BK4819_FILTER_BW_NARROW:
 #ifdef ENABLE_AM_FIX
             //				BK4819_SetFilterBandwidth(Bandwidth, gCurrentVfo->Modulation == MODULATION_AM && gSetting_AM_fix);
                 BK4819_SetFilterBandwidth(Bandwidth, true);
+#else
+            BK4819_SetFilterBandwidth(Bandwidth, false);
+#endif
+            break;
+
+        case BK4819_FILTER_BW_NARROW:
+            // For AM mode in narrow, use narrower (6.25kHz) for better filtering
+            if (gCurrentVfo->Modulation == MODULATION_AM) {
+                Bandwidth = BK4819_FILTER_BW_NARROWER;
+            }
+#ifdef ENABLE_AM_FIX
+            BK4819_SetFilterBandwidth(Bandwidth, true);
 #else
             BK4819_SetFilterBandwidth(Bandwidth, false);
 #endif

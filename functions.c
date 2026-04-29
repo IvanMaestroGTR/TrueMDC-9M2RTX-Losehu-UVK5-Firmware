@@ -230,20 +230,24 @@ void FUNCTION_Transmit() {
         BK4819_send_MDC1200(1, 0x80, gEeprom.MDC1200_ID, preamble_duration);
 
 #ifdef ENABLE_MDC1200_SIDE_BEEP
-        BK4819_start_tone(880, 40, true, true);
-                                    SYSTEM_DelayMs(150);
-                                    BK4819_stop_tones(true);
+        if (gEeprom.BOOT_BEEP_CONTROL) {
+            BK4819_start_tone(880, 40, true, true);
+                                        SYSTEM_DelayMs(150);
+                                        BK4819_stop_tones(true);
+        }
         //BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
         
 #endif
     } else {
          //Play side tone sequence only when PRE MDC ID is not enabled
 #ifdef ENABLE_MDC1200_SIDE_BEEP
-        BK4819_MuteMic();
-        SYSTEM_DelayMs(200);
-        BK4819_start_tone(880, 40, true, true);
-                                    SYSTEM_DelayMs(150);
-                                    BK4819_stop_tones(true);
+        if (gEeprom.BOOT_BEEP_CONTROL) {
+            BK4819_MuteMic();
+            SYSTEM_DelayMs(200);
+            BK4819_start_tone(880, 40, true, true);
+                                        SYSTEM_DelayMs(150);
+                                        BK4819_stop_tones(true);
+        }
         //BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
 #endif
     }

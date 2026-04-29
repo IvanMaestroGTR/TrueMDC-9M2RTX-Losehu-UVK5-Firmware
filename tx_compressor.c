@@ -5,10 +5,10 @@
 // Configuration (user-adjustable via menu in future)
 CompressorConfig_t gCompressorConfig = {
 	.enabled     = true,
-	.threshold   = 15,    // 0-31 mic level where compression starts (aggressive: catch early)
-	.ratio_x10   = 40,    // 40 = 4:1 compression ratio (aggressive squashing for feedback)
+	.threshold   = 16,    // 0-31 mic level where compression starts (aggressive: catch early)
+	.ratio_x10   = 60,    // 60 = 6:1 compression ratio (aggressive squashing for feedback)
 	.attack_ms   = 3,     // Fast attack catches feedback peaks immediately
-	.release_ms  = 200,   // Faster release for natural tracking without pumping
+	.release_ms  = 150,   // Faster release for natural tracking without pumping
 	.makeup_gain = 20,     // Higher post-compression boost to compensate
 	.noise_gate_threshold = 31  // 0-31, signals below this are attenuated (removes background noise)
 };
