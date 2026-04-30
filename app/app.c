@@ -690,16 +690,15 @@ static void CheckRadioInterrupts(void) {
 
         if (interrupts.sqlLost) {
             g_SquelchLost = true;
-            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+            // Removed direct LED toggle here to allow blinking logic in TimeSlice
         }
 
         if (interrupts.sqlFound) {
             g_SquelchLost = false;
+            // Ensure LED turns off immediately when signal is lost
             BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-            // Set flag to play end-call tone (will be played in main loop by APP_Update)
             gSquelchTail.trigger_end_tone_nonstes = true;
         }
-
 #ifdef ENABLE_AIRCOPY
         if (interrupts.fskFifoAlmostFull &&
             gScreenToDisplay == DISPLAY_AIRCOPY &&
@@ -726,6 +725,7 @@ static void CheckRadioInterrupts(void) {
 
 
 void APP_EndTransmission(bool inmediately) {
+    BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false); // Turn off TX Green light    
     // back to RX mode
     TX_COMPRESSOR_Stop();
     RADIO_SendEndOfTransmission();
@@ -1103,6 +1103,47 @@ static void CheckKeys(void) {
 void APP_TimeSlice10ms(void) {
     gNextTimeslice = false;
     gFlashLightBlinkCounter++;
+    static uint16_t powerSaveLedCounter = 0;
+    static uint16_t rxBlinkCounter = 0;
+
+    if (gCurrentFunction == FUNCTION_POWER_SAVE) {
+        powerSaveLedCounter++;
+
+        // 80ms light time (8 ticks of 10ms slice)
+        if (powerSaveLedCounter <= 8) {
+            BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
+        } else {
+            BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+        }
+
+        // Reset after 3 seconds (300 ticks of 10ms slice)
+        if (powerSaveLedCounter >= 300) {
+            powerSaveLedCounter = 0;
+        }
+    } else if (powerSaveLedCounter != 0) {
+        // Cleanup: ensure LED is off if function changes
+        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+        powerSaveLedCounter = 0;
+    }
+    
+    // --- RX Green Light Blinking Logic ---
+    if (g_SquelchLost && gCurrentFunction != FUNCTION_TRANSMIT) {
+        rxBlinkCounter++;
+        
+        // 80ms is 8 ticks (10ms * 8)
+        // 500ms total interval is 50 ticks
+        if (rxBlinkCounter <= 8) {
+            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+        } else {
+            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+        }
+
+        if (rxBlinkCounter >= 50) {
+            rxBlinkCounter = 0;
+        }
+    } else {
+        rxBlinkCounter = 0;
+    }
 #ifdef ENABLE_MESSENGER
     keyTickCounter++;
 #endif
@@ -1137,7 +1178,10 @@ void APP_TimeSlice10ms(void) {
     if (gCurrentFunction != FUNCTION_POWER_SAVE || !gRxIdleMode)
         CheckRadioInterrupts();
 
-    if (gCurrentFunction == FUNCTION_TRANSMIT) {    // transmitting
+    if (gCurrentFunction == FUNCTION_TRANSMIT) {
+        // Force Green LED on and Red LED off for TX
+        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false); 
+        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
 //#ifdef ENABLE_AUDIO_BAR
         if ((gFlashLightBlinkCounter % (150 / 10)) == 0) // once every 150ms
             UI_DisplayAudioBar();
