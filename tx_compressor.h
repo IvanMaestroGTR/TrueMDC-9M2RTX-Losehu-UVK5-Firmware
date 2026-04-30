@@ -18,8 +18,11 @@ extern CompressorConfig_t gCompressorConfig;
 
 void TX_COMPRESSOR_Init(void);
 void TX_COMPRESSOR_Start(void);    // Called once at TX start
-void TX_COMPRESSOR_Process(void);  // Called every 10ms during TX
+void TX_COMPRESSOR_Process(void);  // Called every 10ms during TX — auto-calibrates voice level in 0.5 seconds
 void TX_COMPRESSOR_Stop(void);     // Called at TX end — restores REG_7D
 uint8_t TX_COMPRESSOR_GetGainReduction(void);  // For UI
+void TX_COMPRESSOR_TriggerFeedbackSuppression(void);  // Manually trigger mic mute for 50ms to break feedback
+uint16_t TX_COMPRESSOR_GetVoiceBaseline(void);  // Get learned voice baseline (for debugging)
+bool TX_COMPRESSOR_IsCalibrationComplete(void);  // Check if 0.5-second calibration is complete
 
 #endif // TX_COMPRESSOR_H
