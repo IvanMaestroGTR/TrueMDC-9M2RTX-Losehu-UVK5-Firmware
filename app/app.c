@@ -1106,23 +1106,42 @@ void APP_TimeSlice10ms(void) {
     static uint16_t powerSaveLedCounter = 0;
     static uint16_t rxBlinkCounter = 0;
 
+    // --- 3. STANDBY BREATHING LIGHT (80ms Blink - 80ms Gap - 80ms Blink) ---
     if (gCurrentFunction == FUNCTION_POWER_SAVE) {
         powerSaveLedCounter++;
 
-        // 80ms light time (8 ticks of 10ms slice)
-        if (powerSaveLedCounter <= 8) {
-            BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
-        } else {
+        // First Blink: 0ms to 80ms (Ticks 1-8)
+        if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
+            if (gBatteryVoltageAverage <= 760) {
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
+            } else {
+                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+            }
+        }
+        // Short Pause: 80ms to 180ms (Ticks 9-16) -> LED OFF
+        else if (powerSaveLedCounter > 8 && powerSaveLedCounter <= 18) {
             BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+        }
+        // Second Blink: 180ms to 260ms (Ticks 17-24)
+        else if (powerSaveLedCounter > 18 && powerSaveLedCounter <= 26) {
+            if (gBatteryVoltageAverage <= 760) {
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
+            } else {
+                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+            }
+        }
+        // Long Interval: 260ms until 4.24 seconds (Ticks 25-424)
+        else {
+            BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
         }
 
-        // Reset after 3 seconds (300 ticks of 10ms slice)
-        if (powerSaveLedCounter >= 300) {
+        // Reset after 4 seconds of "off" time + 240ms of blinking logic
+        if (powerSaveLedCounter >= 426) { 
             powerSaveLedCounter = 0;
         }
-    } else if (powerSaveLedCounter != 0) {
-        // Cleanup: ensure LED is off if function changes
-        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+    } else {
         powerSaveLedCounter = 0;
     }
     
