@@ -1106,40 +1106,57 @@ void APP_TimeSlice10ms(void) {
     static uint16_t powerSaveLedCounter = 0;
     static uint16_t rxBlinkCounter = 0;
 
-    // --- 3. STANDBY BREATHING LIGHT (80ms Blink - 80ms Gap - 80ms Blink) ---
+    // --- STANDBY BREATHING LIGHT LOGIC ---
     if (gCurrentFunction == FUNCTION_POWER_SAVE) {
         powerSaveLedCounter++;
 
-        // First Blink: 0ms to 80ms (Ticks 1-8)
-        if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
-            if (gBatteryVoltageAverage <= 760) {
+        // TIER 1: CRITICAL (Below 7.2V / 720) 
+        // Pattern: Single Red Blink + 3s Interval
+        if (gBatteryVoltageAverage < 720) {
+            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
             } else {
-                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
             }
-        }
-        // Short Pause: 80ms to 180ms (Ticks 9-16) -> LED OFF
-        else if (powerSaveLedCounter > 8 && powerSaveLedCounter <= 18) {
-            BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-        }
-        // Second Blink: 180ms to 260ms (Ticks 17-24)
-        else if (powerSaveLedCounter > 18 && powerSaveLedCounter <= 26) {
-            if (gBatteryVoltageAverage <= 760) {
-                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
-            } else {
-                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
-            }
-        }
-        // Long Interval: 260ms until 4.24 seconds (Ticks 25-424)
-        else {
-            BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-        }
 
-        // Reset after 4 seconds of "off" time + 240ms of blinking logic
-        if (powerSaveLedCounter >= 426) { 
-            powerSaveLedCounter = 0;
+            if (powerSaveLedCounter >= 308) { // 3s off + 80ms blink
+                powerSaveLedCounter = 0;
+            }
+        } 
+        // TIER 2: LOW (7.2V to 7.6V / 720-760)
+        // Pattern: Double Red Blink + 3s Interval
+        else if (gBatteryVoltageAverage >= 720 && gBatteryVoltageAverage <= 760) {
+            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true); // Red
+            } else if (powerSaveLedCounter > 8 && powerSaveLedCounter <= 18) {
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+            } else if (powerSaveLedCounter > 18 && powerSaveLedCounter <= 26) {
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true); // Red
+            } else {
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+            }
+
+            if (powerSaveLedCounter >= 326) { 
+                powerSaveLedCounter = 0;
+            }
+        }
+        // TIER 3: NORMAL (Above 7.6V / 760)
+        // Pattern: Original Double Green Blink + 3s Interval
+        else {
+            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
+                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true); // Green
+            } else if (powerSaveLedCounter > 8 && powerSaveLedCounter <= 18) {
+                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+            } else if (powerSaveLedCounter > 18 && powerSaveLedCounter <= 26) {
+                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true); // Green
+            } else {
+                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+            }
+
+            if (powerSaveLedCounter >= 326) { 
+                powerSaveLedCounter = 0;
+            }
         }
     } else {
         powerSaveLedCounter = 0;
