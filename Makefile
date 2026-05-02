@@ -248,7 +248,6 @@ OBJS += misc.o
 OBJS += radio.o
 OBJS += scheduler.o
 OBJS += settings.o
-OBJS += squelch_tail.o
 OBJS += tx_compressor.o
 ifeq ($(ENABLE_AIRCOPY),1)
 	OBJS += ui/aircopy.o
