@@ -250,13 +250,17 @@ const char gSubMenu_SAVE[][4] =//4
 //                "1:1",
 //                "1:2",
 //                "1:3",
-//                "1:4"
+//                "1:4",
+//                "1:5",
+//                "1:6"
 
                 关闭,
                 一级,
                 二级,
                 三级,
-                四级
+                四级,
+                五级,
+                六级,
 
         };
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)

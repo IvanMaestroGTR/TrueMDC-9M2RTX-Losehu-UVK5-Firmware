@@ -181,7 +181,7 @@ void Main(void) {
 #endif
 
 #if ENABLE_CHINESE_FULL == 0
-    gMenuListCount = 50; //menu size without chinese stuff, if you want decode for dtmf, 54
+    gMenuListCount = 49; //menu size without chinese stuff, if you want decode for dtmf, 54
 #else
     gMenuListCount = 53;
 #endif

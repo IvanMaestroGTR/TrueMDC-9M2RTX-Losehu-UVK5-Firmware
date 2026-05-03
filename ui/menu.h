@@ -194,9 +194,9 @@ extern const char gSubMenu_STE[3][8];      // 0=OFF, 1=55Hz, 2=180°
 extern const char gSubMenu_OFF_ON[2][5];//4
 #endif
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
-extern const char        gSubMenu_SAVE[5][4];//4
+extern const char        gSubMenu_SAVE[7][4];//4
 #else
-extern const char gSubMenu_SAVE[5][6];//4
+extern const char gSubMenu_SAVE[7][6];//4
 #endif
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
 extern const char        gSubMenu_TOT[11][7];//7
