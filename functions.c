@@ -243,7 +243,6 @@ void FUNCTION_Transmit() {
 #ifdef ENABLE_MDC1200_SIDE_BEEP
         if (gEeprom.BOOT_BEEP_CONTROL) {
             BK4819_MuteMic();
-            SYSTEM_DelayMs(200);
             BK4819_start_tone(880, 40, true, true);
                                         SYSTEM_DelayMs(150);
                                         BK4819_stop_tones(true);
