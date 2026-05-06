@@ -1117,7 +1117,7 @@ void APP_TimeSlice10ms(void) {
                 BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
             }
 
-            if (powerSaveLedCounter >= 308) { // 3s off + 80ms blink
+            if (powerSaveLedCounter >= 408) { // 3s off + 80ms blink
                 powerSaveLedCounter = 0;
             }
         } 
@@ -1134,7 +1134,7 @@ void APP_TimeSlice10ms(void) {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
             }
 
-            if (powerSaveLedCounter >= 326) { 
+            if (powerSaveLedCounter >= 426) { 
                 powerSaveLedCounter = 0;
             }
         }
@@ -1151,7 +1151,7 @@ void APP_TimeSlice10ms(void) {
                 BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
             }
 
-            if (powerSaveLedCounter >= 326) { 
+            if (powerSaveLedCounter >= 426) { 
                 powerSaveLedCounter = 0;
             }
         }
