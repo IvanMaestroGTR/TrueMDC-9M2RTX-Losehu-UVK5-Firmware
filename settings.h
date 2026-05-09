@@ -278,6 +278,7 @@ typedef struct {
     BLMIN_STAT_t		  BACKLIGHT_MIN_STAT;
 #endif
     uint8_t               BACKLIGHT_MAX;
+    bool                  SCREEN_INVERT;
 
     BATTERY_Type_t		  BATTERY_TYPE;
 #ifdef ENABLE_RSSI_BAR

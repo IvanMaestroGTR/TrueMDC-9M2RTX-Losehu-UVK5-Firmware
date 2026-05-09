@@ -115,6 +115,7 @@ void SETTINGS_InitEEPROM(void)
     EEPROM_ReadBuffer(0x0E90, Data, 8);
     gEeprom.BEEP_CONTROL                 = Data[0] & 1;
     gEeprom.BOOT_BEEP_CONTROL            = (Data[0] >> 1) & 1;
+    gEeprom.SCREEN_INVERT         = (Data[3] < 2) ? Data[3] : false;
 
     gEeprom.MDC1200_ID     =((uint16_t) (Data[2] << 8))|((uint16_t)(Data[1] ));
 
@@ -153,7 +154,7 @@ void SETTINGS_InitEEPROM(void)
 		}
 		else {
 			gEeprom.S0_LEVEL = 130;
-			gEeprom.S9_LEVEL = 76;
+			gEeprom.S9_LEVEL = 91;
 		}
 #endif
 
@@ -555,7 +556,8 @@ void SETTINGS_SaveSettings(void)
 
     // State[1] = 0;//gEeprom.KEY_1_SHORT_PRESS_ACTION;
    // State[2] = 0;//gEeprom.KEY_1_LONG_PRESS_ACTION;
-    State[3] = 0;//gEeprom.KEY_2_SHORT_PRESS_ACTION;
+    //State[3] = 0;//gEeprom.KEY_2_SHORT_PRESS_ACTION;
+    State[3] = gEeprom.SCREEN_INVERT;   // <-- ADD THIS
     State[4] = 0;//gEeprom.KEY_2_LONG_PRESS_ACTION;
     State[5] = gEeprom.SCAN_RESUME_MODE;
     State[6] = 0;//gEeprom.AUTO_KEYPAD_LOCK;

@@ -23,6 +23,16 @@
 #include "frequencies.h"
 #include "radio.h"
 
+typedef enum {
+    TOAST_NONE,
+    TOAST_NIGHT_MODE,
+    TOAST_KEY_BEEP,
+    TOAST_UI_TONE
+} ToastType_t;
+
+extern ToastType_t gToastType;
+extern uint16_t gToastTimerSingleLine;
+
 #ifdef ENABLE_MESSENGER_NOTIFICATION
 extern bool gPlayMSGRing;
 #endif

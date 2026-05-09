@@ -24,6 +24,7 @@
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "misc.h"
+#include "settings.h"   // for gEeprom.SCREEN_INVERT
 
 uint8_t gStatusLine[LCD_WIDTH];
 uint8_t gFrameBuffer[FRAME_LINES][LCD_WIDTH];
@@ -32,8 +33,11 @@ static void DrawLine(uint8_t column, uint8_t line, const uint8_t *lineBuffer, un
     ST7565_SelectColumnAndLine(column + 4, line);
     GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
     for (unsigned i = 0; i < size_defVal; i++) {
+        uint8_t byte = lineBuffer ? lineBuffer[i] : size_defVal;
+        if (gEeprom.SCREEN_INVERT)
+            byte ^= 0xFF;
         while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-        SPI0->WDR = lineBuffer ? lineBuffer[i] : size_defVal;
+        SPI0->WDR = byte;
     }
     SPI_WaitForUndocumentedTxFifoStatusBit();
 }

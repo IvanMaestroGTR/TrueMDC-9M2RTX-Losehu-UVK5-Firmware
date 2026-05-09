@@ -75,10 +75,11 @@ void UI_DisplayWelcome(void) {
     // Firmware version text on line 4
     UI_PrintStringSmall(Version, 0, 127, 4);
     
-    // Invert box around firmware version (line 4 only, full width)
+// Invert box around firmware version (line 4 + 1px expansion upward)
     for (uint8_t i = 0; i < 128; i++)
     {
-        gFrameBuffer[4][i] ^= 0xFF;
+        gFrameBuffer[3][i] ^= 0x80; // invert top-most pixel of row 3 (bottom edge of row above)
+        gFrameBuffer[4][i] ^= 0xFF; // invert full row 4
     }
     
     // Voltage and battery level (line 6)

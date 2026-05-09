@@ -586,6 +586,18 @@ static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
             gRequestDisplayScreen = DISPLAY_MSG;
             return;
         }
+#else
+        if (gWasFKeyPressed) {
+            // F + MENU = toggle screen invert
+            gWasFKeyPressed = false;
+            gEeprom.SCREEN_INVERT = !gEeprom.SCREEN_INVERT;
+            gToastType = TOAST_NIGHT_MODE;
+            gToastTimerSingleLine = 4;
+            gRequestSaveSettings = true;
+            gUpdateDisplay = true;
+            gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+            return;
+        }
 #endif
 
         // Process pending channel input (1-3 digits) when M key is pressed
@@ -714,16 +726,21 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction) 
     if (gWasFKeyPressed) {
         gWasFKeyPressed = false;
 
-        if (Direction == 1) {
+        if (Direction == 1) { // F + UP (Key Beeps)
             gEeprom.BEEP_CONTROL = !gEeprom.BEEP_CONTROL;
+            gToastType = TOAST_KEY_BEEP;
             gRequestSaveSettings = 1;
+            gToastTimerSingleLine = 4; // 2 seconds
+            gUpdateDisplay = true;
         }
-        if (Direction == -1) {
-            // F + Down key toggles boot beeps
+        if (Direction == -1) { // F + DOWN (UI Tones / Boot Beep)
             gEeprom.BOOT_BEEP_CONTROL = !gEeprom.BOOT_BEEP_CONTROL;
+            gToastType = TOAST_UI_TONE;
             gRequestSaveSettings = 1;
-            // Indicate status with LED: ON=double blink, OFF=single blink
-            BK4819_StatusLED_Indicate(gEeprom.BOOT_BEEP_CONTROL);
+            gToastTimerSingleLine = 4; // 2 seconds
+            gUpdateDisplay = true;
+            // Keep your existing LED indicator
+            //BK4819_StatusLED_Indicate(gEeprom.BOOT_BEEP_CONTROL);
         }
 #ifdef ENABLE_DOPPLER
         if (Direction==-1) {

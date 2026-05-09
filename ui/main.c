@@ -40,8 +40,12 @@
 #include "ui/inputbox.h"
 #include "ui/main.h"
 #include "ui/ui.h"
+#include "app/app.h"
 
 center_line_t center_line = CENTER_LINE_NONE;
+uint16_t gToastTimerSingleLine = 0;
+ToastType_t gToastType = TOAST_NONE;
+
 const int8_t dBmCorrTable[7] = {
         -15, // band 1
         -25, // band 2
@@ -332,6 +336,15 @@ void UI_MAIN_PrintAGC(bool now){
 #endif
 
 void UI_MAIN_TimeSlice500ms(void) {
+    // Decrement toast timer
+    if (gToastTimerSingleLine > 0) {
+        gToastTimerSingleLine--;
+        // Trigger a redraw when the timer hits zero to clear the text
+        if (gToastTimerSingleLine == 0) {
+            gUpdateDisplay = true; 
+        }
+    }
+    
     if (gScreenToDisplay == DISPLAY_MAIN) {
 #ifdef ENABLE_AGC_SHOW_DATA
         UI_MAIN_PrintAGC(true);
@@ -907,7 +920,11 @@ void UI_DisplayMain(void) {
             }
 
             UI_PrintStringSmall(String, print_col, 0, 3);
-
+            for (uint8_t i = 1; i < 127; i++)
+            {
+                gFrameBuffer[2][i] ^= 0x80; // 1px top edge extension into row above
+                gFrameBuffer[3][i] ^= 0xFF;
+            }
 
         } else
 #endif
@@ -994,10 +1011,51 @@ void UI_DisplayMain(void) {
                 UI_PrintStringSmall(String, 2, 0, 3);
             }
 #endif
+        if (center_line == CENTER_LINE_NONE && gToastTimerSingleLine > 0) {
+            center_line = CENTER_LINE_IN_USE;
+            
+            const char* pToastStr = "";
+            
+            // 1. String selection
+            switch (gToastType) {
+                case TOAST_KEY_BEEP:
+                    pToastStr = gEeprom.BEEP_CONTROL ? "<<Key Beep: On>>" : "<<Key Beep: Off>>";
+                    break;
+                case TOAST_UI_TONE:
+                    pToastStr = gEeprom.BOOT_BEEP_CONTROL ? "<<UI Tone: On>>" : "<<UI Tone: Off>>";
+                    break;
+                case TOAST_NIGHT_MODE:
+                    pToastStr = gEeprom.SCREEN_INVERT ? "<<Night Mode>>" : "<<Day Mode>>";
+                    break;
+                default:
+                    center_line = CENTER_LINE_NONE;
+                    return;
+            }
 
+            // 2. Dynamic width calculation
+            uint8_t strLen = strlen(pToastStr);
+            uint8_t boxWidth = (strLen * 7) + 2; 
+            uint8_t x1 = (128 - boxWidth) / 2;
+            uint8_t x2 = x1 + boxWidth;
 
+            // 3. Clear the area in Row 3 and the BOTTOM of Row 2
+            for (uint8_t i = x1; i <= x2; i++) {
+                gFrameBuffer[3][i] = 0x00;
+                gFrameBuffer[2][i] &= ~0x80; // Clear the pixel directly above the box
+            }
+
+            // 4. Print text (destructive draw)
+            UI_PrintStringSmall(pToastStr, x1 + 1, 0, 3);
+            
+            // 5. MDC1200 Style Inversion with Top-heavy height
+            for (uint8_t i = x1; i <= x2; i++) {
+                gFrameBuffer[3][i] ^= 0xFF; // Invert main body (Row 3)
+                gFrameBuffer[2][i] ^= 0x80;
+            }
         }
-    }
+
+        }   // <-- closes: if (rx || gCurrentFunction == FUNCTION_FOREGROUND ...)
+    }       // <-- closes: if (center_line == CENTER_LINE_NONE)
 
     ST7565_BlitFullScreen();
 }
