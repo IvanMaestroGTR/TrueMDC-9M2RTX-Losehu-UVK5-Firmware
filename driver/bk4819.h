@@ -120,6 +120,7 @@ void     BK4819_ResetFSK(void);
 void     BK4819_ExitBypass(void);
 void     BK4819_PrepareTransmit(bool muteMic);
 void     BK4819_MuteMic(void); //mute mic
+void     BK4819_UnmuteMic(void); //unmute mic
 void     BK4819_TxOn_Beep(void);
 void     BK4819_ExitSubAu(void);
 
@@ -182,6 +183,7 @@ void BK4819_send_MDC1200(const uint8_t op, const uint8_t arg, const uint16_t id,
 void BK4819_stop_tones(const bool tx);
 void BK4819_start_tone(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_mute);
 void enable_msg_rx(const bool enable);
+void BK4819_StatusLED_Indicate(bool bOn);
 
 #endif
 

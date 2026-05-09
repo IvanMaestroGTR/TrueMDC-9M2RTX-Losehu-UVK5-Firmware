@@ -234,6 +234,10 @@ void FUNCTION_Transmit() {
             BK4819_start_tone(880, 40, true, true);
                                         SYSTEM_DelayMs(150);
                                         BK4819_stop_tones(true);
+                                        SYSTEM_DelayMs(10);
+        } else {
+            // When BOOT_BEEP_CONTROL is OFF, unmute mic after MDC preamble
+            BK4819_UnmuteMic();
         }
         //BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
         
@@ -246,6 +250,10 @@ void FUNCTION_Transmit() {
             BK4819_start_tone(880, 40, true, true);
                                         SYSTEM_DelayMs(150);
                                         BK4819_stop_tones(true);
+                                        SYSTEM_DelayMs(10);
+        } else {
+            // When BOOT_BEEP_CONTROL is OFF, unmute mic after MDC preamble
+            BK4819_UnmuteMic();
         }
         //BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
 #endif

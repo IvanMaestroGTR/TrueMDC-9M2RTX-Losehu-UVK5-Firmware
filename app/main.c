@@ -695,6 +695,8 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction) 
             // F + Down key toggles boot beeps
             gEeprom.BOOT_BEEP_CONTROL = !gEeprom.BOOT_BEEP_CONTROL;
             gRequestSaveSettings = 1;
+            // Indicate status with LED: ON=double blink, OFF=single blink
+            BK4819_StatusLED_Indicate(gEeprom.BOOT_BEEP_CONTROL);
         }
 #ifdef ENABLE_DOPPLER
         if (Direction==-1) {

@@ -44,6 +44,7 @@ BK4819_FilterBandwidth_t m_bandwidth = BK4819_FILTER_BW_NARROW;
 
 static const uint8_t DTMF_TONE1_GAIN = 65;
 static const uint8_t DTMF_TONE2_GAIN = 93;
+static const uint8_t MDC_FSK_TX_GAIN = 80;  // FSK gain for MDC1200 TX (configurable: 0-127, default 96)
 
 static uint16_t gBK4819_GpioOutState;
 
@@ -1170,6 +1171,12 @@ void BK4819_MuteMic(void)
 	BK4819_WriteRegister(BK4819_REG_30, reg30 & ~(1u << 2));
 }
 
+void BK4819_UnmuteMic(void)
+{
+	const uint16_t reg30 = BK4819_ReadRegister(BK4819_REG_30);
+	BK4819_WriteRegister(BK4819_REG_30, reg30 | (1u << 2));
+}
+
 void BK4819_TxOn_Beep(void) {
     BK4819_WriteRegister(BK4819_REG_37, 0x1D0F);
     BK4819_WriteRegister(BK4819_REG_52, 0x028F);
@@ -2219,14 +2226,14 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
             (0u << 4) |   // FSK preamble type
             (1u << 1) |   // FSK RX bandwidth
             (1u << 0));   // FSK enable
-
+     
         // Set tone frequencies
         BK4819_WriteRegister(0x72, scale_freq(1200));  // tone-2 = 1200Hz
         BK4819_WriteRegister(0x70,
             (0u << 15) |  // TONE-1 disable
             (0u << 8) |   // TONE-1 tuning
             (1u << 7) |   // TONE-2 enable
-            (96u << 0));  // TONE-2 gain
+            (MDC_FSK_TX_GAIN << 0));  // TONE-2 gain (configurable)
 
         // Setup FSK register 0x59
         fsk_reg59 = (0u << 15) |  // clear TX FIFO
@@ -2512,5 +2519,32 @@ void enable_msg_rx(const bool enable) {
     } else {
         BK4819_WriteRegister(0x70, 0);
         BK4819_WriteRegister(0x58, 0);
+    }
+}
+
+void BK4819_StatusLED_Indicate(bool bOn) {
+    if (bOn) {
+        // ON state:
+        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
+        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+        SYSTEM_DelayMs(240);
+        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+        
+    } else {
+        // OFF state:
+        // First blink
+        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
+        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+        SYSTEM_DelayMs(80);
+        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+        SYSTEM_DelayMs(80);
+        // Second blink
+        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
+        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+        SYSTEM_DelayMs(80);
+        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
     }
 }
