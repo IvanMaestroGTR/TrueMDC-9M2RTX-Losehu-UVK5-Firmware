@@ -6,9 +6,8 @@ Please refer to the releases for changelog.
 
 Custom features: 
 Custom length MDC preamble (menu 26, 27)
-6 different roger beeps (menu 28)
-Power on beep (F+down)
-End call tone (menu 31)
-
+6 different roger beeps +MDC modes (menu 28)
+UI Tones: Power on beep+Talk Permit Tone (F+down)
+Screen inversion: (F+Menu)
 Enjoy the firmware!
 73 DE 9W2RTX
