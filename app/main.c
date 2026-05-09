@@ -334,8 +334,35 @@ static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
                 }
             }
 
-            // After 3 digits always commit and reset input
-            if (gInputBoxIndex >= 3) {
+            // Smart channel entry logic based on first digit
+            bool bAutoCommit = false;
+            uint8_t nCommitDigits = 3;  // default: 3 digits
+            
+            if (gInputBoxIndex >= 1) {
+                uint8_t firstDigit = gInputBox[0];
+                
+                if (firstDigit >= 3 && firstDigit <= 9) {
+                    // First digit 3-9: only 2 digits allowed (channels 30-99)
+                    nCommitDigits = 2;
+                } else if (firstDigit == 2) {
+                    if (gInputBoxIndex >= 2) {
+                        uint8_t secondDigit = gInputBox[1];
+                        if (secondDigit >= 1 && secondDigit <= 9) {
+                            // 2x with second digit 1-9: auto-commit as 2 digits (channels 21-29)
+                            nCommitDigits = 2;
+                        } else if (secondDigit == 0) {
+                            // 20: wait for third digit (for channels 200 or timeout to 20)
+                            nCommitDigits = 3;
+                        }
+                    }
+                } else if (firstDigit == 0 || firstDigit == 1) {
+                    // First digit 0-1: normal 3 digits logic (channels 1-199)
+                    nCommitDigits = 3;
+                }
+            }
+            
+            // Auto-commit if we have enough digits
+            if (gInputBoxIndex >= nCommitDigits) {
                 if (!RADIO_CheckValidChannel(Channel - 1, false, 0)) {
                     gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
                 }

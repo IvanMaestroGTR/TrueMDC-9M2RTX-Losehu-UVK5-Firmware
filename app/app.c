@@ -1389,6 +1389,19 @@ void APP_TimeSlice500ms(void) {
 
     if (gKeyInputCountdown > 0) {
         if (--gKeyInputCountdown == 0) {
+            // Special handling for MR channel input: if user entered "20" and timeout, commit as channel 20
+            if (gInputBoxIndex == 2 && gInputBox[0] == 2 && gInputBox[1] == 0 && 
+                IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE)) {
+                uint16_t Channel = 20;  // Timeout on "20" means channel 20
+                if (RADIO_CheckValidChannel(Channel - 1, false, 0)) {
+                    gEeprom.MrChannel[gEeprom.TX_VFO] = (uint8_t)(Channel - 1);
+                    gEeprom.ScreenChannel[gEeprom.TX_VFO] = (uint8_t)(Channel - 1);
+                    gRequestSaveVFO = true;
+                    gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
+                }
+                gInputBoxIndex = 0;
+            }
+            
             cancelUserInputModes();
 
             if (gBeepToPlay != BEEP_NONE) {
