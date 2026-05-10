@@ -59,7 +59,7 @@ void SETTINGS_InitEEPROM(void)
     // 0E78..0E7F
     EEPROM_ReadBuffer(0x0E78, Data, 8);
     gEeprom.BACKLIGHT_MAX 		  = (Data[0] & 0xF) <= 10 ? (Data[0] & 0xF) : 10;
-    key_dir 		  = (Data[0] >> 4) !=0xA ? -1 : 1;
+    key_dir 		  = -1;  // FIXED: Always -1 (DOWN goes UP menu number)
 #ifdef ENABLE_BLMIN_TMP_OFF
     gEeprom.BACKLIGHT_MIN_STAT	  = BLMIN_STAT_ON;
 #endif

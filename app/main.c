@@ -479,7 +479,7 @@ static void MAIN_Key_EXIT(bool bKeyPressed, bool bKeyHeld) {
 #ifdef ENABLE_TURN
     if (turn_flag) {
         turn_flag = false;
-        key_dir *= -1;
+        // key_dir *= -1;  // REMOVED: F+EXIT toggle feature
         gRequestSaveSettings = true;
         return;
     }

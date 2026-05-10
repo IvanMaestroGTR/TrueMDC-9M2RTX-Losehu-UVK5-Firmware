@@ -379,13 +379,13 @@ void UI_DisplayMain(void) {
 
 
 #ifdef test
-        UI_PrintStringSmall("press # long", 0, LCD_WIDTH, 1);
+        UI_PrintStringSmall("Hold #", 0, LCD_WIDTH, 1);
 
 
         UI_PrintStringSmall("to unlock",    0, LCD_WIDTH, 3);
 #else
 #ifdef ENABLE_ENGLISH
-        UI_PrintStringSmall("press # long", 0, LCD_WIDTH, 1);
+        UI_PrintStringSmall("Hold #", 0, LCD_WIDTH, 1);
 
 
         UI_PrintStringSmall("to unlock",    0, LCD_WIDTH, 3);

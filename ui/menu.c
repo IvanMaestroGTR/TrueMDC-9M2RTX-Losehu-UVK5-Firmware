@@ -933,9 +933,6 @@ void UI_DisplayMenu(void) {
 
             break;
 
-#ifdef ENABLE_AM_FIX
-            case MENU_AM_FIX:
-#endif
         case MENU_BCL:
             //     case MENU_BEEP:
 //        case MENU_S_ADD1:
@@ -952,6 +949,9 @@ void UI_DisplayMenu(void) {
 #endif
 #endif
         case MENU_D_LIVE_DEC:
+#ifdef ENABLE_AM_FIX
+            case MENU_AM_FIX:
+#endif
 #ifdef ENABLE_NOAA
             case MENU_NOAA_S:
 #endif
