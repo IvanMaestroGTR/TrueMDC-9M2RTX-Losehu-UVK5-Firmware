@@ -1107,9 +1107,9 @@ void APP_TimeSlice10ms(void) {
     if (gCurrentFunction == FUNCTION_POWER_SAVE) {
         powerSaveLedCounter++;
 
-        // TIER 1: CRITICAL (Below 7.2V / 720) 
+        // TIER 1: CRITICAL (Below 7.5V / 750) 
         // Pattern: Single Red Blink + 3s Interval
-        if (gBatteryVoltageAverage < 720) {
+        if (gBatteryVoltageAverage < 750) {
             if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
             } else {
@@ -1121,9 +1121,9 @@ void APP_TimeSlice10ms(void) {
                 powerSaveLedCounter = 0;
             }
         } 
-        // TIER 2: LOW (7.2V to 7.6V / 720-760)
+        // TIER 2: LOW (7.5V to 7.8V / 750-780)
         // Pattern: Double Red Blink + 3s Interval
-        else if (gBatteryVoltageAverage >= 720 && gBatteryVoltageAverage <= 760) {
+        else if (gBatteryVoltageAverage >= 750 && gBatteryVoltageAverage <= 780) {
             if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true); // Red
             } else if (powerSaveLedCounter > 8 && powerSaveLedCounter <= 18) {
