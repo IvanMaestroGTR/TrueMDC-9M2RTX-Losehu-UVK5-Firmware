@@ -7,6 +7,8 @@ Please refer to the releases for changelog.
 Firmware flasher that I use to flash my radios: https://www.universirius.com/SirioArchive/Materiel_pr_site/Firmware-IJV/K5prog_IJV_V3.zip
 Thanks IJV! (Please support him by using his firmware and/or treat him coffee thru PayPal!)
 
+Meanwhile, this firmware does have CHIRP module, please head to the CHIRP Module of this repo to get the file.
+
 Custom features: 
 Custom length MDC preamble (menu 26, 27)
 6 different roger beeps +MDC modes (menu 28)
