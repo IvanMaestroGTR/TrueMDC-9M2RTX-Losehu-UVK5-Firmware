@@ -1395,27 +1395,15 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 _mem.repeater_tail_elimination = RTE_LIST.index(
                     str(element.value))
 
-            # End call tone (ECT)
-            if element.get_name() == "end_call_tone":
-                _mem.end_call_tone = OFF_ON_LIST.index(str(element.value))
-
             # Logo string 1
-            if element.get_name() == "logo1":
-                if self.FIRMWARE_VERSION.endswith('K') or self.FIRMWARE_VERSION.endswith('H'):
-                    b = convert_chinese_to_bytes(str(element.value))
-                    self._welcome_logo[0] = b[0:18]
-                else:
-                    b = str(element.value).rstrip("\x20\xff\x00") + "\x00" * 12
-                    _mem.logo_line1 = b[0:12] + "\x00\xff\xff\xff"
+            elif element.get_name == "logo1":
+                b = str(element.value).rstrip("\x20\xff\x00")+"\x00"*12
+                _mem.logo_line1 = b[0:12]+"\x00\xff\xff\xff"
 
             # Logo string 2
-            if element.get_name() == "logo2":
-                if self.FIRMWARE_VERSION.endswith('K') or self.FIRMWARE_VERSION.endswith('H'):
-                    b = convert_chinese_to_bytes(str(element.value))
-                    self._welcome_logo[1] = b[0:18]
-                else:
-                    b = str(element.value).rstrip("\x20\xff\x00") + "\x00" * 12
-                    _mem.logo_line2 = b[0:12] + "\x00\xff\xff\xff"
+            elif element.get_name == "logo2":
+                b = str(element.value).rstrip("\x20\xff\x00")+"\x00"*12
+                _mem.logo_line2 = b[0:12]+"\x00\xff\xff\xff"
 
             # unlock settings
 
@@ -2217,16 +2205,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 "repeater_tail_elimination",
                 "Repeater Tail Tone Elimination",
                 RadioSettingValueList(RTE_LIST, RTE_LIST[tmprte]))
-        basic.append(rs)
-
-        # End call tone (ECT)
-        tmpect = _mem.end_call_tone
-        if tmpect >= len(OFF_ON_LIST):
-            tmpect = 0
-        rs = RadioSetting(
-                "end_call_tone",
-                "End Call Tone (ECT)",
-                RadioSettingValueList(OFF_ON_LIST, OFF_ON_LIST[tmpect]))
         basic.append(rs)
 
         # Logo string 1

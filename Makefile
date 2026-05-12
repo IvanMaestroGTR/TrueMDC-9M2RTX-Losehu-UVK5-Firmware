@@ -73,7 +73,7 @@ ENABLE_4732SSB =0
 
 ENABLE_DOPPLER               =0
 #############################################################
-PACKED_FILE_SUFFIX = 9W2RTX-LOSEHU
+PACKED_FILE_SUFFIX = 9M2RTX-LOSEHU
 ifeq ($(ENABLE_PINYIN),1)
 	ENABLE_CHINESE_FULL=4
 endif
