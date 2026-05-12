@@ -15,6 +15,10 @@ Custom length MDC preamble (menu 26, 27)
 UI Tones: Power on beep+Talk Permit Tone (F+down)
 Screen inversion: (F+Menu)
 
-Enjoy the firmware!
 
-73 DE 9W2RTX
+I would like to thank those who trust my work, and have beta tested my builds (even though that's the only radio he/she had).
+Thanks to 9W2BIL for most of the beta testing, 9W3MIG, 9W3KKW and 9W3JJJ for supporting my firmware, 9W2DSL for giving me ideas on some features, along with those who used my firmware.
+
+I hope this work of mine makes your K5 slightly better, enjoy the firmware!
+
+73 DE 9M2RTX
