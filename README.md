@@ -17,7 +17,7 @@ Screen inversion: (F+Menu)
 
 
 I would like to thank those who trust my work, and have beta tested my builds (even though that's the only radio he/she had).
-Thanks to 9W2BIL for most of the beta testing, 9W3MIG, 9W3KKW and 9W3JJJ for supporting my firmware, 9W2DSL for giving me ideas on some features, along with those who used my firmware.
+Thanks to Sara Sinn for testing out my initial builds, 9W2BIL for most of the beta testing on new features, 9W3MIG, 9W3KKW and 9W3JJJ for supporting my firmware, 9W2DSL and 9W2ESR for giving me ideas on some features, along with those who used my firmware.
 
 I hope this work of mine makes your K5 slightly better, enjoy the firmware!
 
