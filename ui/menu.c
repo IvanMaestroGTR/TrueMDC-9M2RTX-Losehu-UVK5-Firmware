@@ -147,6 +147,7 @@ const t_menu_item MenuList[] =
                 {/*"FrCali",*/ VOICE_ID_INVALID,                       MENU_F_CALI        ,""}, // reference xtal calibration
 #endif
                 {/*"BatCal",*/ VOICE_ID_INVALID, MENU_BATCAL, 电池调压}, // battery voltage calibration
+                {/*"RxLM",*/   VOICE_ID_INVALID, MENU_RX_LM, RX灯模式}, // RX light mode
                 {/*"BatTyp",*/ VOICE_ID_INVALID, MENU_BATTYP, 电池大小}, // battery type 1600/2200mAh
                 {/*"Reset",*/  VOICE_ID_INITIALISATION, MENU_RESET,
                                参数复位}, // might be better to move this to the hidden menu items ?
@@ -548,6 +549,13 @@ const char gSubMenu_AM_fix_test1[][8] =
 };
 #endif
 
+
+const char gSubMenu_RX_LM[][6] =
+        {
+                "OFF",
+                "SOLID",
+                "BLINK"
+        };
 
 const char gSubMenu_BATTYP[][8] =
         {
@@ -1452,6 +1460,11 @@ void UI_DisplayMenu(void) {
 
         case MENU_BATTYP:
             strcpy(String, gSubMenu_BATTYP[gSubMenuSelection]);
+
+            break;
+
+        case MENU_RX_LM:
+            strcpy(String, gSubMenu_RX_LM[gSubMenuSelection]);
 
             break;
 

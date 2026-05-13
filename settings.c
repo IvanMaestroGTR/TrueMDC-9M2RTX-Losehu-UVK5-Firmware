@@ -286,6 +286,9 @@ EEPROM_ReadBuffer(0x0EF0, Data, sizeof(gEeprom.REVIVE_CODE));
         }
     }
 
+    // Initialize RX Light Mode (default: BLINK for backwards compatibility)
+    gEeprom.RX_LIGHT_MODE = RX_LIGHT_MODE_BLINK;
+
     // 0F30..0F3F
     char B[8];
     memset(B,0XFF,8);

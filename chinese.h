@@ -161,6 +161,7 @@
 #define 主信道发射 "MAIN SEND"
 #define 副信道发射 "DUAL SEND"
 #define 开机显示 "POnMsg"
+#define RX灯模式 "RxLED"
 
 
 #else
@@ -295,6 +296,7 @@
 #define 存置了  "\x1A\x1B\x3A"
 #define 扫描  "\x81\x82"
 #define 删除问  "\x1E\x1F\x3F"
+#define RX灯模式 "RxLED"
 
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
 
@@ -486,6 +488,7 @@
 #define 主信道发射 "\xD6\xF7\xD0\xC5\xB5\xC0\xB7\xA2\xC9\xE4"
 #define 副信道发射 "\xB8\xB1\xD0\xC5\xB5\xC0\xB7\xA2\xC9\xE4"
 #define 开机显示 "\xBF\xAA\xBB\xFA\xCF\xD4\xCA\xBE"
+#define RX灯模式 "RxLED"
 
 #endif
 

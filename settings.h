@@ -149,6 +149,13 @@ enum CHANNEL_DisplayMode_t {
 };
 typedef enum CHANNEL_DisplayMode_t CHANNEL_DisplayMode_t;
 
+enum RX_LIGHT_MODE_t {
+    RX_LIGHT_MODE_OFF = 0,
+    RX_LIGHT_MODE_SOLID,
+    RX_LIGHT_MODE_BLINK
+};
+typedef enum RX_LIGHT_MODE_t RX_LIGHT_MODE_t;
+
 typedef struct {
     uint8_t               ScreenChannel[2]; // current channels set in the radio (memory or frequency channels)
     uint8_t               FreqChannel[2]; // last frequency channels used
@@ -290,6 +297,7 @@ typedef struct {
     uint8_t                  MDC1200_PREAMBLE_DURATION;  // 1-10 cycles
     MDC_PREAMBLE_WHEN_t      MDC1200_PREAMBLE_WHEN;
 #endif
+    RX_LIGHT_MODE_t          RX_LIGHT_MODE;
 } EEPROM_Config_t;
 
 extern EEPROM_Config_t gEeprom;

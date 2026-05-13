@@ -1159,20 +1159,44 @@ void APP_TimeSlice10ms(void) {
         powerSaveLedCounter = 0;
     }
     
-    // --- RX Green Light Blinking Logic ---
-    if (g_SquelchLost && gCurrentFunction != FUNCTION_TRANSMIT) {
-        rxBlinkCounter++;
-        
-        // 80ms is 8 ticks (10ms * 8)
-        // 500ms total interval is 50 ticks
-        if (rxBlinkCounter <= 8) {
-            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
-        } else {
-            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-        }
+    // --- RX Green Light Logic (configurable via RX_LIGHT_MODE) ---
+    // Only manage RX light when NOT in POWER_SAVE mode (power save manages its own breathing light)
+    if (gCurrentFunction != FUNCTION_POWER_SAVE) {
+        if (g_SquelchLost && gCurrentFunction != FUNCTION_TRANSMIT) {
+            switch (gEeprom.RX_LIGHT_MODE) {
+                case RX_LIGHT_MODE_OFF:
+                    // No RX light
+                    BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+                    rxBlinkCounter = 0;
+                    break;
+                
+                case RX_LIGHT_MODE_SOLID:
+                    // Solid green light when receiving
+                    BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+                    rxBlinkCounter = 0;
+                    break;
+                
+                case RX_LIGHT_MODE_BLINK:
+                default:
+                    // Blinking green light (original behavior)
+                    rxBlinkCounter++;
+                    
+                    // 80ms is 8 ticks (10ms * 8)
+                    // 500ms total interval is 50 ticks
+                    if (rxBlinkCounter <= 8) {
+                        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+                    } else {
+                        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+                    }
 
-        if (rxBlinkCounter >= 50) {
+                    if (rxBlinkCounter >= 50) {
+                        rxBlinkCounter = 0;
+                    }
+                    break;
+            }
+        } else {
             rxBlinkCounter = 0;
+            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
         }
     } else {
         rxBlinkCounter = 0;

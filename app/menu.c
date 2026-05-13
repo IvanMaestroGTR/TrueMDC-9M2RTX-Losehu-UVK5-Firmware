@@ -440,6 +440,11 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMax = 1;
             break;
 
+        case MENU_RX_LM:
+            *pMin = 0;
+            *pMax = 2;  // 0=OFF, 1=SOLID, 2=BLINK
+            break;
+
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
             case MENU_F1SHRT:
             case MENU_F2SHRT:
@@ -908,6 +913,10 @@ void MENU_AcceptSetting(void) {
             gEeprom.BATTERY_TYPE = gSubMenuSelection;
             break;
 
+        case MENU_RX_LM:
+            gEeprom.RX_LIGHT_MODE = gSubMenuSelection;
+            break;
+
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
             case MENU_F1SHRT:
             case MENU_F1LONG:
@@ -1285,6 +1294,10 @@ void MENU_ShowCurrentSetting(void) {
 
         case MENU_BATTYP:
             gSubMenuSelection = gEeprom.BATTERY_TYPE;
+            break;
+
+        case MENU_RX_LM:
+            gSubMenuSelection = gEeprom.RX_LIGHT_MODE;
             break;
 
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
