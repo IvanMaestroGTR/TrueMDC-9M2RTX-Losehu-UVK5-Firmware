@@ -2192,22 +2192,22 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
         // Create the MDC1200 packet
         const unsigned int mdc_size = MDC1200_encode_single_packet(packet, op, arg, id);
         
-        // Build preamble: alternating 1800Hz and 1200Hz for N cycles
-        // 1800Hz = 0x00 (space), 1200Hz = 0xFF (mark)
+        // Build preamble: alternating space and 1200Hz for N cycles
+        // space_freq = 0x00 (space), 1200Hz = 0xFF (mark)
         {
-            unsigned int preamble_cycle; //cool motorola long preamble
+            unsigned int preamble_cycle;
             
             // Build preamble in combined buffer
             for (preamble_cycle = 0; preamble_cycle < preamble_duration; preamble_cycle++) {
-                // First 1800Hz is longer to match Motorola spec (3 bytes = ~20ms for short preamble)
+                // First space is longer to match Motorola spec (1 or 3 bytes = ~5-20ms for short preamble)
                 // Subsequent cycles are normal (4 bytes = ~25ms)
-                unsigned int first_1800_size = (preamble_cycle == 0) ? 1 : 4;
+                unsigned int first_space_size = (preamble_cycle == 0) ? 1 : 4;
                 
-                // Add 1800Hz (0x00) - first is 3 bytes, rest are 4 bytes
-                memset(combined_packet + combined_size, 0x00, first_1800_size);
-                combined_size += first_1800_size;
+                // Add space tone (0x00)
+                memset(combined_packet + combined_size, 0x00, first_space_size);
+                combined_size += first_space_size;
                 
-                // Add 1200Hz (0xFF) for 20ms = 3 bytes (immediately after, no gap)
+                // Add 1200Hz (0xFF) for ~20ms = 3 bytes (immediately after, no gap)
                 memset(combined_packet + combined_size, 0xFF, 3);
                 combined_size += 3;
             }
@@ -2217,95 +2217,147 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
         memcpy(combined_packet + combined_size, packet, mdc_size);
         combined_size += mdc_size;
 
-        // Setup FSK modem for entire combined transmission
-        BK4819_WriteRegister(0x58,
-            (1u << 13) |  // FSK TX mode: FFSK 1200/1800
-            (7u << 10) |  // FSK RX mode: FFSK 1200/1800
-            (0u << 8) |   // FSK RX gain
-            (0u << 6) |   // ???
-            (0u << 4) |   // FSK preamble type
-            (1u << 1) |   // FSK RX bandwidth
-            (1u << 0));   // FSK enable
-     
-        // Set tone frequencies
-        BK4819_WriteRegister(0x72, scale_freq(1200));  // tone-2 = 1200Hz
-        BK4819_WriteRegister(0x70,
-            (0u << 15) |  // TONE-1 disable
-            (0u << 8) |   // TONE-1 tuning
-            (1u << 7) |   // TONE-2 enable
-            (MDC_FSK_TX_GAIN << 0));  // TONE-2 gain (configurable)
-
-        // Setup FSK register 0x59
-        fsk_reg59 = (0u << 15) |  // clear TX FIFO
-                    (0u << 14) |  // clear RX FIFO
-                    (0u << 13) |  // scramble
-                    (0u << 12) |  // enable RX
-                    (0u << 11) |  // enable TX
-                    (0u << 10) |  // invert RX
-                    (0u << 9) |   // invert TX
-                    (0u << 8) |   // ???
-                    (0u << 4) |   // preamble length (minimum)
-                    (1u << 3) |   // sync length
-                    (0u << 0);    // ???
-
-        // Sync bytes
-        BK4819_WriteRegister(0x5A, 0x0000);
-        BK4819_WriteRegister(0x5B, 0x0000);
-
-        // CRC setting
-        BK4819_WriteRegister(0x5C, 0x5625);
-
-        // Set packet length for entire combined packet
-        BK4819_WriteRegister(0x5D, ((combined_size - 1) << 8));
-
-        // Clear and release FIFO
-        BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
-        BK4819_WriteRegister(0x59, fsk_reg59);
-
-        // Load entire combined packet (preamble + MDC) into FIFO, skipping initial 2 mdc1200_pre_amble bytes
-        // Load as 16-bit words, then handle any remaining byte
-        {
-            unsigned int i;
-            const uint16_t *p = (const uint16_t *)(combined_packet + 2);  // Start from offset 2 to skip {0x00, 0xFF}
-            const uint8_t *p8 = combined_packet;
-            unsigned int load_size = (combined_size > 2) ? (combined_size - 2) : 0;
+        // Check which MDC mode to use
+        if (gEeprom.MDC1200_MODE == MDC_MODE_CUSTOM) {
+            // SOFTWARE-DEFINED FSK for exact 1200/2200 Hz
+            // Use tone-1 (REG_71) to generate both frequencies by switching
+            BK4819_EnterTxMute();
+            BK4819_SetAF(BK4819_AF_MUTE);
             
-            // Load all complete 16-bit words
-            for (i = 0; i < (load_size / 2); i++)
-                BK4819_WriteRegister(0x5F, p[i]);
+            // Setup tone-1 for software FSK
+            BK4819_WriteRegister(0x70,
+                (1u << 15) |   // TONE-1 enable
+                (96u << 8) |   // TONE-1 gain set high for good amplitude
+                (0u << 7) |    // TONE-2 disable
+                (0u << 0));    // TONE-2 gain = 0
             
-            // If there's an odd byte remaining, load it as the low byte of a 16-bit word
-            if (load_size & 1) {
-                BK4819_WriteRegister(0x5F, (uint16_t)p8[2 + load_size - 1]);
-            }
-        }
-
-        // Enable TX interrupt
-        BK4819_WriteRegister(0x3F, BK4819_REG_3F_FSK_TX_FINISHED);
-
-        // Enable FSK TX
-        BK4819_WriteRegister(0x59, (1u << 11) | fsk_reg59);
-
-        // Wait for TX to complete
-        {
-            unsigned int timeout = 500 / 4;  // Increased timeout for longer combined packet
-            while (timeout-- > 0) {
-                SYSTEM_DelayMs(4);
-                if (BK4819_ReadRegister(0x0C) & (1u << 0)) {
-                    BK4819_WriteRegister(0x02, 0);
-                    if (BK4819_ReadRegister(0x02) & BK4819_REG_02_FSK_TX_FINISHED)
-                        timeout = 0;
+            BK4819_WriteRegister(0x30, 0);
+            BK4819_WriteRegister(0x30,
+                BK4819_REG_30_ENABLE_AF_DAC | 
+                BK4819_REG_30_ENABLE_DISC_MODE | 
+                BK4819_REG_30_ENABLE_TX_DSP);
+            
+            BK4819_EnableTXLink();
+            SYSTEM_DelayMs(50);
+            
+            BK4819_ExitTxMute();
+            
+            // Transmit each byte bit by bit
+            // 1200 bps = 833.33 microseconds per bit
+            const uint32_t bit_time_us = 833;  // Exact: 1000000 / 1200 = 833.33 microseconds
+            
+            for (unsigned int byte_idx = 0; byte_idx < combined_size; byte_idx++) {
+                uint8_t data_byte = combined_packet[byte_idx];
+                
+                // For preamble: 0x00 = space (2200Hz), 0xFF = mark (1200Hz)
+                // For MDC data: standard bit encoding (0 = mark, 1 = space)
+                if (byte_idx < (combined_size - mdc_size)) {
+                    // Preamble section: hold frequency for 8 bits at 1200 baud
+                    // 8 bits @ 1200 baud = 6666.67us
+                    if (data_byte == 0x00) {
+                        // Space tone: 2200Hz for entire byte
+                        BK4819_WriteRegister(0x71, scale_freq(2200));
+                    } else {
+                        // Mark tone: 1200Hz for entire byte
+                        BK4819_WriteRegister(0x71, scale_freq(1200));
+                    }
+                    // Wait for 8 bits at 1200 baud: 6667 microseconds
+                    SYSTICK_DelayUs(6667);
+                } else {
+                    // MDC data section: process each bit with exact 1200 baud timing
+                    for (int bit = 0; bit < 8; bit++) {
+                        uint8_t bit_val = (data_byte >> bit) & 1;
+                        
+                        if (bit_val == 0) {
+                            // Mark: 1200Hz
+                            BK4819_WriteRegister(0x71, scale_freq(1200));
+                        } else {
+                            // Space: 2200Hz
+                            BK4819_WriteRegister(0x71, scale_freq(2200));
+                        }
+                        
+                        // Exact 1200 baud timing: 833.33 µs per bit
+                        SYSTICK_DelayUs(833);
+                    }
                 }
             }
+            
+            BK4819_EnterTxMute();
+            SYSTEM_DelayMs(100);
+            
+            BK4819_WriteRegister(0x70, 0x0000);
+            BK4819_WriteRegister(0x30, 0xC1FE);
+            BK4819_ExitTxMute();
+        } else {
+            // ORIGINAL MODE: 1200/1800 Hz (software-defined FSK)
+            BK4819_EnterTxMute();
+            BK4819_SetAF(BK4819_AF_MUTE);
+            
+            // Setup tone-1 for software FSK
+            BK4819_WriteRegister(0x70,
+                (1u << 15) |   // TONE-1 enable
+                (96u << 8) |   // TONE-1 gain set high for good amplitude
+                (0u << 7) |    // TONE-2 disable
+                (0u << 0));    // TONE-2 gain = 0
+            
+            BK4819_WriteRegister(0x30, 0);
+            BK4819_WriteRegister(0x30,
+                BK4819_REG_30_ENABLE_AF_DAC | 
+                BK4819_REG_30_ENABLE_DISC_MODE | 
+                BK4819_REG_30_ENABLE_TX_DSP);
+            
+            BK4819_EnableTXLink();
+            SYSTEM_DelayMs(50);
+            
+            BK4819_ExitTxMute();
+            
+            // Transmit each byte bit by bit
+            // 1200 bps = 833.33 microseconds per bit
+            const uint32_t bit_time_us = 833;  // Exact: 1000000 / 1200 = 833.33 microseconds
+            
+            for (unsigned int byte_idx = 0; byte_idx < combined_size; byte_idx++) {
+                uint8_t data_byte = combined_packet[byte_idx];
+                
+                // For preamble: 0x00 = space (1800Hz), 0xFF = mark (1200Hz)
+                // For MDC data: standard bit encoding (0 = mark, 1 = space)
+                if (byte_idx < (combined_size - mdc_size)) {
+                    // Preamble section: hold frequency for 8 bits at 1200 baud
+                    // 8 bits @ 1200 baud = 6666.67us
+                    if (data_byte == 0x00) {
+                        // Space tone: 1800Hz for entire byte
+                        BK4819_WriteRegister(0x71, scale_freq(1800));
+                    } else {
+                        // Mark tone: 1200Hz for entire byte
+                        BK4819_WriteRegister(0x71, scale_freq(1200));
+                    }
+                    // Wait for 8 bits at 1200 baud: 6667 microseconds
+                    SYSTICK_DelayUs(6667);
+                } else {
+                    // MDC data section: process each bit with exact 1200 baud timing
+                    for (int bit = 0; bit < 8; bit++) {
+                        uint8_t bit_val = (data_byte >> bit) & 1;
+                        
+                        if (bit_val == 0) {
+                            // Mark: 1200Hz
+                            BK4819_WriteRegister(0x71, scale_freq(1200));
+                        } else {
+                            // Space: 1800Hz
+                            BK4819_WriteRegister(0x71, scale_freq(1800));
+                        }
+                        
+                        // Exact 1200 baud timing: 833.33 µs per bit
+                        SYSTICK_DelayUs(833);
+                    }
+                }
+            }
+            
+            BK4819_EnterTxMute();
+            SYSTEM_DelayMs(100);
+            
+            BK4819_WriteRegister(0x70, 0x0000);
+            BK4819_WriteRegister(0x30, 0xC1FE);
+            BK4819_ExitTxMute();
         }
-
-        // Cleanup
-        BK4819_WriteRegister(0x59, fsk_reg59);
-        BK4819_WriteRegister(0x3F, 0);
-        BK4819_WriteRegister(0x70, 0);
-        BK4819_WriteRegister(0x58, 0);
-
-        return;
     }
 
 #endif

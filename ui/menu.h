@@ -92,6 +92,7 @@ enum {
 #ifdef ENABLE_MDC1200
     MENU_MDC_PREAMBLE_DURATION,
     MENU_MDC_PREAMBLE_WHEN,
+    MENU_MDC_MODE,
 #endif
 
     MENU_UPCODE,
@@ -257,13 +258,16 @@ extern const char gSubMenu_ROGER[10][15];
 #ifdef ENABLE_ENGLISH
 extern const char        gSubMenu_MDC_PREAMBLE_DURATION[8][4];
 extern const char        gSubMenu_MDC_PREAMBLE_WHEN[3][5];
+extern const char        gSubMenu_MDC_MODE[2][7];
 #else
 extern const char        gSubMenu_MDC_PREAMBLE_DURATION[8][4];
 extern const char        gSubMenu_MDC_PREAMBLE_WHEN[3][5];
+extern const char        gSubMenu_MDC_MODE[2][7];
 #endif
 #else
 extern const char gSubMenu_MDC_PREAMBLE_DURATION[8][4];
 extern const char gSubMenu_MDC_PREAMBLE_WHEN[3][5];
+extern const char gSubMenu_MDC_MODE[2][7];
 #endif
 #endif
 

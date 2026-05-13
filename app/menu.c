@@ -249,6 +249,11 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_MDC_PREAMBLE_WHEN) - 1;
             break;
+
+        case MENU_MDC_MODE:
+            *pMin = 0;
+            *pMax = ARRAY_SIZE(gSubMenu_MDC_MODE) - 1;
+            break;
 #endif
 
 #if ENABLE_CHINESE_FULL == 4
@@ -817,6 +822,10 @@ void MENU_AcceptSetting(void) {
         case MENU_MDC_PREAMBLE_WHEN:
             gEeprom.MDC1200_PREAMBLE_WHEN = gSubMenuSelection;
             break;
+
+        case MENU_MDC_MODE:
+            gEeprom.MDC1200_MODE = gSubMenuSelection;
+            break;
 #endif
 
 //		case MENU_AM:
@@ -1225,6 +1234,10 @@ void MENU_ShowCurrentSetting(void) {
 
         case MENU_MDC_PREAMBLE_WHEN:
             gSubMenuSelection = gEeprom.MDC1200_PREAMBLE_WHEN;
+            break;
+
+        case MENU_MDC_MODE:
+            gSubMenuSelection = gEeprom.MDC1200_MODE;
             break;
 #endif
 

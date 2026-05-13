@@ -139,6 +139,12 @@ enum MDC_PREAMBLE_WHEN_t {
     MDC_PREAMBLE_WHEN_BOTH
 };
 typedef enum MDC_PREAMBLE_WHEN_t MDC_PREAMBLE_WHEN_t;
+
+enum MDC_MODE_t {
+    MDC_MODE_ORIGINAL = 0,  // 1200/1800 Hz mark/space
+    MDC_MODE_CUSTOM         // 1200/2200 Hz mark/space
+};
+typedef enum MDC_MODE_t MDC_MODE_t;
 #endif
 
 enum CHANNEL_DisplayMode_t {
@@ -296,6 +302,7 @@ typedef struct {
 #ifdef ENABLE_MDC1200
     uint8_t                  MDC1200_PREAMBLE_DURATION;  // 1-10 cycles
     MDC_PREAMBLE_WHEN_t      MDC1200_PREAMBLE_WHEN;
+    MDC_MODE_t               MDC1200_MODE;               // 0=Original(1200/1800), 1=Custom(1200/2200)
 #endif
     RX_LIGHT_MODE_t          RX_LIGHT_MODE;
 } EEPROM_Config_t;

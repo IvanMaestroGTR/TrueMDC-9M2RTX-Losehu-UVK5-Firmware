@@ -171,6 +171,7 @@ void SETTINGS_InitEEPROM(void)
 #ifdef ENABLE_MDC1200
     gEeprom.MDC1200_PREAMBLE_DURATION      = (Data[5] >= 1 && Data[5] <= 10) ? Data[5] : 1;
     gEeprom.MDC1200_PREAMBLE_WHEN          = (Data[6] < 3) ? Data[6] : MDC_PREAMBLE_WHEN_BOTH;
+    gEeprom.MDC1200_MODE                   = (Data[7] < 2) ? Data[7] : MDC_MODE_ORIGINAL;
 #endif
 
     // 0ED0..0ED7
@@ -608,9 +609,11 @@ void SETTINGS_SaveSettings(void)
 #ifdef ENABLE_MDC1200
     State[5] = gEeprom.MDC1200_PREAMBLE_DURATION;
     State[6] = gEeprom.MDC1200_PREAMBLE_WHEN;
+    State[7] = gEeprom.MDC1200_MODE;
 #else
     State[5] = 0xFF;
     State[6] = 0xFF;
+    State[7] = 0xFF;
 #endif
     EEPROM_WriteBuffer(0x0EA8, State,8);
 

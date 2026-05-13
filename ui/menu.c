@@ -87,6 +87,7 @@ const t_menu_item MenuList[] =
 #ifdef ENABLE_MDC1200
                 {/*"MDCPre",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_DURATION, "MDCPre"},
                 {/*"MDCWhn",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_WHEN, "MDCWhn"},
+                {/*"MDCMod",*/ VOICE_ID_INVALID, MENU_MDC_MODE, "MDCMod"},
 #endif
 
                 {/*"Roger",*/  VOICE_ID_INVALID, MENU_ROGER, 首尾音},
@@ -440,6 +441,12 @@ const char gSubMenu_MDC_PREAMBLE_WHEN[][5] =
                 "Post",
                 "Both"
 };
+
+const char gSubMenu_MDC_MODE[][7] =
+{
+                "Origin",
+                "Custom"
+};
 #endif
 
 #ifdef ENABLE_ENGLISH
@@ -462,6 +469,12 @@ const char gSubMenu_MDC_PREAMBLE_WHEN[][5] =
                 "Pre",
                 "Post",
                 "Both"
+};
+
+const char gSubMenu_MDC_MODE[][7] =
+{
+                "Origin",
+                "Custom"
 };
 #endif
 
@@ -1413,6 +1426,10 @@ void UI_DisplayMenu(void) {
             strcpy(String, options[gSubMenuSelection]);
             break;
         }
+
+        case MENU_MDC_MODE:
+            strcpy(String, gSubMenu_MDC_MODE[gSubMenuSelection]);
+            break;
 #endif
 
 //        case MENU_VOL:
