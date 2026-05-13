@@ -1396,12 +1396,12 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                     str(element.value))
 
             # Logo string 1
-            elif element.get_name == "logo1":
+            if element.get_name() == "logo1":
                 b = str(element.value).rstrip("\x20\xff\x00")+"\x00"*12
                 _mem.logo_line1 = b[0:12]+"\x00\xff\xff\xff"
 
             # Logo string 2
-            elif element.get_name == "logo2":
+            if element.get_name() == "logo2":
                 b = str(element.value).rstrip("\x20\xff\x00")+"\x00"*12
                 _mem.logo_line2 = b[0:12]+"\x00\xff\xff\xff"
 
@@ -2208,33 +2208,17 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         basic.append(rs)
 
         # Logo string 1
-        if self.FIRMWARE_VERSION.endswith('K') or self.FIRMWARE_VERSION.endswith('H'):
-            logo1 = convert_bytes_to_chinese(self._welcome_logo[0])
-            if not check_text_in_charset(logo1):
-                logo1 = 'Invalid Entry, Please retry'
-            rs = RadioSetting("logo1", "Logo String 1 (18 Letter)",
-                              RadioSettingChineseValueString(0, 18, logo1, self.FIRMWARE_VERSION,
-                                                             False, VALID_CHARACTERS))
-        else:
-            logo1 = str(_mem.logo_line1).strip("\x20\x00\xff") + "\x00"
-            logo1 = _getstring(logo1.encode('ascii', errors='ignore'), 0, 12)
-            rs = RadioSetting("logo1", "Logo String 1 (12 Letter)",
-                              RadioSettingValueString(0, 12, logo1, False))
+        logo1 = str(_mem.logo_line1).strip("\x20\x00\xff") + "\x00"
+        logo1 = _getstring(logo1.encode('ascii', errors='ignore'), 0, 12)
+        rs = RadioSetting("logo1", "Logo String 1 (12 Letter)",
+                          RadioSettingValueString(0, 12, logo1, False))
         basic.append(rs)
 
         # Logo string 2
-        if self.FIRMWARE_VERSION.endswith('K') or self.FIRMWARE_VERSION.endswith('H'):
-            logo2 = convert_bytes_to_chinese(self._welcome_logo[1])
-            if not check_text_in_charset(logo2):
-                logo2 = 'Invalid Entry, Please retry'
-            rs = RadioSetting("logo2", "Logo String 2 (18 Letter)",
-                              RadioSettingChineseValueString(0, 18, logo2, self.FIRMWARE_VERSION,
-                                                             False, VALID_CHARACTERS))
-        else:
-            logo2 = str(_mem.logo_line2).strip("\x20\x00\xff") + "\x00"
-            logo2 = _getstring(logo2.encode('ascii', errors='ignore'), 0, 12)
-            rs = RadioSetting("logo2", "Logo String 2 (12 Letter)",
-                              RadioSettingValueString(0, 12, logo2, False))
+        logo2 = str(_mem.logo_line2).strip("\x20\x00\xff") + "\x00"
+        logo2 = _getstring(logo2.encode('ascii', errors='ignore'), 0, 12)
+        rs = RadioSetting("logo2", "Logo String 2 (12 Letter)",
+                          RadioSettingValueString(0, 12, logo2, False))
         basic.append(rs)
 
         # FM radio
