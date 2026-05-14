@@ -128,6 +128,7 @@ u8 vfo_open;
 u8 beep_control;
 u8 mdc1200_id_low;
 u8 mdc1200_id_high;
+u8 boot_beep_control;
 
 #seekto 0xe95;
 u8 scan_resume_mode;
@@ -147,7 +148,7 @@ u8 unknown_ea7;
 
 #seekto 0xea8;
 u8 alarm_mode;
-u8 reminding_of_end_talk;
+u8 roger;
 u8 repeater_tail_elimination;
 u8 tx_vfo;
 u8 battery_type;
@@ -295,7 +296,7 @@ SCRAMBLER_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 # channel display mode
 CHANNELDISP_LIST = ["Freq", "ChanNum", "Nam", "Name+Freq"]
 # battery save
-BATSAVE_LIST = ["Off", "1:1", "1:2", "1:3", "1:4"]
+BATSAVE_LIST = ["Off", "1:1", "1:2", "1:3", "1:4", "1:5", "1:6"]
 
 # Backlight auto mode
 BACKLIGHT_LIST = ["Off", "5s", "10s", "20s", "1mins", "2mins", "4mins", "On"]
@@ -339,7 +340,7 @@ DTCS_CODES = [
     731, 732, 734, 743, 754
 ]
 
-FLOCK_LIST = ["Default+137-174 400-430", "FCC", "CE", "GB", "137-174 400-430", "137-174 400-438", "Disable All", "Unlock All"]
+FLOCK_LIST = ["Default+137-174 400-430", "RTX Spec", "CE", "GB", "137-174 400-430", "137-174 400-438", "Disable All", "Unlock All"]
 
 SCANRESUME_LIST = ["TO: TimeOff",
                    "CO: CodeOff",
@@ -349,7 +350,7 @@ WELCOME_LIST = ["Off", "Pic", "Msg"]
 KEYPADTONE_LIST = ["Off", "Chinese", "English"]
 LANGUAGE_LIST = ["Chinese", "English"]
 ALARMMODE_LIST = ["Local", "Local+Remote"]
-REMENDOFTALK_LIST = ["Off", "Roger 1", "Roger 2", "Roger 3", "Roger 4", "Roger 5", "MDC Post", "MDC Pre", "MDC Both"]
+REMENDOFTALK_LIST = ["Off", "Roger 1", "Roger 2", "Roger 3", "Roger 4", "Roger 5", "Roger 6", "MDC Post", "MDC Pre", "MDC Both"]
 RTE_LIST = ["Off", "10ms", "20ms", "30ms", "40ms", "50ms", "60ms", "70ms", "80ms", "90ms", "100ms"]
 STE_LIST = ["Off", "55Hz", "180"]
 MDC_PREAMBLE_DURATION_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
@@ -1328,9 +1329,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             if element.get_name() == "vfo_open":
                 _mem.vfo_open = element.value and 1 or 0
 
-            # Beep control
-            if element.get_name() == "beep_control":
-                _mem.beep_control = element.value and 1 or 0
+            # UI Sound (Talk Permit Tone + Boot Beep)
+            if element.get_name() == "ui_sound":
+                _mem.boot_beep_control = element.value and 1 or 0
 
             # Scan resume mode
             if element.get_name() == "scan_resume_mode":
@@ -1349,10 +1350,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             if element.get_name() == "welcome_mode":
                 _mem.power_on_dispmode = WELCOME_LIST.index(str(element.value))
 
-            # Boot beep
-            if element.get_name() == "boot_beep_control":
-                tmpval = _mem.beep_control & 1
-                _mem.beep_control = tmpval | (int(element.value) << 1)
+            # UI Sound (Talk Permit Tone + Boot Beep)
+            if element.get_name() == "ui_sound":
+                _mem.boot_beep_control = element.value and 1 or 0
 
             # MDC1200 ID
             if element.get_name() == "mdc1200_id":
@@ -1373,21 +1373,13 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 _mem.mdc1200_preamble_when = MDC_PREAMBLE_WHEN_LIST.index(
                     str(element.value))
 
-            # Keypad Tone
-            if element.get_name() == "keypad_tone":
-                _mem.keypad_tone = KEYPADTONE_LIST.index(str(element.value))
-
-            # Language
-            if element.get_name() == "language":
-                _mem.language = LANGUAGE_LIST.index(str(element.value))
-
             # Alarm mode
             if element.get_name() == "alarm_mode":
                 _mem.alarm_mode = ALARMMODE_LIST.index(str(element.value))
 
             # Reminding of end of talk
             if element.get_name() == "reminding_of_end_talk":
-                _mem.reminding_of_end_talk = REMENDOFTALK_LIST.index(
+                _mem.roger = REMENDOFTALK_LIST.index(
                     str(element.value))
 
             # Repeater tail tone elimination
@@ -2076,11 +2068,11 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                           RadioSettingValueBoolean(bool(_mem.vfo_open > 0)))
         basic.append(rs)
 
-        # Beep control
+        # UI Sound (Talk Permit Tone + Boot Beep)
         rs = RadioSetting(
-                "beep_control",
-                "Key Beeps",
-                RadioSettingValueBoolean(bool(_mem.beep_control > 0)))
+                "ui_sound",
+                "UI Sound",
+                RadioSettingValueBoolean(bool(_mem.boot_beep_control > 0)))
         basic.append(rs)
 
         # Scan resume mode
@@ -2121,12 +2113,12 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                     WELCOME_LIST[tmpdispmode]))
         basic.append(rs)
 
-        # Boot beep
-        tmpboot = bool((_mem.beep_control >> 1) & 1)
+        # Key Beeps
+        tmpkey = bool(_mem.beep_control & 1)
         rs = RadioSetting(
-                "boot_beep_control",
-                "Power On Boot Beep",
-                RadioSettingValueBoolean(tmpboot))
+                "beep_control",
+                "Key Beeps",
+                RadioSettingValueBoolean(tmpkey))
         basic.append(rs)
 
         # MDC ID
@@ -2161,22 +2153,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                     MDC_PREAMBLE_WHEN_LIST[tmpmdc_pre_whn]))
         basic.append(rs)
 
-        # Keypad Tone
-        tmpkeypadtone = _mem.keypad_tone
-        if tmpkeypadtone >= len(KEYPADTONE_LIST):
-            tmpkeypadtone = 0
-        rs = RadioSetting("keypad_tone", "Keypad Tone", RadioSettingValueList(
-            KEYPADTONE_LIST, KEYPADTONE_LIST[tmpkeypadtone]))
-        basic.append(rs)
-
-        # Language
-        tmplanguage = _mem.language
-        if tmplanguage >= len(LANGUAGE_LIST):
-            tmplanguage = 0
-        rs = RadioSetting("language", "Language", RadioSettingValueList(
-            LANGUAGE_LIST, LANGUAGE_LIST[tmplanguage]))
-        basic.append(rs)
-
         # Alarm mode
         tmpalarmmode = _mem.alarm_mode
         if tmpalarmmode >= len(ALARMMODE_LIST):
@@ -2186,7 +2162,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         basic.append(rs)
 
         # Reminding of end of talk
-        tmpalarmmode = _mem.reminding_of_end_talk
+        tmpalarmmode = _mem.roger
         if tmpalarmmode >= len(REMENDOFTALK_LIST):
             tmpalarmmode = 0
         rs = RadioSetting(
