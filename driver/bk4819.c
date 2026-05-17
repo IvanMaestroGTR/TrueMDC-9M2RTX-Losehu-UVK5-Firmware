@@ -1748,6 +1748,7 @@ void BK4819_PlayRogerNormal(void) {
     BK4819_EnterTxMute();
 
     BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    SYSTEM_DelayMs(50);
     AUDIO_AudioPathOff();
     BK4819_SetAF(BK4819_AF_MUTE);
     BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);   // 1 1 0000 0 1 1111 1 1 1 0
@@ -1786,6 +1787,7 @@ void BK4819_PlayRogerTwo(void) {
     BK4819_EnterTxMute();
 
     BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    SYSTEM_DelayMs(50);
     AUDIO_AudioPathOff();
     BK4819_SetAF(BK4819_AF_MUTE);
     BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);   // 1 1 0000 0 1 1111 1 1 1 0
@@ -1815,14 +1817,15 @@ void BK4819_PlayRogerThree(void) {
     BK4819_EnterTxMute();
 
     BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    SYSTEM_DelayMs(50);
     AUDIO_AudioPathOff();
     BK4819_SetAF(BK4819_AF_MUTE);
     BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
 }
 
 void BK4819_PlayRogerFour(void) {
-    const uint32_t tone1_Hz = 1001;
-    const uint32_t tone2_Hz = 798;
+    const uint32_t tone1_Hz = 785;
+    const uint32_t tone2_Hz = 526;
 
     BK4819_EnterTxMute();
     AUDIO_AudioPathOn();
@@ -1835,15 +1838,16 @@ void BK4819_PlayRogerFour(void) {
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
     BK4819_ExitTxMute();
-    SYSTEM_DelayMs(90);
+    SYSTEM_DelayMs(300);
     BK4819_EnterTxMute();
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone2_Hz));
     BK4819_ExitTxMute();
-    SYSTEM_DelayMs(90);
+    SYSTEM_DelayMs(250);
     BK4819_EnterTxMute();
 
     BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    SYSTEM_DelayMs(50);
     AUDIO_AudioPathOff();
     BK4819_SetAF(BK4819_AF_MUTE);
     BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
@@ -1879,6 +1883,7 @@ void BK4819_PlayRogerFive(void) {
     BK4819_EnterTxMute();
 
     BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    SYSTEM_DelayMs(50);
     AUDIO_AudioPathOff();
     BK4819_SetAF(BK4819_AF_MUTE);
     BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
@@ -1941,6 +1946,7 @@ void BK4819_PlayRogerSix(void) {
     BK4819_EnterTxMute();
 
     BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    SYSTEM_DelayMs(50);
     AUDIO_AudioPathOff();
     BK4819_SetAF(BK4819_AF_MUTE);
     BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
