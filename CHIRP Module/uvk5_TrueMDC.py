@@ -154,7 +154,6 @@ u8 tx_vfo;
 u8 battery_type;
 u8 mdc1200_preamble_duration;
 u8 mdc1200_preamble_when;
-u8 end_call_tone;
 
 #seekto 0xeb0;
 char logo_line1[16];
