@@ -44,7 +44,7 @@ BK4819_FilterBandwidth_t m_bandwidth = BK4819_FILTER_BW_NARROW;
 
 static const uint8_t DTMF_TONE1_GAIN = 65;
 static const uint8_t DTMF_TONE2_GAIN = 93;
-static const uint8_t MDC_FSK_TX_GAIN = 80;  // FSK gain for MDC1200 TX (configurable: 0-127, default 96)
+static const uint8_t MDC_FSK_TX_GAIN = 96;  // FSK gain for MDC1200 TX (configurable: 0-127, default 96)
 
 static uint16_t gBK4819_GpioOutState;
 
