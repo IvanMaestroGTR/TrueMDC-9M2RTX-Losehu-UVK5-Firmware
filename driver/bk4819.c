@@ -761,9 +761,7 @@ void BK4819_SetupSquelch(
         uint8_t SquelchOpenNoiseThresh,
         uint8_t SquelchCloseNoiseThresh,
         uint8_t SquelchCloseGlitchThresh,
-        uint8_t SquelchOpenGlitchThresh,
-        uint8_t OpenDelay,
-        uint8_t CloseDelay) {
+        uint8_t SquelchOpenGlitchThresh) {
     // REG_70
     //
     // <15>   0 Enable TONE1
@@ -804,10 +802,10 @@ void BK4819_SetupSquelch(
     //         0 ~ 255
     //
     BK4819_WriteRegister(BK4819_REG_4E,
-                         (1u << 14) |                          //  1 ???
-                         (uint16_t)(OpenDelay  << 11) |        // squelch = open  delay .. 0 ~ 7
-                         (uint16_t)(CloseDelay <<  9) |        // squelch = close delay .. 0 ~ 3
-                         SquelchOpenGlitchThresh);             //  0 ~ 255
+                         (1u << 14) |                  //  1 ???
+                         (5u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
+                         (0u << 9) |                   // *0  squelch = close delay .. 0 ~ 3
+                         SquelchOpenGlitchThresh);     //  0 ~ 255
 
     // REG_4F
     //

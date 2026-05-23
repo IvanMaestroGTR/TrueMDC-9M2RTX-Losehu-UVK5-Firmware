@@ -91,9 +91,7 @@ void     BK4819_SetupSquelch(
 			uint8_t SquelchOpenNoiseThresh,
 			uint8_t SquelchCloseNoiseThresh,
 			uint8_t SquelchCloseGlitchThresh,
-			uint8_t SquelchOpenGlitchThresh,
-			uint8_t OpenDelay,
-			uint8_t CloseDelay);
+			uint8_t SquelchOpenGlitchThresh);
 
 void     BK4819_SetAF(BK4819_AF_Type_t AF);
 void     BK4819_RX_TurnOn(void);
