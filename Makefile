@@ -253,6 +253,7 @@ ifeq ($(ENABLE_AIRCOPY),1)
 	OBJS += ui/aircopy.o
 endif
 OBJS += ui/battery.o
+OBJS += ui/battery_check.o
 ifeq ($(ENABLE_FMRADIO),1)
 	OBJS += ui/fmradio.o
 endif

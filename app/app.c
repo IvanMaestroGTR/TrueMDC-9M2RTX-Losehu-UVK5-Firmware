@@ -1083,44 +1083,44 @@ void APP_TimeSlice10ms(void) {
         // TIER 1: CRITICAL (Below 7.0V / 700) 
         // Pattern: Double Red Blink + 3s Interval
         if (gBatteryVoltageAverage < 700) {
-            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 10) {
+            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true); // First blink
-            } else if (powerSaveLedCounter > 10 && powerSaveLedCounter <= 20) {
+            } else if (powerSaveLedCounter > 8 && powerSaveLedCounter <= 16) {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-            } else if (powerSaveLedCounter > 20 && powerSaveLedCounter <= 30) {
+            } else if (powerSaveLedCounter > 16 && powerSaveLedCounter <= 24) {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true); // Second blink
             } else {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
                 BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
             }
 
-            if (powerSaveLedCounter >= 408) { // 3s off + 300ms blink pattern
+            if (powerSaveLedCounter >= 424) { // 3s off + 300ms blink pattern
                 powerSaveLedCounter = 0;
             }
         } 
         // TIER 2: LOW (7.0V to 7.6V / 700-760)
         // Pattern: Single Red Blink + 3s Interval
         else if (gBatteryVoltageAverage >= 700 && gBatteryVoltageAverage <= 760) {
-            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 10) {
+            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
             } else {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
             }
 
-            if (powerSaveLedCounter >= 408) { 
+            if (powerSaveLedCounter >= 358) { 
                 powerSaveLedCounter = 0;
             }
         }
         // TIER 3: NORMAL (Above 7.6V / 760)
         // Pattern: Single Green Blink + 3s Interval
         else {
-            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 10) {
+            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
                 BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
             } else {
                 BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
             }
 
-            if (powerSaveLedCounter >= 408) { 
+            if (powerSaveLedCounter >= 358) { 
                 powerSaveLedCounter = 0;
             }
         }
