@@ -226,7 +226,8 @@ static void HandleIncoming(void) {
         return;
 
 #ifdef ENABLE_DTMF_CALLING
-    if (gScanStateDir == SCAN_OFF && (gRxVfo->DTMF_DECODING_ENABLE || gSetting_KILLED)) {
+    // DTMF selective calling removed - commented out
+    /*if (gScanStateDir == SCAN_OFF && (gRxVfo->DTMF_DECODING_ENABLE || gSetting_KILLED)) {
 
         // DTMF DCD is enabled
         DTMF_HandleRequest();
@@ -246,7 +247,7 @@ static void HandleIncoming(void) {
             gUpdateDisplay = true;
             return;
         }
-    }
+    }*/
 #endif
 
     APP_StartListening(gMonitor ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
@@ -610,35 +611,7 @@ static void CheckRadioInterrupts(void) {
         if (interrupts.dtmf5ToneFound) {
             const char c = DTMF_GetCharacter(BK4819_GetDTMF_5TONE_Code()); // save the RX'ed DTMF character
             if (c != 0xff) {
-                if (gCurrentFunction != FUNCTION_TRANSMIT) {
-                    if (gSetting_live_DTMF_decoder) {
-                        size_t len = strlen(gDTMF_RX_live);
-                        if (len >= sizeof(gDTMF_RX_live) - 1) { // make room
-                            memmove(&gDTMF_RX_live[0], &gDTMF_RX_live[1], sizeof(gDTMF_RX_live) - 1);
-                            len--;
-                        }
-                        gDTMF_RX_live[len++] = c;
-                        gDTMF_RX_live[len] = 0;
-                        gDTMF_RX_live_timeout = DTMF_RX_live_timeout_500ms;  // time till we delete it
-                        gUpdateDisplay = true;
-                    }
-
-#ifdef ENABLE_DTMF_CALLING
-                    if (gRxVfo->DTMF_DECODING_ENABLE || gSetting_KILLED) {
-                        if (gDTMF_RX_index >= sizeof(gDTMF_RX) - 1) { // make room
-                            memmove(&gDTMF_RX[0], &gDTMF_RX[1], sizeof(gDTMF_RX) - 1);
-                            gDTMF_RX_index--;
-                        }
-                        gDTMF_RX[gDTMF_RX_index++] = c;
-                        gDTMF_RX[gDTMF_RX_index]   = 0;
-                        gDTMF_RX_timeout           = DTMF_RX_timeout_500ms;  // time till we delete it
-                        gDTMF_RX_pending           = true;
-
-                        SYSTEM_DelayMs(3);//fix DTMF not reply@Yurisu
-                        DTMF_HandleRequest();
-                    }
-#endif
-                }
+                // DTMF tone detected - live decoder removed
             }
         }
 
@@ -1108,50 +1081,46 @@ void APP_TimeSlice10ms(void) {
         powerSaveLedCounter++;
 
         // TIER 1: CRITICAL (Below 7.0V / 700) 
-        // Pattern: Single Red Blink + 3s Interval
+        // Pattern: Double Red Blink + 3s Interval
         if (gBatteryVoltageAverage < 700) {
-            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
-                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
+            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 10) {
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true); // First blink
+            } else if (powerSaveLedCounter > 10 && powerSaveLedCounter <= 20) {
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+            } else if (powerSaveLedCounter > 20 && powerSaveLedCounter <= 30) {
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true); // Second blink
             } else {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
                 BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
             }
 
-            if (powerSaveLedCounter >= 408) { // 3s off + 80ms blink
+            if (powerSaveLedCounter >= 408) { // 3s off + 300ms blink pattern
                 powerSaveLedCounter = 0;
             }
         } 
         // TIER 2: LOW (7.0V to 7.6V / 700-760)
-        // Pattern: Double Red Blink + 3s Interval
+        // Pattern: Single Red Blink + 3s Interval
         else if (gBatteryVoltageAverage >= 700 && gBatteryVoltageAverage <= 760) {
-            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
-                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true); // Red
-            } else if (powerSaveLedCounter > 8 && powerSaveLedCounter <= 18) {
-                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-            } else if (powerSaveLedCounter > 18 && powerSaveLedCounter <= 26) {
-                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true); // Red
+            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 10) {
+                BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
             } else {
                 BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
             }
 
-            if (powerSaveLedCounter >= 426) { 
+            if (powerSaveLedCounter >= 408) { 
                 powerSaveLedCounter = 0;
             }
         }
         // TIER 3: NORMAL (Above 7.6V / 760)
-        // Pattern: Original Double Green Blink + 3s Interval
+        // Pattern: Single Green Blink + 3s Interval
         else {
-            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
-                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true); // Green
-            } else if (powerSaveLedCounter > 8 && powerSaveLedCounter <= 18) {
-                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-            } else if (powerSaveLedCounter > 18 && powerSaveLedCounter <= 26) {
-                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true); // Green
+            if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 10) {
+                BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
             } else {
                 BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
             }
 
-            if (powerSaveLedCounter >= 426) { 
+            if (powerSaveLedCounter >= 408) { 
                 powerSaveLedCounter = 0;
             }
         }
@@ -1438,20 +1407,7 @@ void APP_TimeSlice500ms(void) {
         }
     }
 
-    if (gDTMF_RX_live_timeout > 0) {
-#ifdef ENABLE_RSSI_BAR
-        if (center_line == CENTER_LINE_DTMF_DEC ||
-                center_line == CENTER_LINE_NONE)  // wait till the center line is free for us to use before timing out
-#endif
-        {
-            if (--gDTMF_RX_live_timeout == 0) {
-                if (gDTMF_RX_live[0] != 0) {
-                    memset(gDTMF_RX_live, 0, sizeof(gDTMF_RX_live));
-                    gUpdateDisplay = true;
-                }
-            }
-        }
-    }
+    // DTMF live decoder removed
 
     if (gMenuCountdown > 0)
         if (--gMenuCountdown == 0)
@@ -1740,13 +1696,6 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
         }
 
         if (Key == KEY_EXIT && bKeyHeld) {    // exit key held pressed
-
-            // clear the live DTMF decoder
-            if (gDTMF_RX_live[0] != 0) {
-                memset(gDTMF_RX_live, 0, sizeof(gDTMF_RX_live));
-                gDTMF_RX_live_timeout = 0;
-                gUpdateDisplay = true;
-            }
 
             // cancel user input
             cancelUserInputModes();

@@ -322,11 +322,10 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
         case MENU_D_ST:
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-
-            case MENU_D_DCD:
+            // case MENU_D_DCD: // DTMF DCD menu disabled
 #endif
 #endif
-        case MENU_D_LIVE_DEC:
+        // case MENU_D_LIVE_DEC: // Live DTMF decoder menu disabled
 #ifdef ENABLE_NOAA
             case MENU_NOAA_S:
 #endif
@@ -392,12 +391,6 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMin = 0;
             *pMax = 2;
             break;
-#ifdef ENABLE_DTMF_CALLING
-            case MENU_D_RSP:
-                *pMin = 0;
-                *pMax = ARRAY_SIZE(gSubMenu_D_RSP) - 1;
-                break;
-#endif
         case MENU_PTT_ID:
             *pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_PTT_ID) - 1;
@@ -408,20 +401,20 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
 //			*pMax = ARRAY_SIZE(gSubMenu_BAT_TXT) - 1;
 //			break;
 #ifdef ENABLE_DTMF_CALLING
-            case MENU_D_HOLD:
-                *pMin = 5;
-                *pMax = 60;
-                break;
+            // case MENU_D_HOLD: // DTMF Auto Reset disabled
+            //     *pMin = 5;
+            //     *pMax = 60;
+            //     break;
 #endif
         case MENU_D_PRE:
             *pMin = 3;
             *pMax = 99;
             break;
 #ifdef ENABLE_DTMF_CALLING
-            case MENU_D_LIST:
-                *pMin = 1;
-                *pMax = 16;
-                break;
+            // case MENU_D_LIST: // DTMF Contact List disabled
+            //     *pMin = 1;
+            //     *pMax = 16;
+            //     break;
 #endif
 #ifdef ENABLE_F_CAL_MENU
             case MENU_F_CALI:
@@ -744,13 +737,13 @@ void MENU_AcceptSetting(void) {
             gEeprom.DTMF_SIDE_TONE = gSubMenuSelection;
             break;
 #ifdef ENABLE_DTMF_CALLING
-            case MENU_D_RSP:
-                gEeprom.DTMF_DECODE_RESPONSE = gSubMenuSelection;
-                break;
+            // case MENU_D_RSP: // DTMF Decode Response disabled
+            //     gEeprom.DTMF_DECODE_RESPONSE = gSubMenuSelection;
+            //     break;
 
-            case MENU_D_HOLD:
-                gEeprom.DTMF_auto_reset_time = gSubMenuSelection;
-                break;
+            // case MENU_D_HOLD: // DTMF Auto Reset disabled
+            //     gEeprom.DTMF_auto_reset_time = gSubMenuSelection;
+            //     break;
 #endif
         case MENU_D_PRE:
             gEeprom.DTMF_PRELOAD_TIME = gSubMenuSelection * 10;
@@ -766,35 +759,34 @@ void MENU_AcceptSetting(void) {
 //			break;
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-
-            case MENU_D_DCD:
-                gTxVfo->DTMF_DECODING_ENABLE = gSubMenuSelection;
-                DTMF_clear_RX();
-                gRequestSaveChannel = 1;
-                return;
+            // case MENU_D_DCD: // DTMF DCD disabled
+            //     gTxVfo->DTMF_DECODING_ENABLE = gSubMenuSelection;
+            //     DTMF_clear_RX();
+            //     gRequestSaveChannel = 1;
+            //     return;
 #endif
 #endif
-        case MENU_D_LIVE_DEC:
-            gSetting_live_DTMF_decoder = gSubMenuSelection;
-            gDTMF_RX_live_timeout = 0;
-            memset(gDTMF_RX_live, 0, sizeof(gDTMF_RX_live));
-            if (!gSetting_live_DTMF_decoder)
-                BK4819_DisableDTMF();
-            gFlagReconfigureVfos = true;
-            gUpdateStatus = true;
-            break;
+        // case MENU_D_LIVE_DEC: // Live DTMF decoder disabled
+        //     gSetting_live_DTMF_decoder = gSubMenuSelection;
+        //     gDTMF_RX_live_timeout = 0;
+        //     memset(gDTMF_RX_live, 0, sizeof(gDTMF_RX_live));
+        //     if (!gSetting_live_DTMF_decoder)
+        //         BK4819_DisableDTMF();
+        //     gFlagReconfigureVfos = true;
+        //     gUpdateStatus = true;
+        //     break;
 #ifdef ENABLE_DTMF_CALLING
-            case MENU_D_LIST:
-                gDTMF_chosen_contact = gSubMenuSelection - 1;
-                if (gIsDtmfContactValid)
-                {
-                    GUI_SelectNextDisplay(DISPLAY_MAIN);
-                    gDTMF_InputMode       = true;
-                    gDTMF_InputBox_Index  = 3;
-                    memcpy(gDTMF_InputBox, gDTMF_ID, 4);
-                    gRequestDisplayScreen = DISPLAY_INVALID;
-                }
-                return;
+            // case MENU_D_LIST: // DTMF Contact List disabled
+            //     gDTMF_chosen_contact = gSubMenuSelection - 1;
+            //     if (gIsDtmfContactValid)
+            //     {
+            //         GUI_SelectNextDisplay(DISPLAY_MAIN);
+            //         gDTMF_InputMode       = true;
+            //         gDTMF_InputBox_Index  = 3;
+            //         memcpy(gDTMF_InputBox, gDTMF_ID, 4);
+            //         gRequestDisplayScreen = DISPLAY_INVALID;
+            //     }
+            //     return;
 #endif
 #if ENABLE_CHINESE_FULL == 4
 
@@ -1166,13 +1158,13 @@ void MENU_ShowCurrentSetting(void) {
             gSubMenuSelection = gEeprom.DTMF_SIDE_TONE;
             break;
 #ifdef ENABLE_DTMF_CALLING
-        case MENU_D_RSP:
-            gSubMenuSelection = gEeprom.DTMF_DECODE_RESPONSE;
-            break;
+        // case MENU_D_RSP: // DTMF Decode Response disabled
+        //     gSubMenuSelection = gEeprom.DTMF_DECODE_RESPONSE;
+        //     break;
 
-        case MENU_D_HOLD:
-            gSubMenuSelection = gEeprom.DTMF_auto_reset_time;
-            break;
+        // case MENU_D_HOLD: // DTMF Auto Reset disabled
+        //     gSubMenuSelection = gEeprom.DTMF_auto_reset_time;
+        //     break;
 #endif
         case MENU_D_PRE:
             gSubMenuSelection = gEeprom.DTMF_PRELOAD_TIME / 10;
@@ -1187,18 +1179,17 @@ void MENU_ShowCurrentSetting(void) {
 //			return;
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-
-        case MENU_D_DCD:
-            gSubMenuSelection = gTxVfo->DTMF_DECODING_ENABLE;
-            break;
+        // case MENU_D_DCD: // DTMF DCD disabled
+        //     gSubMenuSelection = gTxVfo->DTMF_DECODING_ENABLE;
+        //     break;
 #endif
-        case MENU_D_LIST:
-            gSubMenuSelection = gDTMF_chosen_contact + 1;
-            break;
+        // case MENU_D_LIST: // DTMF Contact List disabled
+        //     gSubMenuSelection = gDTMF_chosen_contact + 1;
+        //     break;
 #endif
-        case MENU_D_LIVE_DEC:
-            gSubMenuSelection = gSetting_live_DTMF_decoder;
-            break;
+        // case MENU_D_LIVE_DEC: // Live DTMF decoder disabled
+        //     gSubMenuSelection = gSetting_live_DTMF_decoder;
+        //     break;
 #if ENABLE_CHINESE_FULL == 4
         case MENU_PONMSG:
             gSubMenuSelection = gEeprom.POWER_ON_DISPLAY_MODE;

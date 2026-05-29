@@ -113,19 +113,17 @@ const t_menu_item MenuList[] =
                 {/*"PTT ID",*/ VOICE_ID_INVALID, MENU_PTT_ID, DTMF发送},
                 {/*"D ST",*/   VOICE_ID_INVALID, MENU_D_ST, DTMF侧音},
 #ifdef ENABLE_DTMF_CALLING
-
-                {/*"D Resp",*/ VOICE_ID_INVALID,                       MENU_D_RSP         ,DTMF响应},
-                {/*"D Hold",*/ VOICE_ID_INVALID,                       MENU_D_HOLD        ,DTMF复位},
+                // {/*"D Resp",*/ VOICE_ID_INVALID,                       MENU_D_RSP         ,DTMF响应}, // disabled
+                // {/*"D Hold",*/ VOICE_ID_INVALID,                       MENU_D_HOLD        ,DTMF复位}, // disabled
 #endif
                 {/*"D Prel",*/ VOICE_ID_INVALID, MENU_D_PRE, DTMF预载波},
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-
-                {/*"D Decd",*/ VOICE_ID_INVALID,                       MENU_D_DCD         ,DTMF解码},
+                // {/*"D Decd",*/ VOICE_ID_INVALID,                       MENU_D_DCD         ,DTMF解码}, // disabled
 #endif
-                {/*"D List",*/ VOICE_ID_INVALID,                       MENU_D_LIST        ,DTMF联系人},
+                // {/*"D List",*/ VOICE_ID_INVALID,                       MENU_D_LIST        ,DTMF联系人}, // disabled
 #endif
-                {/*"D Live",*/ VOICE_ID_INVALID, MENU_D_LIVE_DEC, DTMF显示}, // live DTMF decoder
+                // {/*"D Live",*/ VOICE_ID_INVALID, MENU_D_LIVE_DEC, DTMF显示}, // live DTMF decoder disabled
 #ifdef ENABLE_AM_FIX//1
                 {/*"AM Fix",*/ VOICE_ID_INVALID,                       MENU_AM_FIX        ,AM自动增益},
 #endif
@@ -362,15 +360,15 @@ const char gSubMenu_AL_MOD[][5] =
 #if ENABLE_CHINESE_FULL!=4 || defined(ENABLE_ENGLISH)
 
 #ifdef ENABLE_ENGLISH
-const char gSubMenu_D_RSP[][11] =//11
+//const char gSubMenu_D_RSP[][11] =//11 // DTMF Response disabled - commented out
 
 #else
-const char gSubMenu_D_RSP[][10] =//11
+//const char gSubMenu_D_RSP[][10] =//11 // DTMF Response disabled - commented out
 #endif
 #else
-const char gSubMenu_D_RSP[][18] =//11
+//const char gSubMenu_D_RSP[][18] =//11 // DTMF Response disabled - commented out
 #endif
-        {
+        /*{
 //                "DO\nNOTHING",
 //                "RING",
 //                "REPLY",
@@ -379,7 +377,7 @@ const char gSubMenu_D_RSP[][18] =//11
                 本地响铃,
                 回复响应,
                本地响铃回复响应
-        };
+        }*/;
 #endif
 
 const char *const gSubMenu_PTT_ID[] =
@@ -952,11 +950,10 @@ void UI_DisplayMenu(void) {
         case MENU_D_ST:
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-
-            case MENU_D_DCD:
+            // case MENU_D_DCD: // DTMF DCD disabled
 #endif
 #endif
-        case MENU_D_LIVE_DEC:
+        // case MENU_D_LIVE_DEC: // Live DTMF decoder disabled
 #ifdef ENABLE_AM_FIX
             case MENU_AM_FIX:
 #endif
@@ -1357,15 +1354,13 @@ void UI_DisplayMenu(void) {
             sprintf(String, "%.8s\n%.8s", gEeprom.DTMF_DOWN_CODE, gEeprom.DTMF_DOWN_CODE + 8);
             break;
 #ifdef ENABLE_DTMF_CALLING
-            case MENU_D_RSP:
-                strcpy(String, gSubMenu_D_RSP[gSubMenuSelection]);
+            // case MENU_D_RSP: // DTMF Response disabled
+            //     strcpy(String, gSubMenu_D_RSP[gSubMenuSelection]);
+            //     break;
 
-
-                break;
-
-            case MENU_D_HOLD:
-                sprintf(String, "%ds", gSubMenuSelection);
-                break;
+            // case MENU_D_HOLD: // DTMF Hold disabled
+            //     sprintf(String, "%ds", gSubMenuSelection);
+            //     break;
 #endif
         case MENU_D_PRE:
             sprintf(String, "%d*10ms", gSubMenuSelection);
@@ -1383,13 +1378,13 @@ void UI_DisplayMenu(void) {
 //
 //            break;
 #ifdef ENABLE_DTMF_CALLING
-            case MENU_D_LIST:
-                gIsDtmfContactValid = DTMF_GetContact((int) gSubMenuSelection - 1, Contact);
-                if (!gIsDtmfContactValid)
-                    strcpy(String, "NULL");
-                else
-                    memcpy(String, Contact, 8);
-                break;
+            // case MENU_D_LIST: // DTMF Contact List disabled
+            //     gIsDtmfContactValid = DTMF_GetContact((int) gSubMenuSelection - 1, Contact);
+            //     if (!gIsDtmfContactValid)
+            //         strcpy(String, "NULL");
+            //     else
+            //         memcpy(String, Contact, 8);
+            //     break;
 #endif
 #if ENABLE_CHINESE_FULL == 4
 
@@ -1584,21 +1579,18 @@ void UI_DisplayMenu(void) {
 //        if (strlen(gEeprom.DTMF_DOWN_CODE) > 12)
 //            UI_PrintStringSmall(gEeprom.DTMF_DOWN_CODE + 12, menu_item_x1, menu_item_x2, 5);
 #ifdef ENABLE_DTMF_CALLING
-    if (UI_MENU_GetCurrentMenuId() == MENU_D_LIST && gIsDtmfContactValid) {
-
-        Contact[11] = 0;
-        memcpy(&gDTMF_ID, Contact + 8, 4);
-        sprintf(String, "ID:%4s", gDTMF_ID);
-        UI_PrintStringSmall(String, menu_item_x1, menu_item_x2, 5);
-    }
+    // if (UI_MENU_GetCurrentMenuId() == MENU_D_LIST && gIsDtmfContactValid) { // disabled
+    //     Contact[11] = 0;
+    //     memcpy(&gDTMF_ID, Contact + 8, 4);
+    //     sprintf(String, "ID:%4s", gDTMF_ID);
+    //     UI_PrintStringSmall(String, menu_item_x1, menu_item_x2, 5);
+    // }
 #endif
     if (UI_MENU_GetCurrentMenuId() == MENU_R_CTCS ||
         UI_MENU_GetCurrentMenuId() == MENU_T_CTCS ||
         UI_MENU_GetCurrentMenuId() == MENU_R_DCS ||
         UI_MENU_GetCurrentMenuId() == MENU_T_DCS
-#ifdef ENABLE_DTMF_CALLING
-        || UI_MENU_GetCurrentMenuId() == MENU_D_LIST
-#endif
+        // || UI_MENU_GetCurrentMenuId() == MENU_D_LIST // disabled
             ) {
 
         sprintf(String, "%2d", gSubMenuSelection);
