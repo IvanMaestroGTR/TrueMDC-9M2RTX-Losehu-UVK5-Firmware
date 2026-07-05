@@ -1,0 +1,71 @@
+on: #指定触发 workflow 的事件
+  workflow_dispatch: #当代码推送时触发
+
+jobs: #定义工作流程
+  build: #工作流名称为 build
+    runs-on: ubuntu-22.04 #使用 Ubuntu 22.04 环境执行
+    container: #定义容器
+      image: archlinux:latest #使用 Arch Linux 镜像
+    steps: #定义工作流程中的步骤
+      - name: Install dependencies
+        run: |
+          pacman -Syyu --noconfirm \
+            base-devel \
+            arm-none-eabi-gcc \
+            arm-none-eabi-newlib \
+            git \
+            python-pip \
+            python-crcmod \
+            zip \
+            lftp    \
+            python-requests
+
+      - name: Checkout #拉取代码
+        uses: actions/checkout@v4 #使用 GitHub Actions 提供的 checkout 动作
+
+      - name: safe.directory #设置 git 的 safe.directory 配置
+        run: git config --global --add safe.directory /__w/uv-k5-firmware-custom/uv-k5-firmware-custom
+
+      - name: Generate #生成固件
+        run: |
+          python gen.py
+          python genJson.py
+
+      - name: Create ZIP file
+        run: |
+            mkdir -p output
+            zip -j output/losehu.zip ./LOSEHU*.bin ./version.json ./function.json
+
+      - name: Upload ALL #上传固件文件
+        uses: actions/upload-artifact@v4 #使用 GitHub Actions 提供的 upload-artifact 动作
+        with:
+          name: firmware_all #设置 artifact 名称为 firmware
+          path: output/losehu.zip #上传文件路径为 LOSEHU*.bin
+
+      - name: Upload files
+        run: |
+          echo "Uploading LOSEHU.zip to ftp"
+          lftp -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }} <<EOF
+          cd losehu
+          set ssl:verify-certificate no
+          put output/losehu.zip
+          bye
+          EOF
+      
+
+      - name: Call API
+        env:
+          API_URL: ${{ secrets.API_URL }}
+        run: |
+          python -c "
+          import time
+          import requests
+          import os
+          timestamp = int(time.time())
+          url = f'{os.getenv('API_URL')}?v={timestamp}'
+          response = requests.get(url)
+          if response.status_code == 200:
+            print('API called successfully')
+          else:
+            print(f'Failed to call API: {response.status_code}')"
+
