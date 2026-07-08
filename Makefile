@@ -19,7 +19,7 @@ ENABLE_VOX                    ?= 1
 ENABLE_ALARM                  ?= 0
 ENABLE_TX1750                 ?= 0
 ENABLE_PWRON_PASSWORD         ?= 0
-ENABLE_DTMF_CALLING           ?= 0 #to enable this back don't forget to go to app/action.c starting line558 to reopen, action ACTION_D_DCD
+ENABLE_DTMF_CALLING           ?= 0
 ENABLE_FLASHLIGHT             ?= 1
 ENABLE_BOOTLOADER			 ?= 0
 # ---- CUSTOM MODS ----
