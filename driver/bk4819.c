@@ -2266,13 +2266,13 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
         BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
         BK4819_WriteRegister(0x59, fsk_reg59);
 
-        // Load entire combined packet (preamble + MDC) into FIFO, skipping initial 2 mdc1200_pre_amble bytes
-        // Load as 16-bit words, then handle any remaining byte
+        // Load the entire combined packet into the FIFO as-is.
+        // Load as 16-bit words, then handle any remaining byte.
         {
             unsigned int i;
-            const uint16_t *p = (const uint16_t *)(combined_packet + 2);  // Start from offset 2 to skip {0x00, 0xFF}
+            const uint16_t *p = (const uint16_t *)combined_packet;
             const uint8_t *p8 = combined_packet;
-            unsigned int load_size = (combined_size > 2) ? (combined_size - 2) : 0;
+            unsigned int load_size = combined_size;
             
             // Load all complete 16-bit words
             for (i = 0; i < (load_size / 2); i++)
@@ -2280,7 +2280,7 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
             
             // If there's an odd byte remaining, load it as the low byte of a 16-bit word
             if (load_size & 1) {
-                BK4819_WriteRegister(0x5F, (uint16_t)p8[2 + load_size - 1]);
+                BK4819_WriteRegister(0x5F, (uint16_t)p8[load_size - 1]);
             }
         }
 
