@@ -1110,7 +1110,7 @@ void APP_TimeSlice10ms(void) {
             }
         }
         // TIER 3: NORMAL (Above 7.6V / 760)
-        // Pattern: Single Green Blink + 3s Interval
+        // Pattern: Single Green Blink + 2s Interval
         else {
             if (powerSaveLedCounter >= 1 && powerSaveLedCounter <= 8) {
                 BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
@@ -1118,7 +1118,7 @@ void APP_TimeSlice10ms(void) {
                 BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
             }
 
-            if (powerSaveLedCounter >= 308) { 
+            if (powerSaveLedCounter >= 208) { 
                 powerSaveLedCounter = 0;
             }
         }
