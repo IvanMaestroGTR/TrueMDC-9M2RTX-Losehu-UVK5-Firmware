@@ -498,7 +498,7 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo) {
 
     if (low1) {
         for (uint8_t i = 0; i < 3; i++)
-            Txp[i] = (uint8_t)(((uint16_t)Txp[i] * 4) / 25);
+            Txp[i] = (uint8_t)(((uint16_t)Txp[i]) / 2);
     }
 
 

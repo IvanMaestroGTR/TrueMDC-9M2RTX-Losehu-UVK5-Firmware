@@ -285,7 +285,7 @@ POWER_UL = 0b11
 PTTID_LIST = ["None", "Pre", "Post", "Pre+Post"]
 
 # power
-UVK5_POWER_LEVELS = [chirp_common.PowerLevel("L",  watts=1.50),
+UVK5_POWER_LEVELS = [chirp_common.PowerLevel("L",  watts=0.50),
                      chirp_common.PowerLevel("M",  watts=3.00),
                      chirp_common.PowerLevel("H", watts=5.00),
                      chirp_common.PowerLevel("UL", watts=0.25)]
