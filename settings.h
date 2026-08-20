@@ -72,7 +72,8 @@ enum {
 enum {
     OUTPUT_POWER_LOW = 0,
     OUTPUT_POWER_MID,
-    OUTPUT_POWER_HIGH
+    OUTPUT_POWER_HIGH,
+    OUTPUT_POWER_LOW1
 };
 
 

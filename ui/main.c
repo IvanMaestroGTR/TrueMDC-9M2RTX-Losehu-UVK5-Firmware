@@ -734,6 +734,9 @@ void UI_DisplayMain(void) {
                     case OUTPUT_POWER_HIGH:
                         Level = 6;
                         break;
+                    case OUTPUT_POWER_LOW1:
+                        Level = 1;
+                        break;
                 }
             } else if (mode == VFO_MODE_RX) {    // RX signal level
 #ifndef ENABLE_RSSI_BAR
@@ -798,8 +801,8 @@ void UI_DisplayMain(void) {
 #endif
         if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) {    // show the TX power
 
-            const char pwr_list[][2] = {"L", "M", "H"};
-            const unsigned int i = vfoInfo->OUTPUT_POWER % 3;
+            const char pwr_list[][3] = {"L", "M", "H", "UL"};
+            const unsigned int i = vfoInfo->OUTPUT_POWER % 4;
 
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
             UI_PrintStringSmall(pwr_list[i], LCD_WIDTH + 46, 0, line + 1); //中文信道1

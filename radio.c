@@ -492,7 +492,14 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo) {
 
     Band = FREQUENCY_GetBand(pInfo->pTX->Frequency);
     uint8_t Txp[3];
-    EEPROM_ReadBuffer(0x1ED0 + (Band * 16) + (pInfo->OUTPUT_POWER * 3), Txp, 3);
+    const bool low1 = pInfo->OUTPUT_POWER == OUTPUT_POWER_LOW1;
+    const uint8_t calibrationPower = low1 ? OUTPUT_POWER_LOW : pInfo->OUTPUT_POWER;
+    EEPROM_ReadBuffer(0x1ED0 + (Band * 16) + (calibrationPower * 3), Txp, 3);
+
+    if (low1) {
+        for (uint8_t i = 0; i < 3; i++)
+            Txp[i] = (uint8_t)(((uint16_t)Txp[i] * 4) / 25);
+    }
 
 
 #ifdef ENABLE_REDUCE_LOW_MID_TX_POWER

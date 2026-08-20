@@ -279,6 +279,7 @@ FLAGS1_OFFSET_PLUS = 0b01
 POWER_HIGH = 0b10
 POWER_MEDIUM = 0b01
 POWER_LOW = 0b00
+POWER_UL = 0b11
 
 # dtmf_flags
 PTTID_LIST = ["None", "Pre", "Post", "Pre+Post"]
@@ -287,7 +288,7 @@ PTTID_LIST = ["None", "Pre", "Post", "Pre+Post"]
 UVK5_POWER_LEVELS = [chirp_common.PowerLevel("L",  watts=1.50),
                      chirp_common.PowerLevel("M",  watts=3.00),
                      chirp_common.PowerLevel("H", watts=5.00),
-                     ]
+                     chirp_common.PowerLevel("UL", watts=0.25)]
 
 # scrambler
 SCRAMBLER_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
@@ -1206,6 +1207,8 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             mem.power = UVK5_POWER_LEVELS[2]
         elif _mem.txpower == POWER_MEDIUM:
             mem.power = UVK5_POWER_LEVELS[1]
+        elif _mem.txpower == POWER_UL:
+            mem.power = UVK5_POWER_LEVELS[3]
         else:
             mem.power = UVK5_POWER_LEVELS[0]
 
@@ -2386,6 +2389,8 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             _mem.txpower = POWER_HIGH
         elif str(mem.power) == str(UVK5_POWER_LEVELS[1]):
             _mem.txpower = POWER_MEDIUM
+        elif str(mem.power) == str(UVK5_POWER_LEVELS[3]):
+            _mem.txpower = POWER_UL
         else:
             _mem.txpower = POWER_LOW
 
