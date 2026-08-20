@@ -17,9 +17,6 @@ Custom features:
 
 I would like to thank everyone who trusts my work and those who have tested my builds. Special thanks to Sara Sinn for early testing, 9W2BIL for extensive beta testing of new features, 9W3MIG, 9W3KKW, and 9W3JJJ for supporting this firmware, and 9W2DSL and 9W2ESR for their ideas and feedback. Thanks also to everyone else who has used my firmware, and to those who have helped keep the spirit of this project lively and forward-moving despite a few unnecessary detours and the occasional dramatic performance along the way.
 
-In these few months of developing this firmware, I want to share this:
-Amateur radio is all about sharing, curiosity, and respect for each other. When that spirit turns into hostility, legal threats, and unnecessary drama, the community suffers, and newcomers get pushed away. I’d rather keep this project focused on learning, teamwork, and improving the hobby for everyone.
-
 I hope this work makes your K5 a little better. Enjoy the firmware!
 
 73 DE 9M2RTX
