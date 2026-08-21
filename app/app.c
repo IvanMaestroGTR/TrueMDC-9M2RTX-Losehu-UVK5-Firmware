@@ -1073,6 +1073,42 @@ void APP_TimeSlice10ms(void) {
     gFlashLightBlinkCounter++;
     static uint16_t powerSaveLedCounter = 0;
     static uint16_t rxBlinkCounter = 0;
+    static uint16_t squelchOpenTime;
+    static bool squelchWasOpen;
+
+    // A signal that closes within 500 ms is treated as flutter.
+    const uint16_t squelchFlutterOpenTime = 50;
+
+    const bool squelchRxActive =
+            gCurrentFunction == FUNCTION_RECEIVE ||
+            gCurrentFunction == FUNCTION_INCOMING ||
+            gCurrentFunction == FUNCTION_MONITOR;
+
+    if (squelchRxActive && !SCANNER_IsScanning()) {
+        if (g_SquelchLost) {
+            if (!squelchWasOpen) {
+                squelchOpenTime = 0;
+                BK4819_SetSquelchLongTail(true);
+            }
+
+            if (squelchOpenTime < UINT16_MAX)
+                squelchOpenTime++;
+
+            // A signal that remains open is stable; use the shortest tail.
+            if (squelchOpenTime >= squelchFlutterOpenTime)
+                BK4819_SetSquelchLongTail(false);
+        } else if (squelchWasOpen) {
+            // The tail decision follows the duration of the preceding open.
+            BK4819_SetSquelchLongTail(squelchOpenTime < squelchFlutterOpenTime);
+            squelchOpenTime = 0;
+        }
+
+        squelchWasOpen = g_SquelchLost;
+    } else {
+        squelchOpenTime = 0;
+        squelchWasOpen = false;
+        BK4819_SetSquelchLongTail(false);
+    }
 
     // --- STANDBY BREATHING LIGHT LOGIC ---
     if (gCurrentFunction == FUNCTION_POWER_SAVE) {
