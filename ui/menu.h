@@ -150,6 +150,8 @@ enum {
     MENU_MLONG,
 #endif
     MENU_RX_LM,
+    MENU_TALK_PERMIT_TONE,
+    MENU_CALL_END_TONE,
     MENU_BATTYP
 };
 
@@ -307,6 +309,8 @@ extern const char    gSubMenu_AM_fix_test1[4][8];
 //extern const char        gSubMenu_BAT_TXT[3][3];//8
 extern const char gSubMenu_BATTYP[2][8];
 extern const char gSubMenu_RX_LM[3][6];
+extern const char gSubMenu_TALK_PERMIT_TONE[4][5];
+extern const char gSubMenu_CALL_END_TONE[2][4];
 extern const char gSubMenu_SCRAMBLER[11][7];
 
 typedef struct {

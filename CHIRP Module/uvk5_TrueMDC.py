@@ -125,10 +125,14 @@ u8 tail_note_elimination;
 u8 vfo_open;
 
 #seekto 0xe90;
-u8 beep_control;
+u8 beep_control:1,
+boot_beep_control:1,
+call_end_tone:1,
+talk_permit_tone:2,
+settings_unknown:3;
 u8 mdc1200_id_low;
 u8 mdc1200_id_high;
-u8 boot_beep_control;
+u8 screen_invert;
 
 #seekto 0xe95;
 u8 scan_resume_mode;
@@ -297,6 +301,9 @@ SCRAMBLER_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 CHANNELDISP_LIST = ["Freq", "ChanNum", "Nam", "Name+Freq"]
 # battery save
 BATSAVE_LIST = ["Off", "1:1", "1:2", "1:3", "1:4", "1:5", "1:6"]
+
+# call-end and talk-permit tones
+TALK_PERMIT_TONE_LIST = ["Off", "XTS", "TRBO", "HYT"]
 
 # Backlight auto mode
 BACKLIGHT_LIST = ["Off", "5s", "10s", "20s", "1mins", "2mins", "4mins", "On"]
@@ -1356,6 +1363,14 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             if element.get_name() == "ui_sound":
                 _mem.boot_beep_control = element.value and 1 or 0
 
+            # C.End call-end tone
+            if element.get_name() == "call_end_tone":
+                _mem.call_end_tone = element.value and 1 or 0
+
+            # TPT talk-permit tone
+            if element.get_name() == "talk_permit_tone":
+                _mem.talk_permit_tone = TALK_PERMIT_TONE_LIST.index(str(element.value))
+
             # MDC1200 ID
             if element.get_name() == "mdc1200_id":
                 try:
@@ -2075,6 +2090,23 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 "ui_sound",
                 "UI Sound",
                 RadioSettingValueBoolean(bool(_mem.boot_beep_control > 0)))
+        basic.append(rs)
+
+        rs = RadioSetting(
+            "call_end_tone",
+            "C.End",
+            RadioSettingValueBoolean(bool(_mem.call_end_tone > 0)))
+        basic.append(rs)
+
+        tmptpt = _mem.talk_permit_tone
+        if tmptpt >= len(TALK_PERMIT_TONE_LIST):
+            tmptpt = 0
+        rs = RadioSetting(
+            "talk_permit_tone",
+            "TPT",
+            RadioSettingValueList(
+                TALK_PERMIT_TONE_LIST,
+                TALK_PERMIT_TONE_LIST[tmptpt]))
         basic.append(rs)
 
         # Scan resume mode

@@ -88,6 +88,9 @@
 #include "ui/menu.h"
 #include "ui/status.h"
 #include "ui/ui.h"
+
+static bool gRxEndTonePending;
+static uint16_t gRxEndToneCountdown_10ms;
 #include "messenger.h"
 
 #ifdef ENABLE_MESSENGER_NOTIFICATION
@@ -367,6 +370,11 @@ static void HandleReceive(void) {
 
         case END_OF_RX_MODE_END:
             RADIO_SetupRegisters(true);
+
+            if (gRxVfo->Modulation == MODULATION_FM && gEeprom.field37_0x32) {
+                gRxEndTonePending = true;
+                gRxEndToneCountdown_10ms = dual_watch_count_after_2_10ms;
+            }
 
 #ifdef ENABLE_NOAA
             if (IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
@@ -694,6 +702,14 @@ static void CheckRadioInterrupts(void) {
 }
 
 
+static void APP_ScheduleCallEndToneAfterTx(void) {
+    if (gRxVfo->Modulation == MODULATION_FM &&
+        gEeprom.field37_0x32) {
+        gRxEndTonePending = true;
+        gRxEndToneCountdown_10ms = dual_watch_count_after_tx_10ms;
+    }
+}
+
 void APP_EndTransmission(bool inmediately) {
     BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false); // Turn off TX Green light    
     // back to RX mode
@@ -704,6 +720,7 @@ void APP_EndTransmission(bool inmediately) {
     }
     if (inmediately || gEeprom.REPEATER_TAIL_TONE_ELIMINATION == 0) {
         FUNCTION_Select(FUNCTION_FOREGROUND);//OK
+        APP_ScheduleCallEndToneAfterTx();
     } else {
         gRTTECountdown_10ms = gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 10;
     }
@@ -1084,6 +1101,23 @@ void APP_TimeSlice10ms(void) {
             gCurrentFunction == FUNCTION_INCOMING ||
             gCurrentFunction == FUNCTION_MONITOR;
 
+    if (gRxEndTonePending) {
+        if (gRxVfo->Modulation != MODULATION_FM || g_SquelchLost || FUNCTION_IsRx()) {
+            gRxEndTonePending = false;
+            gRxEndToneCountdown_10ms = 0;
+            BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+        } else if (gRxEndToneCountdown_10ms > 0) {
+            gRxEndToneCountdown_10ms--;
+        } else {
+            gRxEndTonePending = false;
+            if (gEeprom.field37_0x32 && gEeprom.BOOT_BEEP_CONTROL)
+                BK4819_PlayRxEndTone();
+            BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+        }
+    }
+
     if (squelchRxActive && !SCANNER_IsScanning()) {
         if (g_SquelchLost) {
             if (!squelchWasOpen) {
@@ -1203,6 +1237,11 @@ void APP_TimeSlice10ms(void) {
         }
     } else {
         rxBlinkCounter = 0;
+    }
+
+    if (gRxEndTonePending) {
+        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
+        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
     }
 #ifdef ENABLE_MESSENGER
     keyTickCounter++;
@@ -1329,6 +1368,7 @@ gAlarmState = ALARM_STATE_SITE_ALARM;
         if (gRTTECountdown_10ms > 0) {
             if (--gRTTECountdown_10ms == 0) {
                 FUNCTION_Select(FUNCTION_FOREGROUND); //OK
+                APP_ScheduleCallEndToneAfterTx();
                 gUpdateStatus = true;
                 gUpdateDisplay = true;
             }

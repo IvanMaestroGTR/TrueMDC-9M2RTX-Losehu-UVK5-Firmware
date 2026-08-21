@@ -227,37 +227,24 @@ void FUNCTION_Transmit() {
         BK4819_send_MDC1200(1, 0x80, gEeprom.MDC1200_ID, preamble_duration);
 
 #ifdef ENABLE_MDC1200_SIDE_BEEP
-        if (gEeprom.BOOT_BEEP_CONTROL) {
-            BK4819_start_tone(880, 40, true, true);
-                                        SYSTEM_DelayMs(150);
-                                        BK4819_stop_tones(true);
-                                        SYSTEM_DelayMs(10);
-        } else {
-            // When BOOT_BEEP_CONTROL is OFF, unmute mic after MDC preamble
-            BK4819_UnmuteMic();
-        }
+        BK4819_UnmuteMic();
         //BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
         
 #endif
     } else {
          //Play side tone sequence only when PRE MDC ID is not enabled
 #ifdef ENABLE_MDC1200_SIDE_BEEP
-        if (gEeprom.BOOT_BEEP_CONTROL) {
-            BK4819_MuteMic();
-            BK4819_start_tone(880, 40, true, true);
-                                        SYSTEM_DelayMs(150);
-                                        BK4819_stop_tones(true);
-                                        SYSTEM_DelayMs(10);
-        } else {
-            // When BOOT_BEEP_CONTROL is OFF, unmute mic after MDC preamble
-            BK4819_UnmuteMic();
-        }
+    BK4819_UnmuteMic();
         //BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
 #endif
     }
 #endif
     if (gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_APOLLO)
         BK4819_PlaySingleTone(2525, 250, 0, gEeprom.DTMF_SIDE_TONE);
+
+    if (gEeprom.field38_0x33 != TALK_PERMIT_TONE_OFF && gEeprom.BOOT_BEEP_CONTROL)
+        BK4819_PlayTalkPermitToneTx(gEeprom.field38_0x33);
+
 #ifdef ENABLE_MESSENGER
     #ifdef ENABLE_MDC1200
 

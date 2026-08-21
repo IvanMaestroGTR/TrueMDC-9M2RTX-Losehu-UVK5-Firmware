@@ -145,7 +145,9 @@ const t_menu_item MenuList[] =
                 {/*"FrCali",*/ VOICE_ID_INVALID,                       MENU_F_CALI        ,""}, // reference xtal calibration
 #endif
                 {/*"BatCal",*/ VOICE_ID_INVALID, MENU_BATCAL, 电池调压}, // battery voltage calibration
+                {/*"TPT",*/    VOICE_ID_INVALID, MENU_TALK_PERMIT_TONE, "TPT"},
                 {/*"RxLM",*/   VOICE_ID_INVALID, MENU_RX_LM, RX灯模式}, // RX light mode
+                {/*"C.End",*/  VOICE_ID_INVALID, MENU_CALL_END_TONE, "C.End"},
                 {/*"BatTyp",*/ VOICE_ID_INVALID, MENU_BATTYP, 电池大小}, // battery type 1600/2200mAh
                 {/*"Reset",*/  VOICE_ID_INITIALISATION, MENU_RESET,
                                参数复位}, // might be better to move this to the hidden menu items ?
@@ -554,6 +556,20 @@ const char gSubMenu_RX_LM[][6] =
                 "SOLID",
                 "BLINK"
         };
+
+const char gSubMenu_TALK_PERMIT_TONE[][5] =
+    {
+        "OFF",
+        "XTS",
+        "TRBO",
+        "HYT"
+    };
+
+const char gSubMenu_CALL_END_TONE[][4] =
+    {
+        "OFF",
+        "ON"
+    };
 
 const char gSubMenu_BATTYP[][8] =
         {
@@ -1460,6 +1476,16 @@ void UI_DisplayMenu(void) {
 
         case MENU_RX_LM:
             strcpy(String, gSubMenu_RX_LM[gSubMenuSelection]);
+
+            break;
+
+        case MENU_TALK_PERMIT_TONE:
+            strcpy(String, gSubMenu_TALK_PERMIT_TONE[gSubMenuSelection]);
+
+            break;
+
+        case MENU_CALL_END_TONE:
+            strcpy(String, gSubMenu_CALL_END_TONE[gSubMenuSelection]);
 
             break;
 

@@ -157,6 +157,14 @@ enum RX_LIGHT_MODE_t {
 };
 typedef enum RX_LIGHT_MODE_t RX_LIGHT_MODE_t;
 
+enum TALK_PERMIT_TONE_t {
+    TALK_PERMIT_TONE_OFF = 0,
+    TALK_PERMIT_TONE_XTS,
+    TALK_PERMIT_TONE_TRBO,
+    TALK_PERMIT_TONE_HYT
+};
+typedef enum TALK_PERMIT_TONE_t TALK_PERMIT_TONE_t;
+
 typedef struct {
     uint8_t               ScreenChannel[2]; // current channels set in the radio (memory or frequency channels)
     uint8_t               FreqChannel[2]; // last frequency channels used

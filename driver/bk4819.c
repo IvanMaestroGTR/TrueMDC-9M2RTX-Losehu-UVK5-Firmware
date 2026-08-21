@@ -1060,7 +1060,10 @@ void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay,
     BK4819_WriteRegister(BK4819_REG_70,
                          BK4819_REG_70_ENABLE_TONE1 | ((level & 0x7f) << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
-    BK4819_EnableTXLink();
+    if (play_speaker)
+        BK4819_Enable_AfDac_DiscMode_TxDsp();
+    else
+        BK4819_EnableTXLink();
     SYSTEM_DelayMs(50);
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone_Hz));
@@ -1075,8 +1078,153 @@ void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay,
     }
 
     BK4819_WriteRegister(BK4819_REG_70, 0x0000);
-    BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
+    if (play_speaker)
+        BK4819_TurnsOffTones_TurnsOnRX();
+    else {
+        BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
+        BK4819_ExitTxMute();
+    }
+}
+
+void BK4819_PlayRxEndTone(void) {
+    BK4819_EnterTxMute();
+    AUDIO_AudioPathOn();
+    BK4819_SetAF(BK4819_AF_BEEP);
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+    BK4819_Enable_AfDac_DiscMode_TxDsp();
+    SYSTEM_DelayMs(50);
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(1480));
     BK4819_ExitTxMute();
+    SYSTEM_DelayMs(50);
+    BK4819_EnterTxMute();
+    SYSTEM_DelayMs(30);
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(1480));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(50);
+    BK4819_EnterTxMute();
+    SYSTEM_DelayMs(30);
+
+    BK4819_WriteRegister(BK4819_REG_71, scale_freq(1397));
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(50);
+    BK4819_EnterTxMute();
+
+    AUDIO_AudioPathOff();
+    BK4819_SetAF(BK4819_AF_MUTE);
+    BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    BK4819_TurnsOffTones_TurnsOnRX();
+}
+
+void BK4819_PlayTalkPermitTone(uint8_t mode) {
+    static const uint16_t xtsFrequencies[] = {910, 0, 910, 0, 910};
+    static const uint16_t xtsDurations[] = {100, 20, 30, 20, 60};
+    static const uint16_t trboFrequencies[] = {1570, 1050, 1570, 1317};
+    static const uint16_t trboDurations[] = {100, 40, 40, 40};
+    static const uint16_t hytFrequencies[] = {392, 587, 392, 784};
+    static const uint16_t hytDurations[] = {135, 75, 75, 75};
+    const uint16_t *frequencies;
+    const uint16_t *durations;
+    unsigned int count;
+
+    if (mode == TALK_PERMIT_TONE_XTS) {
+        frequencies = xtsFrequencies;
+        durations = xtsDurations;
+        count = 5;
+    } else if (mode == TALK_PERMIT_TONE_TRBO) {
+        frequencies = trboFrequencies;
+        durations = trboDurations;
+        count = 4;
+    } else if (mode == TALK_PERMIT_TONE_HYT) {
+        frequencies = hytFrequencies;
+        durations = hytDurations;
+        count = 4;
+    } else {
+        return;
+    }
+
+    BK4819_EnterTxMute();
+    AUDIO_AudioPathOn();
+    BK4819_SetAF(BK4819_AF_BEEP);
+    BK4819_Enable_AfDac_DiscMode_TxDsp();
+
+    for (unsigned int i = 0; i < count; i++) {
+        if (frequencies[i] != 0) {
+            BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+            BK4819_WriteRegister(BK4819_REG_71, scale_freq(frequencies[i]));
+            BK4819_ExitTxMute();
+        } else {
+            BK4819_WriteRegister(BK4819_REG_70, 0);
+        }
+
+        SYSTEM_DelayMs(durations[i]);
+        BK4819_EnterTxMute();
+    }
+
+    AUDIO_AudioPathOff();
+    BK4819_SetAF(BK4819_AF_MUTE);
+    BK4819_WriteRegister(BK4819_REG_70, 0);
+    BK4819_TurnsOffTones_TurnsOnRX();
+}
+
+void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
+    static const uint16_t xtsFrequencies[] = {910, 0, 910, 0, 910};
+    static const uint16_t xtsDurations[] = {100, 20, 30, 20, 60};
+    static const uint16_t trboFrequencies[] = {1570, 1050, 1570, 1317};
+    static const uint16_t trboDurations[] = {100, 40, 40, 40};
+    static const uint16_t hytFrequencies[] = {392, 587, 392, 784};
+    static const uint16_t hytDurations[] = {135, 75, 75, 75};
+    const uint16_t *frequencies;
+    const uint16_t *durations;
+    unsigned int count;
+
+    if (mode == TALK_PERMIT_TONE_XTS) {
+        frequencies = xtsFrequencies;
+        durations = xtsDurations;
+        count = 5;
+    } else if (mode == TALK_PERMIT_TONE_TRBO) {
+        frequencies = trboFrequencies;
+        durations = trboDurations;
+        count = 4;
+    } else if (mode == TALK_PERMIT_TONE_HYT) {
+        frequencies = hytFrequencies;
+        durations = hytDurations;
+        count = 4;
+    } else {
+        return;
+    }
+
+    SYSTEM_DelayMs(1);
+    GPIO_ClearBit(&GPIOC->DATA, 4);
+    SYSTEM_DelayMs(1);
+    BK4819_EnterTxMute();
+    AUDIO_AudioPathOn();
+    BK4819_SetAF(2);
+    BK4819_EnableTXLink();
+    GPIO_SetBit(&GPIOC->DATA, 4);
+    SYSTEM_DelayMs(1);
+
+    for (unsigned int i = 0; i < count; i++) {
+        if (frequencies[i] != 0) {
+            BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+            BK4819_WriteRegister(BK4819_REG_71, scale_freq(frequencies[i]));
+        } else {
+            BK4819_WriteRegister(BK4819_REG_70, 0);
+        }
+
+        SYSTEM_DelayMs(durations[i]);
+        BK4819_WriteRegister(BK4819_REG_70, 0);
+    }
+
+    SYSTEM_DelayMs(1);
+    GPIO_ClearBit(&GPIOC->DATA, 4);
+    SYSTEM_DelayMs(1);
+    BK4819_SetAF(BK4819_AF_MUTE);
+    BK4819_TxOn_Beep();
+    SYSTEM_DelayMs(1);
+    BK4819_ExitTxMute();
+    SYSTEM_DelayMs(1);
 }
 
 void BK4819_EnterTxMute(void) {
