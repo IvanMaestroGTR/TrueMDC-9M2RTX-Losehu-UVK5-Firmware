@@ -1102,7 +1102,8 @@ void APP_TimeSlice10ms(void) {
             gCurrentFunction == FUNCTION_MONITOR;
 
     if (gRxEndTonePending) {
-        if (gRxVfo->Modulation != MODULATION_FM || g_SquelchLost || FUNCTION_IsRx()) {
+        if (gFlagPrepareTX || gCurrentFunction == FUNCTION_TRANSMIT ||
+            gRxVfo->Modulation != MODULATION_FM || g_SquelchLost || FUNCTION_IsRx()) {
             gRxEndTonePending = false;
             gRxEndToneCountdown_10ms = 0;
             BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
