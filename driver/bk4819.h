@@ -109,6 +109,8 @@ void     BK4819_EnableDTMF(void);
 void     BK4819_PlayTone(uint16_t Frequency, bool bTuningGainSwitch);
 void     BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level, const bool play_speaker);
 void     BK4819_PlayRxEndTone(void);
+void     BK4819_ResetTalkPermitToneState(void);
+void     BK4819_MarkTalkPermitToneRx(void);
 void     BK4819_PlayTalkPermitTone(uint8_t mode);
 void     BK4819_PlayTalkPermitToneTx(uint8_t mode);
 void     BK4819_EnterTxMute(void);

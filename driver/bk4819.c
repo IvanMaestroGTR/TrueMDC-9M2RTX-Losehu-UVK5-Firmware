@@ -51,6 +51,7 @@ static uint8_t gSquelchOpenGlitchThresh;
 static bool gSquelchLongTail;
 
 bool gRxIdleMode;
+static bool gHytSecondaryTone;
 
 __inline uint16_t scale_freq(const uint16_t freq) {
 //	return (((uint32_t)freq * 1032444u) + 50000u) / 100000u;   // with rounding
@@ -1090,7 +1091,7 @@ void BK4819_PlayRxEndTone(void) {
     BK4819_EnterTxMute();
     AUDIO_AudioPathOn();
     BK4819_SetAF(BK4819_AF_BEEP);
-    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
     BK4819_Enable_AfDac_DiscMode_TxDsp();
     SYSTEM_DelayMs(50);
 
@@ -1117,13 +1118,23 @@ void BK4819_PlayRxEndTone(void) {
     BK4819_TurnsOffTones_TurnsOnRX();
 }
 
+void BK4819_ResetTalkPermitToneState(void) {
+    gHytSecondaryTone = false;
+}
+
+void BK4819_MarkTalkPermitToneRx(void) {
+    gHytSecondaryTone = true;
+}
+
 void BK4819_PlayTalkPermitTone(uint8_t mode) {
     static const uint16_t xtsFrequencies[] = {910, 0, 910, 0, 910};
     static const uint16_t xtsDurations[] = {100, 20, 30, 20, 60};
     static const uint16_t trboFrequencies[] = {1570, 1050, 1570, 1317};
     static const uint16_t trboDurations[] = {100, 40, 40, 40};
-    static const uint16_t hytFrequencies[] = {392, 587, 392, 784};
-    static const uint16_t hytDurations[] = {135, 75, 75, 75};
+    static const uint16_t hytPrimaryFrequencies[] = {392, 587, 392, 784};
+    static const uint16_t hytPrimaryDurations[] = {135, 75, 75, 75};
+    static const uint16_t hytSecondaryFrequencies[] = {1565, 531, 1565, 1317};
+    static const uint16_t hytSecondaryDurations[] = {100, 40, 40, 40};
     const uint16_t *frequencies;
     const uint16_t *durations;
     unsigned int count;
@@ -1137,9 +1148,17 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
         durations = trboDurations;
         count = 4;
     } else if (mode == TALK_PERMIT_TONE_HYT) {
-        frequencies = hytFrequencies;
-        durations = hytDurations;
-        count = 4;
+        if (gEeprom.field37_0x32 && gHytSecondaryTone) {
+            frequencies = hytSecondaryFrequencies;
+            durations = hytSecondaryDurations;
+            count = 4;
+        } else {
+            if (!gEeprom.field37_0x32)
+                gHytSecondaryTone = false;
+            frequencies = hytPrimaryFrequencies;
+            durations = hytPrimaryDurations;
+            count = 4;
+        }
     } else {
         return;
     }
@@ -1151,7 +1170,7 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
 
     for (unsigned int i = 0; i < count; i++) {
         if (frequencies[i] != 0) {
-            BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+            BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
             BK4819_WriteRegister(BK4819_REG_71, scale_freq(frequencies[i]));
             BK4819_ExitTxMute();
         } else {
@@ -1166,6 +1185,9 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
     BK4819_SetAF(BK4819_AF_MUTE);
     BK4819_WriteRegister(BK4819_REG_70, 0);
     BK4819_TurnsOffTones_TurnsOnRX();
+
+    if (mode == TALK_PERMIT_TONE_HYT && gEeprom.field37_0x32)
+        gHytSecondaryTone = true;
 }
 
 void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
@@ -1173,8 +1195,10 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     static const uint16_t xtsDurations[] = {100, 20, 30, 20, 60};
     static const uint16_t trboFrequencies[] = {1570, 1050, 1570, 1317};
     static const uint16_t trboDurations[] = {100, 40, 40, 40};
-    static const uint16_t hytFrequencies[] = {392, 587, 392, 784};
-    static const uint16_t hytDurations[] = {135, 75, 75, 75};
+    static const uint16_t hytPrimaryFrequencies[] = {392, 587, 392, 784};
+    static const uint16_t hytPrimaryDurations[] = {135, 75, 75, 75};
+    static const uint16_t hytSecondaryFrequencies[] = {1565, 531, 1565, 1317};
+    static const uint16_t hytSecondaryDurations[] = {100, 40, 40, 40};
     const uint16_t *frequencies;
     const uint16_t *durations;
     unsigned int count;
@@ -1188,9 +1212,17 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
         durations = trboDurations;
         count = 4;
     } else if (mode == TALK_PERMIT_TONE_HYT) {
-        frequencies = hytFrequencies;
-        durations = hytDurations;
-        count = 4;
+        if (gEeprom.field37_0x32 && gHytSecondaryTone) {
+            frequencies = hytSecondaryFrequencies;
+            durations = hytSecondaryDurations;
+            count = 4;
+        } else {
+            if (!gEeprom.field37_0x32)
+                gHytSecondaryTone = false;
+            frequencies = hytPrimaryFrequencies;
+            durations = hytPrimaryDurations;
+            count = 4;
+        }
     } else {
         return;
     }
@@ -1207,7 +1239,7 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
 
     for (unsigned int i = 0; i < count; i++) {
         if (frequencies[i] != 0) {
-            BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+            BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
             BK4819_WriteRegister(BK4819_REG_71, scale_freq(frequencies[i]));
         } else {
             BK4819_WriteRegister(BK4819_REG_70, 0);
@@ -1225,6 +1257,9 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     SYSTEM_DelayMs(1);
     BK4819_ExitTxMute();
     SYSTEM_DelayMs(1);
+
+    if (mode == TALK_PERMIT_TONE_HYT && gEeprom.field37_0x32)
+        gHytSecondaryTone = true;
 }
 
 void BK4819_EnterTxMute(void) {
@@ -1530,7 +1565,7 @@ void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency) {
     // set the tone amplitude
     //
     BK4819_WriteRegister(BK4819_REG_70,
-                         BK4819_REG_70_MASK_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+                         BK4819_REG_70_MASK_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(Frequency));
 
@@ -1886,7 +1921,7 @@ void BK4819_PlayRogerNormal(void) {
     AUDIO_AudioPathOn();
     BK4819_SetAF(BK4819_AF_BEEP);
 
-    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
     BK4819_EnableTXLink();
     SYSTEM_DelayMs(50);
@@ -1923,7 +1958,7 @@ void BK4819_PlayRogerTwo(void) {
     AUDIO_AudioPathOn();
     BK4819_SetAF(BK4819_AF_BEEP);
 
-    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
     BK4819_EnableTXLink();
     SYSTEM_DelayMs(50);
@@ -1963,7 +1998,7 @@ void BK4819_PlayRogerThree(void) {
     AUDIO_AudioPathOn();
     BK4819_SetAF(BK4819_AF_BEEP);
 
-    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
     BK4819_EnableTXLink();
     SYSTEM_DelayMs(50);
@@ -1993,7 +2028,7 @@ void BK4819_PlayRogerFour(void) {
     AUDIO_AudioPathOn();
     BK4819_SetAF(BK4819_AF_BEEP);
 
-    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
     BK4819_EnableTXLink();
     SYSTEM_DelayMs(50);
@@ -2024,7 +2059,7 @@ void BK4819_PlayRogerFive(void) {
     AUDIO_AudioPathOn();
     BK4819_SetAF(BK4819_AF_BEEP);
 
-    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
     BK4819_EnableTXLink();
     SYSTEM_DelayMs(50);
@@ -2064,7 +2099,7 @@ void BK4819_PlayRogerSix(void) {
     AUDIO_AudioPathOn();
     BK4819_SetAF(BK4819_AF_BEEP);
 
-    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
     BK4819_EnableTXLink();
     SYSTEM_DelayMs(50);

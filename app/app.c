@@ -90,6 +90,7 @@
 #include "ui/ui.h"
 
 static bool gRxEndTonePending;
+static bool gRxTalkPermitPlayed;
 static uint16_t gRxEndToneCountdown_10ms;
 #include "messenger.h"
 
@@ -124,10 +125,16 @@ void (*ProcessKeysFunctions[])(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) 
 static_assert(ARRAY_SIZE(ProcessKeysFunctions) == DISPLAY_N_ELEM);
 
 static void CheckForIncoming(void) {
-    if (!g_SquelchLost)
+    if (!g_SquelchLost) {
+        gRxTalkPermitPlayed = false;
         return;          // squelch is closed
+    }
 
     // squelch is open
+    if (!gRxTalkPermitPlayed) {
+        gRxTalkPermitPlayed = true;
+        BK4819_MarkTalkPermitToneRx();
+    }
 
     if (gScanStateDir == SCAN_OFF) {    // not RF scanning
         if (gEeprom.DUAL_WATCH == DUAL_WATCH_OFF) {    // dual watch is disabled
@@ -1112,6 +1119,7 @@ void APP_TimeSlice10ms(void) {
             gRxEndToneCountdown_10ms--;
         } else {
             gRxEndTonePending = false;
+            BK4819_ResetTalkPermitToneState();
             if (gEeprom.field37_0x32 && gEeprom.BOOT_BEEP_CONTROL)
                 BK4819_PlayRxEndTone();
             BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
