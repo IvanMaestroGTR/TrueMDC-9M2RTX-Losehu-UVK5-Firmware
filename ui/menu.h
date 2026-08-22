@@ -142,6 +142,7 @@ enum {
     MENU_F_CALI,  // reference xtal calibration
 #endif
     MENU_BATCAL,  // battery voltage calibration
+    MENU_TX_CAL,  // active band and transmit power calibration
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
     MENU_F1SHRT,
     MENU_F1LONG,
@@ -309,7 +310,7 @@ extern const char    gSubMenu_AM_fix_test1[4][8];
 //extern const char        gSubMenu_BAT_TXT[3][3];//8
 extern const char gSubMenu_BATTYP[2][8];
 extern const char gSubMenu_RX_LM[3][6];
-extern const char gSubMenu_TALK_PERMIT_TONE[4][5];
+extern const char gSubMenu_TALK_PERMIT_TONE[5][6];
 extern const char gSubMenu_CALL_END_TONE[2][4];
 extern const char gSubMenu_SCRAMBLER[11][7];
 

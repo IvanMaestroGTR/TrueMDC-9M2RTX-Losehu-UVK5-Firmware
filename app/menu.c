@@ -40,6 +40,7 @@
 #include "frequencies.h"
 #include "helper/battery.h"
 #include "misc.h"
+#include "radio.h"
 #include "settings.h"
 
 #if defined(ENABLE_OVERLAY)
@@ -54,6 +55,19 @@
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
+
+static uint32_t MENU_GetTxPowerCalibrationAddress(void)
+{
+    const uint32_t band = FREQUENCY_GetBand(gTxVfo->pTX->Frequency);
+    const uint32_t power = (gTxVfo->OUTPUT_POWER == OUTPUT_POWER_LOW1) ? OUTPUT_POWER_LOW : gTxVfo->OUTPUT_POWER;
+    const uint32_t lower = frequencyBandTable[band].lower;
+    const uint32_t upper = frequencyBandTable[band].upper;
+    const uint32_t frequency = gTxVfo->pTX->Frequency;
+    const uint32_t point = frequency < lower + ((upper - lower) / 4) ? 0 :
+                            frequency > lower + (3 * (upper - lower) / 4) ? 2 : 1;
+
+    return 0x1ED0 + (band * 16) + (power * 3) + point;
+}
 
 //uint8_t gUnlockAllTxConfCnt;
 
@@ -428,6 +442,11 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMax = 2200;
             break;
 
+        case MENU_TX_CAL:
+            *pMin = 0;
+            *pMax = 255;
+            break;
+
         case MENU_BATTYP:
             *pMin = 0;
             *pMax = 1;
@@ -440,7 +459,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
 
         case MENU_TALK_PERMIT_TONE:
             *pMin = TALK_PERMIT_TONE_OFF;
-            *pMax = TALK_PERMIT_TONE_HYT;
+            *pMax = TALK_PERMIT_TONE_TETRA;
             break;
 
         case MENU_CALL_END_TONE:
@@ -911,6 +930,13 @@ void MENU_AcceptSetting(void) {
             return;
         }
 
+        case MENU_TX_CAL: {
+            const uint8_t value = (uint8_t)gSubMenuSelection;
+            EEPROM_WriteBuffer(MENU_GetTxPowerCalibrationAddress(), &value, 1);
+            RADIO_ConfigureSquelchAndOutputPower(gTxVfo);
+            return;
+        }
+
         case MENU_BATTYP:
             gEeprom.BATTERY_TYPE = gSubMenuSelection;
             break;
@@ -1300,6 +1326,13 @@ void MENU_ShowCurrentSetting(void) {
         case MENU_BATCAL:
             gSubMenuSelection = gBatteryCalibration[3];
             break;
+
+        case MENU_TX_CAL: {
+            uint8_t value;
+            EEPROM_ReadBuffer(MENU_GetTxPowerCalibrationAddress(), &value, 1);
+            gSubMenuSelection = value;
+            break;
+        }
 
         case MENU_BATTYP:
             gSubMenuSelection = gEeprom.BATTERY_TYPE;

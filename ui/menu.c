@@ -145,6 +145,7 @@ const t_menu_item MenuList[] =
                 {/*"FrCali",*/ VOICE_ID_INVALID,                       MENU_F_CALI        ,""}, // reference xtal calibration
 #endif
                 {/*"BatCal",*/ VOICE_ID_INVALID, MENU_BATCAL, 电池调压}, // battery voltage calibration
+                {/*"PwrCal",*/ VOICE_ID_INVALID, MENU_TX_CAL, "PwrCal"},
                 {/*"TPT",*/    VOICE_ID_INVALID, MENU_TALK_PERMIT_TONE, "TPT"},
                 {/*"RxLM",*/   VOICE_ID_INVALID, MENU_RX_LM, RX灯模式}, // RX light mode
                 {/*"C.End",*/  VOICE_ID_INVALID, MENU_CALL_END_TONE, "C.End"},
@@ -557,12 +558,13 @@ const char gSubMenu_RX_LM[][6] =
                 "BLINK"
         };
 
-const char gSubMenu_TALK_PERMIT_TONE[][5] =
+const char gSubMenu_TALK_PERMIT_TONE[][6] =
     {
         "OFF",
         "XTS",
         "TRBO",
-        "HYT"
+        "HYT",
+        "TETRA"
     };
 
 const char gSubMenu_CALL_END_TONE[][4] =
@@ -1466,6 +1468,13 @@ void UI_DisplayMenu(void) {
         case MENU_BATCAL: {
             const uint16_t vol = (uint32_t) gBatteryVoltageAverage * gBatteryCalibration[3] / gSubMenuSelection;
             sprintf(String, "%u.%02uV\n%u", vol / 100, vol % 100, gSubMenuSelection);
+            break;
+        }
+
+        case MENU_TX_CAL: {
+            const char *power = gTxVfo->OUTPUT_POWER == OUTPUT_POWER_HIGH ? "H" :
+                                gTxVfo->OUTPUT_POWER == OUTPUT_POWER_MID ? "M" : "L";
+            sprintf(String, "%s:%u\n%u%%", power, gSubMenuSelection, (gSubMenuSelection * 100u) / 255u);
             break;
         }
 

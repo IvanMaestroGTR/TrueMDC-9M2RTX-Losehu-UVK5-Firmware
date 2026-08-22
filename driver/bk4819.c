@@ -1095,6 +1095,22 @@ void BK4819_PlayRxEndTone(void) {
     BK4819_Enable_AfDac_DiscMode_TxDsp();
     SYSTEM_DelayMs(50);
 
+    if (gEeprom.field38_0x33 == TALK_PERMIT_TONE_TETRA) {
+        BK4819_WriteRegister(BK4819_REG_71, scale_freq(785));
+        BK4819_ExitTxMute();
+        SYSTEM_DelayMs(350);
+        BK4819_EnterTxMute();
+        BK4819_WriteRegister(BK4819_REG_71, scale_freq(525));
+        BK4819_ExitTxMute();
+        SYSTEM_DelayMs(250);
+        BK4819_EnterTxMute();
+        AUDIO_AudioPathOff();
+        BK4819_SetAF(BK4819_AF_MUTE);
+        BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+        BK4819_TurnsOffTones_TurnsOnRX();
+        return;
+    }
+
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(1480));
     BK4819_ExitTxMute();
     SYSTEM_DelayMs(50);
@@ -1199,6 +1215,10 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     static const uint16_t hytPrimaryDurations[] = {135, 75, 75, 75};
     static const uint16_t hytSecondaryFrequencies[] = {1565, 531, 1565, 1317};
     static const uint16_t hytSecondaryDurations[] = {100, 40, 40, 40};
+    static const uint16_t tetraPrimaryFrequencies[] = {525, 785};
+    static const uint16_t tetraPrimaryDurations[] = {350, 250};
+    static const uint16_t tetraSecondaryFrequencies[] = {785, 0, 657};
+    static const uint16_t tetraSecondaryDurations[] = {200, 75, 200};
     const uint16_t *frequencies;
     const uint16_t *durations;
     unsigned int count;
@@ -1222,6 +1242,16 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
             frequencies = hytPrimaryFrequencies;
             durations = hytPrimaryDurations;
             count = 4;
+        }
+    } else if (mode == TALK_PERMIT_TONE_TETRA) {
+        if (!gEeprom.field37_0x32 || gHytSecondaryTone) {
+            frequencies = tetraSecondaryFrequencies;
+            durations = tetraSecondaryDurations;
+            count = 3;
+        } else {
+            frequencies = tetraPrimaryFrequencies;
+            durations = tetraPrimaryDurations;
+            count = 2;
         }
     } else {
         return;
@@ -1258,7 +1288,7 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     BK4819_ExitTxMute();
     SYSTEM_DelayMs(1);
 
-    if (mode == TALK_PERMIT_TONE_HYT && gEeprom.field37_0x32)
+    if ((mode == TALK_PERMIT_TONE_HYT || mode == TALK_PERMIT_TONE_TETRA) && gEeprom.field37_0x32)
         gHytSecondaryTone = true;
 }
 
