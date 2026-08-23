@@ -965,6 +965,7 @@ void UI_DisplayMain(void) {
 
         if (mdc1200_rx_ready_tick_500ms > 0 &&
             gCurrentFunction != FUNCTION_TRANSMIT &&
+            !(gTalkPermitToast == TALK_PERMIT_TOAST_STANDBY && !FUNCTION_IsRx()) &&
             gTalkPermitToast != TALK_PERMIT_TOAST_CALL_ENDED) {
             char mdc1200_contact[15];  // 14 chars + null terminator
             center_line = CENTER_LINE_MDC1200;
@@ -1007,7 +1008,7 @@ void UI_DisplayMain(void) {
 
 //#ifdef ENABLE_AUDIO_BAR
         if (gCurrentFunction == FUNCTION_TRANSMIT ||
-            gTalkPermitToast == TALK_PERMIT_TOAST_STANDBY ||
+            (gTalkPermitToast == TALK_PERMIT_TOAST_STANDBY && !rx) ||
             gTalkPermitToast == TALK_PERMIT_TOAST_CALL_ENDED) {
             center_line = CENTER_LINE_IN_USE;
             UI_DisplayTalkPermitToast();

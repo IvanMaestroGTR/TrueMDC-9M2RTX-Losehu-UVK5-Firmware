@@ -305,6 +305,10 @@ SIZE = arm-none-eabi-size
 AUTHOR_STRING ?= LOSEHU
 FIRMWARE_VERSION ?= 00
 PACKED_FILE = archive/TrueMDC.Gen$(FIRMWARE_VERSION).packed.bin
+GITHUB_REPOSITORY ?= IvanMaestroGTR/TrueMDC-9M2RTX-Losehu-UVK5-Firmware
+GITHUB_BRANCH ?= main
+FIRMWARE_RAW_URL = https://raw.githubusercontent.com/$(GITHUB_REPOSITORY)/$(GITHUB_BRANCH)/$(PACKED_FILE)
+UVTOOLS_URL = https://egzumer.github.io/uvtools/?firmwareURL=$(FIRMWARE_RAW_URL)
 # the user might not have/want git installed
 # can set own version string here (max 7 chars)
 ifneq (, $(shell $(WHERE) git))
@@ -597,8 +601,11 @@ else ifneq (, $(shell $(WHERE) python3))
 endif
 
 full:
-	$(RM) *.bin
+	$(MAKE) clean
 	$(MAKE) build ENABLE_CHINESE_FULL=0 ENABLE_ENGLISH=1 ENABLE_FMRADIO=1 ENABLE_SPECTRUM=1 ENABLE_MDC1200=1 ENABLE_MDC1200_EDIT=1 ENABLE_MDC1200_CONTACT=1
+	@echo
+	@echo UVTools flash URL:
+	@echo $(UVTOOLS_URL)
 
 
 test:
@@ -607,7 +614,7 @@ test:
 
 
 
-build:clean $(TARGET)
+build: $(TARGET)
 	@$(OBJCOPY) -O binary $(TARGET) $(TARGET).bin
 ifndef MY_PYTHON
 	$(error Python is required to create $(PACKED_FILE))
@@ -650,10 +657,11 @@ bsp/dp32g030/%.h: hardware/dp32g030/%.def
 CUSCANSHU ?= NUL
 CUSTOMNAME ?= NUL
 full_all:
+	$(MAKE) clean
 	$(MAKE) build_all $(CUSCANSHU) CUSTOMNAME="$(CUSTOMNAME)"
 
 
-build_all: clean $(TARGET)
+build_all: $(TARGET)
 	$(OBJCOPY) -O binary $(TARGET) $(TARGET).bin
 ifndef MY_PYTHON
 

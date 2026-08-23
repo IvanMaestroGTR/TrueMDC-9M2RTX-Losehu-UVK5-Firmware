@@ -676,6 +676,10 @@ static void CheckRadioInterrupts(void) {
 
         if (interrupts.sqlLost) {
             g_SquelchLost = true;
+            if (gCurrentFunction != FUNCTION_TRANSMIT) {
+                UI_SetTalkPermitToast(TALK_PERMIT_TOAST_STANDBY, 0);
+                gUpdateDisplay = true;
+            }
             // Removed direct LED toggle here to allow blinking logic in TimeSlice
         }
 
