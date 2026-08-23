@@ -303,7 +303,7 @@ CHANNELDISP_LIST = ["Freq", "ChanNum", "Nam", "Name+Freq"]
 BATSAVE_LIST = ["Off", "1:1", "1:2", "1:3", "1:4", "1:5", "1:6"]
 
 # call-end and talk-permit tones
-TALK_PERMIT_TONE_LIST = ["Off", "XTS", "TRBO", "HYT"]
+TALK_PERMIT_TONE_LIST = ["Off", "XTS", "TRBO", "HYT", "TETRA"]
 
 # Backlight auto mode
 BACKLIGHT_LIST = ["Off", "5s", "10s", "20s", "1mins", "2mins", "4mins", "On"]
