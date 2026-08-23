@@ -17,6 +17,8 @@
 #ifndef UI_MAIN_H
 #define UI_MAIN_H
 
+#include <stdint.h>
+
 enum center_line_t {
 	CENTER_LINE_NONE = 0,
 	CENTER_LINE_IN_USE,
@@ -33,14 +35,23 @@ enum Vfo_txtr_mode{
     VFO_MODE_RX = 2,
 };
 typedef enum center_line_t center_line_t;
+typedef enum {
+	TALK_PERMIT_TOAST_NONE = 0,
+	TALK_PERMIT_TOAST_WAIT,
+	TALK_PERMIT_TOAST_SEND,
+	TALK_PERMIT_TOAST_STANDBY,
+	TALK_PERMIT_TOAST_CALL_ENDED
+} talk_permit_toast_t;
 #ifdef ENABLE_AGC_SHOW_DATA
 void UI_MAIN_PrintAGC(bool force);
 #endif
 extern center_line_t center_line;
 
 void UI_DisplayAudioBar(void);
+void UI_SetTalkPermitToast(talk_permit_toast_t toast, uint8_t frame);
 
 void UI_DisplayMain(void);
+void UI_MAIN_TimeSlice10ms(void);
 void UI_MAIN_TimeSlice500ms(void);
 extern const int8_t dBmCorrTable[7];
 #endif

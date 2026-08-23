@@ -43,6 +43,9 @@
 #include "app/app.h"
 
 center_line_t center_line = CENTER_LINE_NONE;
+static talk_permit_toast_t gTalkPermitToast = TALK_PERMIT_TOAST_NONE;
+static uint8_t gTalkPermitToastFrame;
+static uint8_t gTalkPermitToastTimer;
 uint16_t gToastTimerSingleLine = 0;
 ToastType_t gToastType = TOAST_NONE;
 
@@ -139,6 +142,7 @@ unsigned int sqrt16(unsigned int value) {    // return square root of 'value'
     return sqrti;
 }
 
+#if 0
 void UI_DisplayAudioBar(void) {
 
     if (gLowBattery && !gLowBatteryConfirmed)
@@ -191,6 +195,66 @@ void UI_DisplayAudioBar(void) {
     if (gCurrentFunction == FUNCTION_TRANSMIT)
         ST7565_BlitFullScreen();
 
+}
+#endif
+
+void UI_SetTalkPermitToast(talk_permit_toast_t toast, uint8_t frame) {
+    static const char *const sendFrames[] = {"<<Send>>", "<< Send >>", "<<  Send  >>", "<<   Send   >>"};
+    const char *text;
+    uint8_t length;
+    uint8_t x1;
+
+    if (toast != gTalkPermitToast)
+        gTalkPermitToastTimer = toast == TALK_PERMIT_TOAST_CALL_ENDED ? 2 : 0;
+    gTalkPermitToast = toast;
+    gTalkPermitToastFrame = frame;
+    if (gScreenToDisplay != DISPLAY_MAIN)
+        return;
+
+    if (toast == TALK_PERMIT_TOAST_WAIT)
+        text = "[Wait]";
+    else if (toast == TALK_PERMIT_TOAST_SEND)
+        text = sendFrames[frame % ARRAY_SIZE(sendFrames)];
+    else if (toast == TALK_PERMIT_TOAST_STANDBY)
+        text = "[Call Ongoing]";
+    else if (toast == TALK_PERMIT_TOAST_CALL_ENDED)
+        text = "[Call Ended]";
+    else
+        return;
+
+    length = strlen(text);
+    x1 = (LCD_WIDTH - ((length * 7) + 2)) / 2;
+    for (uint8_t i = 2; i < LCD_WIDTH - 2; i++) {
+        gFrameBuffer[3][i] = 0xFF;
+        gFrameBuffer[2][i] |= 0x80;
+    }
+    UI_PrintStringSmall(text, x1 + 1, 0, 3);
+    for (uint8_t i = 0; i < length; i++) {
+        if (text[i] == ' ')
+            continue;
+        for (uint8_t j = 0; j < ARRAY_SIZE(gFontSmall[0]); j++)
+            gFrameBuffer[3][x1 + 2 + i * 7 + j] ^= 0xFF;
+    }
+    ST7565_BlitFullScreen();
+}
+
+static void UI_DisplayTalkPermitToast(void) {
+    if (gTalkPermitToast != TALK_PERMIT_TOAST_NONE &&
+        (gTalkPermitToast != TALK_PERMIT_TOAST_CALL_ENDED || gTalkPermitToastTimer > 0))
+        UI_SetTalkPermitToast(gTalkPermitToast, gTalkPermitToastFrame);
+}
+
+void UI_MAIN_TimeSlice10ms(void) {
+    static uint8_t animationCounter;
+
+    if (gTalkPermitToast != TALK_PERMIT_TOAST_SEND)
+        return;
+
+    if (++animationCounter >= 15) {
+        animationCounter = 0;
+        gTalkPermitToastFrame = (gTalkPermitToastFrame + 1) % 4;
+        gUpdateDisplay = true;
+    }
 }
 //#endif
 
@@ -336,6 +400,13 @@ void UI_MAIN_PrintAGC(bool now){
 #endif
 
 void UI_MAIN_TimeSlice500ms(void) {
+    if (gTalkPermitToast == TALK_PERMIT_TOAST_CALL_ENDED && gTalkPermitToastTimer > 0) {
+        if (--gTalkPermitToastTimer == 0) {
+            gTalkPermitToast = TALK_PERMIT_TOAST_NONE;
+            gUpdateDisplay = true;
+        }
+    }
+
     // Decrement toast timer
     if (gToastTimerSingleLine > 0) {
         gToastTimerSingleLine--;
@@ -892,7 +963,9 @@ void UI_DisplayMain(void) {
         const bool rx = FUNCTION_IsRx();
 #ifdef ENABLE_MDC1200
 
-        if (mdc1200_rx_ready_tick_500ms > 0) {
+        if (mdc1200_rx_ready_tick_500ms > 0 &&
+            gCurrentFunction != FUNCTION_TRANSMIT &&
+            gTalkPermitToast != TALK_PERMIT_TOAST_CALL_ENDED) {
             char mdc1200_contact[15];  // 14 chars + null terminator
             center_line = CENTER_LINE_MDC1200;
             const uint8_t print_col = 2; // left aligned for both cases
@@ -933,9 +1006,11 @@ void UI_DisplayMain(void) {
 #endif
 
 //#ifdef ENABLE_AUDIO_BAR
-        if (gCurrentFunction == FUNCTION_TRANSMIT) {
-            center_line = CENTER_LINE_AUDIO_BAR;
-            UI_DisplayAudioBar();
+        if (gCurrentFunction == FUNCTION_TRANSMIT ||
+            gTalkPermitToast == TALK_PERMIT_TOAST_STANDBY ||
+            gTalkPermitToast == TALK_PERMIT_TOAST_CALL_ENDED) {
+            center_line = CENTER_LINE_IN_USE;
+            UI_DisplayTalkPermitToast();
         } else
 //#endif
 

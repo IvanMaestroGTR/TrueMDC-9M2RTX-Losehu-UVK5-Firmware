@@ -66,6 +66,7 @@ bool decode_data(void *data) {
     uint16_t crc1;
     uint16_t crc2;
     uint8_t *data8 = (uint8_t *) data;
+    uint8_t encoded[MDC1200_FEC_K * 2];
 
     {
         unsigned int i, k, m;
@@ -88,12 +89,29 @@ bool decode_data(void *data) {
         }
     }
 
+    memcpy(encoded, data8, sizeof(encoded));
     error_correction(data);
 
     crc1 = compute_crc(data, 4);
     crc2 = ((uint16_t) data8[5] << 8) | (data8[4] << 0);
 
-    return (crc1 == crc2) ? true : false;
+    if (crc1 == crc2)
+        return true;
+
+    // Retry one coded-bit correction for residual errors left by the greedy FEC pass.
+    for (unsigned int bit = 0; bit < sizeof(encoded) * 8; bit++) {
+        memcpy(data8, encoded, sizeof(encoded));
+        data8[bit >> 3] ^= 1u << (bit & 7u);
+        error_correction(data);
+
+        crc1 = compute_crc(data, 4);
+        crc2 = ((uint16_t) data8[5] << 8) | (data8[4] << 0);
+        if (crc1 == crc2)
+            return true;
+    }
+
+    memcpy(data8, encoded, sizeof(encoded));
+    return false;
 }
 
 // *** TX FUNCTIONS (KEEP VERBATIM) ***

@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^wsl make full$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

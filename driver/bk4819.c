@@ -15,9 +15,9 @@
  */
 #include "app/messenger.h"
 #include "app/messenger.h"
-#include <stdint.h>
 #include "app/app.h"
 #include "ui/ui.h"
+#include "ui/main.h"
 #include <stdio.h>
 #include "string.h"
 #include "settings.h"
@@ -1088,6 +1088,7 @@ void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay,
 }
 
 void BK4819_PlayRxEndTone(void) {
+    UI_SetTalkPermitToast(TALK_PERMIT_TOAST_CALL_ENDED, 0);
     BK4819_EnterTxMute();
     AUDIO_AudioPathOn();
     BK4819_SetAF(BK4819_AF_BEEP);
@@ -1287,6 +1288,8 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     SYSTEM_DelayMs(1);
     BK4819_ExitTxMute();
     SYSTEM_DelayMs(1);
+
+    UI_SetTalkPermitToast(TALK_PERMIT_TOAST_SEND, 0);
 
     if ((mode == TALK_PERMIT_TONE_HYT || mode == TALK_PERMIT_TONE_TETRA) && gEeprom.field37_0x32)
         gHytSecondaryTone = true;

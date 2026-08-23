@@ -444,7 +444,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
 
         case MENU_TX_CAL:
             *pMin = 0;
-            *pMax = 255;
+            *pMax = 150;
             break;
 
         case MENU_BATTYP:

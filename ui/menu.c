@@ -136,20 +136,20 @@ const t_menu_item MenuList[] =
 
                 // hidden menu items from here on
                 // enabled if pressing both the PTT and upper side button at power-on
-                {/*"F Lock",*/ VOICE_ID_INVALID, MENU_F_LOCK, 频段解锁},
 //                {/*"Tx 200",*/ VOICE_ID_INVALID,                       MENU_200TX         ,两百M发射}, // was "200TX"
 //                {/*"Tx 350",*/ VOICE_ID_INVALID,                       MENU_350TX         ,三百五十M发射}, // was "350TX"
 //                {/*"Tx 500",*/ VOICE_ID_INVALID,                       MENU_500TX         ,五百M发射}, // was "500TX"
 //                {/*"350 En",*/ VOICE_ID_INVALID,                       MENU_350EN         ,三百五十M接收}, // was "350EN"
+                {/*"TPT",*/    VOICE_ID_INVALID, MENU_TALK_PERMIT_TONE, "TPT"},
+                {/*"C.End",*/  VOICE_ID_INVALID, MENU_CALL_END_TONE, "C.End"},
+                {/*"Rx.Led",*/ VOICE_ID_INVALID, MENU_RX_LM, "Rx.Led"},
+                {/*"F Lock",*/ VOICE_ID_INVALID, MENU_F_LOCK, 频段解锁},
 #ifdef ENABLE_F_CAL_MENU//0
                 {/*"FrCali",*/ VOICE_ID_INVALID,                       MENU_F_CALI        ,""}, // reference xtal calibration
 #endif
                 {/*"BatCal",*/ VOICE_ID_INVALID, MENU_BATCAL, 电池调压}, // battery voltage calibration
                 {/*"PwrCal",*/ VOICE_ID_INVALID, MENU_TX_CAL, "PwrCal"},
-                {/*"TPT",*/    VOICE_ID_INVALID, MENU_TALK_PERMIT_TONE, "TPT"},
-                {/*"RxLM",*/   VOICE_ID_INVALID, MENU_RX_LM, RX灯模式}, // RX light mode
-                {/*"C.End",*/  VOICE_ID_INVALID, MENU_CALL_END_TONE, "C.End"},
-                {/*"BatTyp",*/ VOICE_ID_INVALID, MENU_BATTYP, 电池大小}, // battery type 1600/2200mAh
+                {/*"BatVol",*/ VOICE_ID_INVALID, MENU_BATTYP, "BatVol"},
                 {/*"Reset",*/  VOICE_ID_INITIALISATION, MENU_RESET,
                                参数复位}, // might be better to move this to the hidden menu items ?
 
@@ -1474,7 +1474,7 @@ void UI_DisplayMenu(void) {
         case MENU_TX_CAL: {
             const char *power = gTxVfo->OUTPUT_POWER == OUTPUT_POWER_HIGH ? "H" :
                                 gTxVfo->OUTPUT_POWER == OUTPUT_POWER_MID ? "M" : "L";
-            sprintf(String, "%s:%u\n%u%%", power, gSubMenuSelection, (gSubMenuSelection * 100u) / 255u);
+            sprintf(String, "%s:%u\n%u%%", power, gSubMenuSelection, (gSubMenuSelection * 100u) / 150u);
             break;
         }
 

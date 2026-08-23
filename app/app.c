@@ -728,6 +728,8 @@ void APP_EndTransmission(bool inmediately) {
     if (inmediately || gEeprom.REPEATER_TAIL_TONE_ELIMINATION == 0) {
         FUNCTION_Select(FUNCTION_FOREGROUND);//OK
         APP_ScheduleCallEndToneAfterTx();
+        if (gTxVfo->pTX->Frequency == gTxVfo->pRX->Frequency)
+            UI_SetTalkPermitToast(TALK_PERMIT_TOAST_STANDBY, 0);
     } else {
         gRTTECountdown_10ms = gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 10;
     }
@@ -1094,14 +1096,19 @@ static void CheckKeys(void) {
 
 void APP_TimeSlice10ms(void) {
     gNextTimeslice = false;
+    UI_MAIN_TimeSlice10ms();
     gFlashLightBlinkCounter++;
     static uint16_t powerSaveLedCounter = 0;
     static uint16_t rxBlinkCounter = 0;
     static uint16_t squelchOpenTime;
+    static uint8_t squelchFlutterCount;
+    static uint8_t squelchWindowTime;
     static bool squelchWasOpen;
 
     // A signal that closes within 500 ms is treated as flutter.
     const uint16_t squelchFlutterOpenTime = 50;
+    const uint8_t squelchFlutterWindowTime = 100;
+    const uint8_t squelchFlutterCountThreshold = 2;
 
     const bool squelchRxActive =
             gCurrentFunction == FUNCTION_RECEIVE ||
@@ -1110,7 +1117,7 @@ void APP_TimeSlice10ms(void) {
 
     if (gRxEndTonePending) {
         if (gFlagPrepareTX || gCurrentFunction == FUNCTION_TRANSMIT ||
-            gRxVfo->Modulation != MODULATION_FM || g_SquelchLost || FUNCTION_IsRx()) {
+            gRxVfo->Modulation != MODULATION_FM || g_SquelchLost) {
             gRxEndTonePending = false;
             gRxEndToneCountdown_10ms = 0;
             BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
@@ -1118,16 +1125,23 @@ void APP_TimeSlice10ms(void) {
         } else if (gRxEndToneCountdown_10ms > 0) {
             gRxEndToneCountdown_10ms--;
         } else {
-            gRxEndTonePending = false;
             BK4819_ResetTalkPermitToneState();
             if (gEeprom.field37_0x32 && gEeprom.BOOT_BEEP_CONTROL)
                 BK4819_PlayRxEndTone();
+            gRxEndTonePending = false;
             BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
             BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
         }
     }
 
     if (squelchRxActive && !SCANNER_IsScanning()) {
+        if (squelchWindowTime < squelchFlutterWindowTime)
+            squelchWindowTime++;
+        else {
+            squelchWindowTime = 1;
+            squelchFlutterCount = 0;
+        }
+
         if (g_SquelchLost) {
             if (!squelchWasOpen) {
                 squelchOpenTime = 0;
@@ -1138,17 +1152,27 @@ void APP_TimeSlice10ms(void) {
                 squelchOpenTime++;
 
             // A signal that remains open is stable; use the shortest tail.
-            if (squelchOpenTime >= squelchFlutterOpenTime)
+            if (squelchOpenTime >= squelchFlutterOpenTime &&
+                squelchFlutterCount < squelchFlutterCountThreshold)
                 BK4819_SetSquelchLongTail(false);
         } else if (squelchWasOpen) {
             // The tail decision follows the duration of the preceding open.
-            BK4819_SetSquelchLongTail(squelchOpenTime < squelchFlutterOpenTime);
+            if (squelchOpenTime < squelchFlutterOpenTime) {
+                if (squelchFlutterCount < UINT8_MAX)
+                    squelchFlutterCount++;
+                if (squelchFlutterCount >= squelchFlutterCountThreshold)
+                    BK4819_SetSquelchLongTail(true);
+            } else if (squelchFlutterCount < squelchFlutterCountThreshold) {
+                BK4819_SetSquelchLongTail(false);
+            }
             squelchOpenTime = 0;
         }
 
         squelchWasOpen = g_SquelchLost;
     } else {
         squelchOpenTime = 0;
+        squelchFlutterCount = 0;
+        squelchWindowTime = 0;
         squelchWasOpen = false;
         BK4819_SetSquelchLongTail(false);
     }
@@ -1207,7 +1231,7 @@ void APP_TimeSlice10ms(void) {
     
     // --- RX Green Light Logic (configurable via RX_LIGHT_MODE) ---
     // Only manage RX light when NOT in POWER_SAVE mode (power save manages its own breathing light)
-    if (gCurrentFunction != FUNCTION_POWER_SAVE) {
+    if (gCurrentFunction != FUNCTION_POWER_SAVE && !gRxEndTonePending) {
         if (g_SquelchLost && gCurrentFunction != FUNCTION_TRANSMIT) {
             switch (gEeprom.RX_LIGHT_MODE) {
                 case RX_LIGHT_MODE_OFF:
@@ -1286,10 +1310,7 @@ void APP_TimeSlice10ms(void) {
         // Force Green LED on and Red LED off for TX
         BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false); 
         BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
-//#ifdef ENABLE_AUDIO_BAR
-        if ((gFlashLightBlinkCounter % (150 / 10)) == 0) // once every 150ms
-            UI_DisplayAudioBar();
-//#endif
+    /* Microphone level bar disabled while talk-permit status owns the middle row. */
     }
 
     if (gUpdateDisplay) {
@@ -1877,6 +1898,14 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 
     bool bFlag = false;
     if (Key == KEY_PTT) {
+#ifdef ENABLE_MDC1200
+        if (bKeyPressed && !bKeyHeld) {
+            mdc1200_rx_ready_tick_500ms = 0;
+            if (center_line == CENTER_LINE_MDC1200)
+                center_line = CENTER_LINE_NONE;
+            gUpdateDisplay = true;
+        }
+#endif
 //        if(gEeprom.KEY_LOCK)
 //        {
 //            gKeypadLocked  = 4;          // 2 seconds

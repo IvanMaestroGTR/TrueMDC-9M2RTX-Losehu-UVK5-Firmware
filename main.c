@@ -91,7 +91,6 @@
 
 #include "ui/lock.h"
 #include "ui/welcome.h"
-#include "ui/battery_check.h"
 #include "ui/menu.h"
 #include "driver/eeprom.h"
 #include "driver/st7565.h"
@@ -276,11 +275,6 @@ void Main(void) {
 
     //	BOOT_ProcessMode();
     GUI_SelectNextDisplay(DISPLAY_MAIN);
-
-    // Initialize and play battery check tones (blocking call, safe to use here before main loop)
-    gBatteryCheckActive = true;
-    gBatteryCheckTonesPlayed = false;
-    BatteryCheck_PlayVoltageTonesIfNeeded();
 
     GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_VOICE_0);
 

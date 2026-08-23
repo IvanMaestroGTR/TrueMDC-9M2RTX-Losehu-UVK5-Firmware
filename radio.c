@@ -39,6 +39,7 @@
 #include "radio.h"
 #include "settings.h"
 #include "ui/menu.h"
+#include "ui/main.h"
 
 #ifdef ENABLE_MESSENGER
 #include "app/messenger.h"
@@ -1041,6 +1042,8 @@ void RADIO_PrepareTX(void) {
     }
 
     // TX is allowed
+
+    UI_SetTalkPermitToast(TALK_PERMIT_TOAST_WAIT, 0);
 
 #ifdef ENABLE_DTMF_CALLING
     if (gDTMF_ReplyState == DTMF_REPLY_ANI)
