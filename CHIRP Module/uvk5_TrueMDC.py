@@ -358,7 +358,7 @@ KEYPADTONE_LIST = ["Off", "Chinese", "English"]
 LANGUAGE_LIST = ["Chinese", "English"]
 ALARMMODE_LIST = ["Local", "Local+Remote"]
 REMENDOFTALK_LIST = ["Off", "Roger 1", "Roger 2", "Roger 3", "Roger 4", "Roger 5", "Roger 6", "MDC Post", "MDC Pre", "MDC Both"]
-RTE_LIST = ["Off", "10ms", "20ms", "30ms", "40ms", "50ms", "60ms", "70ms", "80ms", "90ms", "100ms"]
+RTE_LIST = ["200ms", "300ms", "400ms", "500ms", "600ms", "700ms", "800ms", "900ms", "1000ms"]
 STE_LIST = ["Off", "55Hz", "180"]
 MDC_PREAMBLE_DURATION_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 MDC_PREAMBLE_WHEN_LIST = ["TX Pre-ID", "TX Post-ID", "TX Both"]
@@ -1399,10 +1399,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 _mem.roger = REMENDOFTALK_LIST.index(
                     str(element.value))
 
-            # Repeater tail tone elimination
+            # MDC PRE-ID delay is stored as 2..10 (200..1000 ms).
             if element.get_name() == "repeater_tail_elimination":
-                _mem.repeater_tail_elimination = RTE_LIST.index(
-                    str(element.value))
+                _mem.repeater_tail_elimination = RTE_LIST.index(str(element.value)) + 2
 
             # Logo string 1
             if element.get_name() == "logo1":
@@ -2207,13 +2206,14 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                     REMENDOFTALK_LIST[tmpalarmmode]))
         basic.append(rs)
 
-        # Repeater tail tone elimination (RTE)
+        # MDC PRE-ID delay
         tmprte = _mem.repeater_tail_elimination
-        if tmprte >= len(RTE_LIST):
-            tmprte = 0
+        if tmprte < 2 or tmprte > 10:
+            tmprte = 2
+        tmprte -= 2
         rs = RadioSetting(
                 "repeater_tail_elimination",
-                "Repeater Tail Tone Elimination",
+                "MDCDly",
                 RadioSettingValueList(RTE_LIST, RTE_LIST[tmprte]))
         basic.append(rs)
 

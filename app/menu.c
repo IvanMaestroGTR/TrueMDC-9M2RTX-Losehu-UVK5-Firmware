@@ -373,7 +373,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             //case MENU_VOX:
 #endif
         case MENU_RP_STE:
-            *pMin = 0;
+            *pMin = 2;
             *pMax = 10;
             break;
 

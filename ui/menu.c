@@ -83,6 +83,7 @@ const t_menu_item MenuList[] =
                 {/*"BackLt",*/ VOICE_ID_INVALID, MENU_ABR, 自动背光}, // was "ABR"
                 {/*"BLMax",*/  VOICE_ID_INVALID, MENU_ABR_MAX, 背光亮度},
                 {/*"MDCID",*/  VOICE_ID_INVALID, MENU_MDC_ID, MDC_ID},
+                {/*"MDCDly",*/ VOICE_ID_INVALID, MENU_RP_STE, "MDCDly"},
 
 #ifdef ENABLE_MDC1200
                 {/*"MDCPre",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_DURATION, "MDCPre"},
@@ -92,7 +93,6 @@ const t_menu_item MenuList[] =
                 {/*"Roger",*/  VOICE_ID_INVALID, MENU_ROGER, 首尾音},
 
                 {/*"STE",*/    VOICE_ID_INVALID, MENU_STE, 尾音消除},
-                {/*"RP STE",*/ VOICE_ID_INVALID, MENU_RP_STE, 过中继尾音消除},
                 // {/*"ECT",*/    VOICE_ID_INVALID, MENU_END_CALL_TONE, "ECT"},  // removed
                 {/*"1 Call",*/ VOICE_ID_INVALID, MENU_1_CALL, 按键即呼},
 
@@ -1323,7 +1323,7 @@ void UI_DisplayMenu(void) {
 
 
             else
-                sprintf(String, "%d*100ms", gSubMenuSelection);
+                sprintf(String, "%d00ms", gSubMenuSelection);
             break;
 
         case MENU_S_LIST:

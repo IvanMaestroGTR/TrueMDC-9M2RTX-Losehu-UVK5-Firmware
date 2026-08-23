@@ -729,14 +729,10 @@ void APP_EndTransmission(bool inmediately) {
         //turn the monitor back on
         gFlagReconfigureVfos = true;
     }
-    if (inmediately || gEeprom.REPEATER_TAIL_TONE_ELIMINATION == 0) {
-        FUNCTION_Select(FUNCTION_FOREGROUND);//OK
-        APP_ScheduleCallEndToneAfterTx();
-        if (gTxVfo->pTX->Frequency == gTxVfo->pRX->Frequency)
-            UI_SetTalkPermitToast(TALK_PERMIT_TOAST_STANDBY, 0);
-    } else {
-        gRTTECountdown_10ms = gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 10;
-    }
+    FUNCTION_Select(FUNCTION_FOREGROUND);//OK
+    APP_ScheduleCallEndToneAfterTx();
+    if (gTxVfo->pTX->Frequency == gTxVfo->pRX->Frequency)
+        UI_SetTalkPermitToast(TALK_PERMIT_TOAST_STANDBY, 0);
 }
 
 #ifdef ENABLE_VOX
