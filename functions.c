@@ -215,8 +215,8 @@ void FUNCTION_Transmit() {
         // Mute mic before PRE-ID MDC transmission
         BK4819_MuteMic();
         
-        // 375ms delay before sending the PRE-ID MDC packet
-        SYSTEM_DelayMs(375);
+        // 400ms delay before sending the PRE-ID MDC packet
+        SYSTEM_DelayMs(400);
         
         // Determine preamble duration based on MDC preamble settings
         // Skip 1 and 9 - if value is 1, treat as 0 (OFF)
