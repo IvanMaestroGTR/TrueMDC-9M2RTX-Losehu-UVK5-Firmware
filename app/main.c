@@ -592,10 +592,9 @@ static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
             // F + MENU = toggle screen invert
             gWasFKeyPressed = false;
             gEeprom.SCREEN_INVERT = !gEeprom.SCREEN_INVERT;
-            if (++trboToneToggleCount >= 4) {
-                gTrboEncryptedToneOverride = !gTrboEncryptedToneOverride;
+            if (++trboToneToggleCount == 4) {
+                gEeprom.field38_0x33 ^= 0x40;
                 trboToneToggleCount = 0;
-                gRequestSaveSettings = 1;
             }
             gToastType = TOAST_NIGHT_MODE;
             gToastTimerSingleLine = 4;

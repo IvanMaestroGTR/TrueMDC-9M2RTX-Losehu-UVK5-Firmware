@@ -341,11 +341,9 @@ void BK4819_PlayRoger(void) {
     else
     if (gEeprom.ROGER == ROGER_MODE_ROGER_4)
         BK4819_PlayRogerFour();
+    // Cobra Roger beep temporarily disabled to save firmware space.
     else
     if (gEeprom.ROGER == ROGER_MODE_ROGER_5)
-        BK4819_PlayRogerFive();
-    else
-    if (gEeprom.ROGER == ROGER_MODE_ROGER_6)
         BK4819_PlayRogerSix();    
     
     
@@ -1096,7 +1094,7 @@ void BK4819_PlayRxEndTone(void) {
     BK4819_Enable_AfDac_DiscMode_TxDsp();
     SYSTEM_DelayMs(50);
 
-    if (gEeprom.field38_0x33 == TALK_PERMIT_TONE_TETRA) {
+    if ((gEeprom.field38_0x33 & 7) == TALK_PERMIT_TONE_TETRA) {
         BK4819_WriteRegister(BK4819_REG_71, scale_freq(785));
         BK4819_ExitTxMute();
         SYSTEM_DelayMs(350);
@@ -1161,9 +1159,7 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
         durations = xtsDurations;
         count = 5;
     } else if (mode == TALK_PERMIT_TONE_TRBO) {
-        const bool encrypted = (gCurrentVfo->SCRAMBLING_TYPE > 0 && gSetting_ScrambleEnable) ||
-                                gTrboEncryptedToneOverride;
-        frequencies = encrypted ? (const uint16_t[]){784, 523, 784, 659} : trboFrequencies;
+        frequencies = trboFrequencies;
         durations = trboDurations;
         count = 4;
     } else if (mode == TALK_PERMIT_TONE_HYT) {
@@ -1212,7 +1208,7 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
 void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     static const uint16_t xtsFrequencies[] = {910, 0, 910, 0, 910};
     static const uint16_t xtsDurations[] = {100, 20, 30, 20, 60};
-    static const uint16_t trboFrequencies[] = {1570, 1050, 1570, 1317};
+    static const uint16_t trboFrequencies[] = {1570, 1050, 1570, 1317, 784, 523, 784, 659};
     static const uint16_t trboDurations[] = {100, 40, 40, 40};
     static const uint16_t hytPrimaryFrequencies[] = {392, 587, 392, 784};
     static const uint16_t hytPrimaryDurations[] = {135, 75, 75, 75};
@@ -1224,6 +1220,7 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     static const uint16_t tetraSecondaryDurations[] = {200, 75, 200};
     const uint16_t *frequencies;
     const uint16_t *durations;
+    uint8_t toneGain = 55;
     unsigned int count;
 
     if (mode == TALK_PERMIT_TONE_XTS) {
@@ -1231,7 +1228,11 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
         durations = xtsDurations;
         count = 5;
     } else if (mode == TALK_PERMIT_TONE_TRBO) {
-        frequencies = trboFrequencies;
+                frequencies = trboFrequencies +
+                                            (((gCurrentVfo->SCRAMBLING_TYPE && gSetting_ScrambleEnable) ||
+                                                (gEeprom.field38_0x33 & 0x40)) ? 4 : 0);
+                if (frequencies == trboFrequencies + 4)
+                    toneGain = 66; //MotoTRBO Encrypted TPT is low due to low note, 66 would be moderate.
         durations = trboDurations;
         count = 4;
     } else if (mode == TALK_PERMIT_TONE_HYT) {
@@ -1272,7 +1273,7 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
 
     for (unsigned int i = 0; i < count; i++) {
         if (frequencies[i] != 0) {
-            BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+            BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (toneGain << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
             BK4819_WriteRegister(BK4819_REG_71, scale_freq(frequencies[i]));
         } else {
             BK4819_WriteRegister(BK4819_REG_70, 0);

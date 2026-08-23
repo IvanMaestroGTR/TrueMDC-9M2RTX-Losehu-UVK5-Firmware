@@ -116,10 +116,10 @@ void SETTINGS_InitEEPROM(void)
     gEeprom.BEEP_CONTROL                 = Data[0] & 1;
     gEeprom.BOOT_BEEP_CONTROL            = (Data[0] >> 1) & 1;
     gEeprom.field37_0x32                 = (Data[0] >> 2) & 1;
-    gEeprom.field38_0x33                 = ((Data[0] >> 3) & 7) <= TALK_PERMIT_TONE_TETRA ?
-                                           (Data[0] >> 3) & 7 : TALK_PERMIT_TONE_OFF;
+    gEeprom.field38_0x33                 = (((Data[0] >> 3) & 7) <= TALK_PERMIT_TONE_TETRA ?
+                                           (Data[0] >> 3) & 7 : TALK_PERMIT_TONE_OFF) |
+                                           (Data[0] & 0x40);
     gEeprom.SCREEN_INVERT         = (Data[3] < 2) ? Data[3] : false;
-    gTrboEncryptedToneOverride    = Data[4] == 1;
 
     gEeprom.MDC1200_ID     =((uint16_t) (Data[2] << 8))|((uint16_t)(Data[1] ));
 
@@ -168,7 +168,7 @@ void SETTINGS_InitEEPROM(void)
 #ifdef ENABLE_ALARM
     gEeprom.ALARM_MODE                 = (Data[0] <  2) ? Data[0] : true;
 #endif
-    gEeprom.ROGER                          = (Data[1] <  10) ? Data[1] : ROGER_MODE_OFF;
+    gEeprom.ROGER                          = (Data[1] <  9) ? Data[1] : ROGER_MODE_OFF;
     gEeprom.REPEATER_TAIL_TONE_ELIMINATION = (Data[2] >= 2 && Data[2] <= 10) ? Data[2] : 2;
     gEeprom.TX_VFO                         = (Data[3] <  2) ? Data[3] : 0;
     gEeprom.BATTERY_TYPE                   = (Data[4] < BATTERY_TYPE_UNKNOWN) ? Data[4] : BATTERY_TYPE_1600_MAH;
@@ -555,7 +555,8 @@ void SETTINGS_SaveSettings(void)
     State[0] = gEeprom.BEEP_CONTROL |
                (gEeprom.BOOT_BEEP_CONTROL << 1) |
                (gEeprom.field37_0x32 << 2) |
-               ((gEeprom.field38_0x33 & 7) << 3);
+               ((gEeprom.field38_0x33 & 7) << 3) |
+               (gEeprom.field38_0x33 & 0x40);
    // State[0] |= 0;//gEeprom.KEY_M_LONG_PRESS_ACTION << 1;
 //    State[1]=(uint8_t)(gEeprom.MDC1200_ID&(0x000000ff));
 //    State[2]=(uint8_t)((gEeprom.MDC1200_ID&0x0000ff00)>>8);
@@ -568,7 +569,7 @@ void SETTINGS_SaveSettings(void)
    // State[2] = 0;//gEeprom.KEY_1_LONG_PRESS_ACTION;
     //State[3] = 0;//gEeprom.KEY_2_SHORT_PRESS_ACTION;
     State[3] = gEeprom.SCREEN_INVERT;   // <-- ADD THIS
-    State[4] = gTrboEncryptedToneOverride;
+    State[4] = 0;
     State[5] = gEeprom.SCAN_RESUME_MODE;
     State[6] = 0;//gEeprom.AUTO_KEYPAD_LOCK;
 #if ENABLE_CHINESE_FULL==4

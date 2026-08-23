@@ -243,8 +243,8 @@ void FUNCTION_Transmit() {
     if (gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_APOLLO)
         BK4819_PlaySingleTone(2525, 250, 0, gEeprom.DTMF_SIDE_TONE);
 
-    if (gEeprom.field38_0x33 != TALK_PERMIT_TONE_OFF && gEeprom.BOOT_BEEP_CONTROL)
-        BK4819_PlayTalkPermitToneTx(gEeprom.field38_0x33);
+    if ((gEeprom.field38_0x33 & 7) != TALK_PERMIT_TONE_OFF && gEeprom.BOOT_BEEP_CONTROL)
+        BK4819_PlayTalkPermitToneTx(gEeprom.field38_0x33 & 7);
 
 #ifdef ENABLE_MESSENGER
     #ifdef ENABLE_MDC1200

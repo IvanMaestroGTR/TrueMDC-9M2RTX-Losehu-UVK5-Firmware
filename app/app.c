@@ -675,6 +675,8 @@ static void CheckRadioInterrupts(void) {
 #endif
 
         if (interrupts.sqlLost) {
+            if (!g_SquelchLost)
+                mdc1200_rx_ready_tick_500ms = 0;
             g_SquelchLost = true;
             if (gCurrentFunction != FUNCTION_TRANSMIT) {
                 UI_SetTalkPermitToast(TALK_PERMIT_TOAST_STANDBY, 0);

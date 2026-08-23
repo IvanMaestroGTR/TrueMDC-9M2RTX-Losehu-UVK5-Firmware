@@ -357,7 +357,7 @@ WELCOME_LIST = ["Off", "Pic", "Msg"]
 KEYPADTONE_LIST = ["Off", "Chinese", "English"]
 LANGUAGE_LIST = ["Chinese", "English"]
 ALARMMODE_LIST = ["Local", "Local+Remote"]
-REMENDOFTALK_LIST = ["Off", "Roger 1", "Roger 2", "Roger 3", "Roger 4", "Roger 5", "Roger 6", "MDC Post", "MDC Pre", "MDC Both"]
+REMENDOFTALK_LIST = ["Off", "Roger 1", "Roger 2", "Roger 3", "Roger 4", "Roger 5", "MDC Post", "MDC Pre", "MDC Both"]
 RTE_LIST = ["200ms", "300ms", "400ms", "500ms", "600ms", "700ms", "800ms", "900ms", "1000ms"]
 STE_LIST = ["Off", "55Hz", "180"]
 MDC_PREAMBLE_DURATION_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
@@ -1396,8 +1396,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             # Reminding of end of talk
             if element.get_name() == "reminding_of_end_talk":
-                _mem.roger = REMENDOFTALK_LIST.index(
-                    str(element.value))
+                _mem.roger = REMENDOFTALK_LIST.index(str(element.value))
 
             # MDC PRE-ID delay is stored as 2..10 (200..1000 ms).
             if element.get_name() == "repeater_tail_elimination":
