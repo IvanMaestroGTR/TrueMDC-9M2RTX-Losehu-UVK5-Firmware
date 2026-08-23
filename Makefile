@@ -303,6 +303,8 @@ OBJCOPY = arm-none-eabi-objcopy
 SIZE = arm-none-eabi-size
 
 AUTHOR_STRING ?= LOSEHU
+FIRMWARE_VERSION ?= 00
+PACKED_FILE = TrueMDC.Gen$(FIRMWARE_VERSION).packed.bin
 # the user might not have/want git installed
 # can set own version string here (max 7 chars)
 ifneq (, $(shell $(WHERE) git))
@@ -594,10 +596,6 @@ else ifneq (, $(shell $(WHERE) python3))
     MY_PYTHON := python3
 endif
 
-ifdef MY_PYTHON
-    HAS_CRCMOD := $(shell $(MY_PYTHON) -c "import crcmod" 2>&1)
-endif
-
 full:
 	$(RM) *.bin
 	$(MAKE) build ENABLE_CHINESE_FULL=0 ENABLE_ENGLISH=1 ENABLE_FMRADIO=1 ENABLE_SPECTRUM=1 ENABLE_MDC1200=1 ENABLE_MDC1200_EDIT=1 ENABLE_MDC1200_CONTACT=1
@@ -612,14 +610,9 @@ test:
 build:clean $(TARGET)
 	@$(OBJCOPY) -O binary $(TARGET) $(TARGET).bin
 ifndef MY_PYTHON
-	$(info )
-	$(info )
-else ifneq (,$(HAS_CRCMOD))
-	$(info )
-	$(info !!!!!!!! run: pip install crcmod)
-	$(info )
+	$(error Python is required to create $(PACKED_FILE))
 else
-	-$(MY_PYTHON) fw-pack.py $(TARGET).bin $(AUTHOR_STRING) $(PACKED_FILE_SUFFIX).bin
+	$(MY_PYTHON) fw-pack.py $(TARGET).bin Gen$(FIRMWARE_VERSION) $(PACKED_FILE)
 endif
 	$(SIZE) $(TARGET)
 
@@ -677,7 +670,7 @@ endif
 
 
 clean:
-	@$(RM) $(call FixPath, $(TARGET).bin $(PACKED_FILE_SUFFIX).bin $(TARGET) )
+	@$(RM) $(call FixPath, $(TARGET).bin firmware.packed.bin TrueMDC.*.packed.bin $(PACKED_FILE_SUFFIX).bin $(TARGET) )
 
 ifeq ($(OS), Windows_NT) # Windows 系统
 	@call del_win.bat

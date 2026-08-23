@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-import crcmod
 import sys
 
 from itertools import cycle
-from binascii import hexlify
 
 OBFUSCATION = [
         0x47, 0x22, 0xC0, 0x52, 0x5D, 0x57, 0x48, 0x94, 0xB1, 0x60, 0x60, 0xDB, 0x6F, 0xE3, 0x4C, 0x7C,
@@ -20,6 +18,14 @@ OBFUSCATION = [
 def obfuscate(fw):
     return bytes([a^b for a, b in zip(fw, cycle(OBFUSCATION))])
 
+def crc_xmodem(data):
+    crc = 0
+    for byte in data:
+        crc ^= byte << 8
+        for _ in range(8):
+            crc = ((crc << 1) ^ 0x1021) & 0xFFFF if crc & 0x8000 else (crc << 1) & 0xFFFF
+    return crc
+
 plain = open(sys.argv[1], 'rb').read()
 if len(sys.argv[2]) > 10:
     print('Version suffix is too big!')
@@ -31,10 +37,7 @@ if len(version) < 16:
 
 packed = obfuscate(plain[:0x2000] + version + plain[0x2000:])
 
-crc = crcmod.predefined.Crc('xmodem')
-crc.update(packed)
-digest = crc.digest()
-digest = bytes([digest[1], digest[0]])
+digest = crc_xmodem(packed).to_bytes(2, 'little')
 
 open(sys.argv[3], 'wb').write(packed + digest)
 
