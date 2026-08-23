@@ -87,6 +87,7 @@ bool              gSetting_KILLED;
 //bool              gSetting_350EN;
 uint8_t gSetting_F_LOCK;
 bool gSetting_ScrambleEnable;
+bool gTrboEncryptedToneOverride;
 
 
 #ifdef ENABLE_AM_FIX

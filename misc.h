@@ -146,6 +146,7 @@ extern bool                  gSetting_KILLED;
 //extern bool                  gSetting_350EN;
 extern uint8_t               gSetting_F_LOCK;
 extern bool                  gSetting_ScrambleEnable;
+extern bool                  gTrboEncryptedToneOverride;
 
 
 #ifdef ENABLE_AM_FIX

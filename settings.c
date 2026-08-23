@@ -119,6 +119,7 @@ void SETTINGS_InitEEPROM(void)
     gEeprom.field38_0x33                 = ((Data[0] >> 3) & 7) <= TALK_PERMIT_TONE_TETRA ?
                                            (Data[0] >> 3) & 7 : TALK_PERMIT_TONE_OFF;
     gEeprom.SCREEN_INVERT         = (Data[3] < 2) ? Data[3] : false;
+    gTrboEncryptedToneOverride    = Data[4] == 1;
 
     gEeprom.MDC1200_ID     =((uint16_t) (Data[2] << 8))|((uint16_t)(Data[1] ));
 
@@ -567,7 +568,7 @@ void SETTINGS_SaveSettings(void)
    // State[2] = 0;//gEeprom.KEY_1_LONG_PRESS_ACTION;
     //State[3] = 0;//gEeprom.KEY_2_SHORT_PRESS_ACTION;
     State[3] = gEeprom.SCREEN_INVERT;   // <-- ADD THIS
-    State[4] = 0;//gEeprom.KEY_2_LONG_PRESS_ACTION;
+    State[4] = gTrboEncryptedToneOverride;
     State[5] = gEeprom.SCAN_RESUME_MODE;
     State[6] = 0;//gEeprom.AUTO_KEYPAD_LOCK;
 #if ENABLE_CHINESE_FULL==4

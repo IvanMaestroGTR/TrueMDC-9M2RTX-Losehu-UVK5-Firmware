@@ -1161,7 +1161,9 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
         durations = xtsDurations;
         count = 5;
     } else if (mode == TALK_PERMIT_TONE_TRBO) {
-        frequencies = trboFrequencies;
+        const bool encrypted = (gCurrentVfo->SCRAMBLING_TYPE > 0 && gSetting_ScrambleEnable) ||
+                                gTrboEncryptedToneOverride;
+        frequencies = encrypted ? (const uint16_t[]){784, 523, 784, 659} : trboFrequencies;
         durations = trboDurations;
         count = 4;
     } else if (mode == TALK_PERMIT_TONE_HYT) {

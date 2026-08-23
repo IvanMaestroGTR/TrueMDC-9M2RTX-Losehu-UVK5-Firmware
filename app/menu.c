@@ -947,6 +947,10 @@ void MENU_AcceptSetting(void) {
 
         case MENU_TALK_PERMIT_TONE:
             gEeprom.field38_0x33 = gSubMenuSelection;
+            if (gSubMenuSelection == TALK_PERMIT_TONE_TRBO) {
+                gTrboEncryptedToneOverride = false;
+                gRequestSaveSettings = 1;
+            }
             break;
 
         case MENU_CALL_END_TONE:
