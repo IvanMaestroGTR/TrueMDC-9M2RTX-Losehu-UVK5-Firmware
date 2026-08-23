@@ -304,7 +304,7 @@ SIZE = arm-none-eabi-size
 
 AUTHOR_STRING ?= LOSEHU
 FIRMWARE_VERSION ?= 00
-PACKED_FILE = TrueMDC.Gen$(FIRMWARE_VERSION).packed.bin
+PACKED_FILE = archive/TrueMDC.Gen$(FIRMWARE_VERSION).packed.bin
 # the user might not have/want git installed
 # can set own version string here (max 7 chars)
 ifneq (, $(shell $(WHERE) git))
@@ -670,7 +670,7 @@ endif
 
 
 clean:
-	@$(RM) $(call FixPath, $(TARGET).bin firmware.packed.bin TrueMDC.*.packed.bin $(PACKED_FILE_SUFFIX).bin $(TARGET) )
+	@$(RM) $(call FixPath, $(TARGET).bin firmware.packed.bin TrueMDC.*.packed.bin archive/TrueMDC.*.packed.bin $(PACKED_FILE_SUFFIX).bin $(TARGET) )
 
 ifeq ($(OS), Windows_NT) # Windows 系统
 	@call del_win.bat

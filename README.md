@@ -9,7 +9,7 @@ Thanks IJV! If you use his firmware, please support him.
 
 CHIRP support is included; the CHIRP module for this repository can be found in the CHIRP Module folder.
 
-Build artifacts: run `make full FIRMWARE_VERSION=01` to create `firmware.bin` and the UVTools-compatible `TrueMDC.Gen01.packed.bin`. The version is embedded in the packed firmware metadata and included in the filename. Upload that packed file to a public GitHub release or repository, then use its raw URL with UVTools, for example: `https://egzumer.github.io/uvtools/?firmwareURL=https://raw.githubusercontent.com/USER/REPOSITORY/main/TrueMDC.Gen01.packed.bin`. The default version is `Gen00`.
+Build artifacts: run `make full FIRMWARE_VERSION=01` to create `firmware.bin` and the UVTools-compatible `archive/TrueMDC.Gen01.packed.bin`. The version is embedded in the packed firmware metadata and included in the filename. Upload that packed file to a public GitHub release or repository, then use its raw URL with UVTools, for example: `https://egzumer.github.io/uvtools/?firmwareURL=https://raw.githubusercontent.com/USER/REPOSITORY/main/archive/TrueMDC.Gen01.packed.bin`. The default version is `Gen00`.
 
 Custom features:
 - Custom-length MDC preamble (menus 26 and 27)

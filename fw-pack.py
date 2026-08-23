@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 
 from itertools import cycle
@@ -39,5 +40,10 @@ packed = obfuscate(plain[:0x2000] + version + plain[0x2000:])
 
 digest = crc_xmodem(packed).to_bytes(2, 'little')
 
-open(sys.argv[3], 'wb').write(packed + digest)
+output_path = sys.argv[3]
+output_directory = os.path.dirname(output_path)
+if output_directory:
+    os.makedirs(output_directory, exist_ok=True)
+with open(output_path, 'wb') as output_file:
+    output_file.write(packed + digest)
 
