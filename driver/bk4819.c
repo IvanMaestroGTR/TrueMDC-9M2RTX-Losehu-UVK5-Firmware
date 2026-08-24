@@ -1197,7 +1197,7 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     static const uint16_t tetraPrimaryFrequencies[] = {525, 785};
     static const uint16_t tetraPrimaryDurations[] = {350, 250};
     static const uint16_t tetraSecondaryFrequencies[] = {785, 0, 657};
-    static const uint16_t tetraSecondaryDurations[] = {200, 75, 200};
+    static const uint16_t tetraSecondaryDurations[] = {200, 50, 200};
     const uint16_t *frequencies;
     const uint16_t *durations;
     uint8_t toneGain = 55;
@@ -1720,6 +1720,65 @@ uint8_t BK4819_GetGlitchIndicator(void) {
 
 uint8_t BK4819_GetExNoiceIndicator(void) {
     return BK4819_ReadRegister(BK4819_REG_65) & 0x007F;
+}
+
+// ============================================================================
+// Software Squelch - Faster close than hardware squelch
+// ============================================================================
+// 
+// Hardware squelch is slower because it combines RSSI + noise + glitch.
+// Software squelch closes instantly when either RSSI OR noise degrades,
+// providing quicker muting of weak/noisy signals.
+
+static bool g_SquelchOpen = false;
+
+// Main squelch tick - call this periodically (e.g., every 10-100ms in your main loop)
+//
+// Parameters:
+//   openRssi:    RSSI threshold to OPEN squelch (higher = stronger signal needed)
+//                Typical: 100-200 depending on sensitivity desired
+//   closeRssi:   RSSI threshold to CLOSE squelch (hysteresis)
+//                Typical: 20-30% lower than openRssi to prevent chatter
+//   openNoise:   Noise threshold to OPEN (lower = cleaner signal)
+//                Range: 0-127, typical: 20-50 dB
+//   closeNoise:  Noise threshold to CLOSE (hysteresis)
+//                Typical: 20% higher than openNoise
+//
+// Logic:
+//   OPEN:  requires BOTH rssi >= openRssi AND noise <= openNoise
+//   CLOSE: requires EITHER rssi <= closeRssi OR noise >= closeNoise (faster!)
+//
+void BK4819_SoftSquelch_Tick(uint16_t openRssi, uint16_t closeRssi,
+                              uint8_t openNoise, uint8_t closeNoise) {
+    uint16_t rssi  = BK4819_GetRSSI();
+    uint8_t  noise = BK4819_GetExNoiceIndicator();
+    
+    // Both RSSI AND noise must meet thresholds to open squelch
+    if (!g_SquelchOpen && rssi >= openRssi && noise <= openNoise) {
+        g_SquelchOpen = true;
+        BK4819_SetAF(BK4819_AF_FM);
+    }
+    // Either RSSI OR noise degradation triggers immediate close (fast muting)
+    else if (g_SquelchOpen && (rssi <= closeRssi || noise >= closeNoise)) {
+        g_SquelchOpen = false;
+        BK4819_SetAF(BK4819_AF_MUTE);
+    }
+}
+
+// Get current software squelch state
+bool BK4819_SoftSquelch_IsOpen(void) {
+    return g_SquelchOpen;
+}
+
+// Manually force squelch open/closed (overrides automatic control)
+void BK4819_SoftSquelch_Set(bool bOpen) {
+    if (bOpen && !g_SquelchOpen) {
+        g_SquelchOpen = true;
+        BK4819_SetAF(BK4819_AF_FM);
+    } else if (!bOpen && g_SquelchOpen) {
+        g_SquelchOpen = false;
+        BK4819_SetAF(BK4819_AF_MUTE);
+    }
 }
 
 uint16_t BK4819_GetVoiceAmplitudeOut(void) {

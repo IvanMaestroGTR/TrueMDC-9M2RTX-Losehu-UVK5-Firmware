@@ -148,6 +148,12 @@ uint8_t  BK4819_GetExNoiceIndicator(void);
 uint16_t BK4819_GetVoiceAmplitudeOut(void);
 uint8_t  BK4819_GetAfTxRx(void);
 
+// Software Squelch - Faster closure than hardware squelch (polls RSSI + noise)
+void     BK4819_SoftSquelch_Tick(uint16_t openRssi, uint16_t closeRssi,
+                                  uint8_t openNoise, uint8_t closeNoise);
+bool     BK4819_SoftSquelch_IsOpen(void);
+void     BK4819_SoftSquelch_Set(bool bOpen);
+
 bool     BK4819_GetFrequencyScanResult(uint32_t *pFrequency);
 BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_t *pCtcssFreq);
 void     BK4819_DisableFrequencyScan(void);
@@ -189,4 +195,3 @@ void enable_msg_rx(const bool enable);
 //void BK4819_StatusLED_Indicate(bool bOn);
 
 #endif
-

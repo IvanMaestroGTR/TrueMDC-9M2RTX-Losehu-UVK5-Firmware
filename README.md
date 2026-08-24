@@ -15,7 +15,6 @@ Custom features:
 - 6 different Roger beeps + MDC modes (menu 28)
 - UI tones: power-on beep and talk-permit tone (F + Down)
 - Screen inversion (F + Menu)
-- SmartSquelch: pre-arms a long tail for fluttering signals, then switches to the shortest tail if stable reception is detected
 - Call End Tone (C.End): optional FM call-end tone after the dual-watch inactivity delay, with red and green LEDs combined as a yellow indicator while pending, and also Call screen UI.
 - Talk Permit Tone (TPT): selectable XTS, TRBO, HYT and TETRA talk-permit tones after pre-ID signaling.
 - C.End and TPT settings are saved in EEPROM; F + Down UI-tone mute overrides playback without changing their saved settings

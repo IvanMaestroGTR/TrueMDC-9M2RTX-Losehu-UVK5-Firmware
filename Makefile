@@ -678,7 +678,7 @@ endif
 
 
 clean:
-	@$(RM) $(call FixPath, $(TARGET).bin firmware.packed.bin TrueMDC.*.packed.bin archive/TrueMDC.*.packed.bin $(PACKED_FILE_SUFFIX).bin $(TARGET) )
+	@$(RM) $(call FixPath, $(TARGET).bin firmware.packed.bin TrueMDC.*.packed.bin $(PACKED_FILE_SUFFIX).bin $(TARGET) )
 
 ifeq ($(OS), Windows_NT) # Windows 系统
 	@call del_win.bat
