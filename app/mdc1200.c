@@ -11,6 +11,7 @@ uint8_t      mdc1200_op;
 uint8_t      mdc1200_arg;
 uint16_t     mdc1200_unit_id;
 uint8_t      mdc1200_rx_ready_tick_500ms;
+bool         mdc1200_rx_pre_id;
 uint8_t      mdc1200_rx_buffer[5 + (MDC1200_FEC_K * 2)];
 unsigned int mdc1200_rx_buffer_index = 0;
 

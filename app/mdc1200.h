@@ -104,6 +104,7 @@ extern unsigned int mdc1200_rx_buffer_index;
 bool MDC1200_process_rx_data(const void *buffer, const unsigned int size, uint8_t *op, uint8_t *arg, uint16_t *unit_id);
 
 extern uint8_t mdc1200_rx_ready_tick_500ms;
+extern bool mdc1200_rx_pre_id;
 
 unsigned int MDC1200_encode_single_packet(void *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id);
 

@@ -580,13 +580,13 @@ void solve_sign(const uint16_t interrupt_bits) {
 
 #endif
 #ifdef ENABLE_MDC1200
-        mdc1200_rx_buffer_index = 0;
-
+    if (mdc1200_rx_buffer_index == 0) {
         {
 //            memset(mdc1200_rx_buffer, 0, sizeof(mdc1200_rx_buffer));
             for (unsigned int  i = 0; i < sizeof(mdc1200_sync_suc_xor); i++)
                 mdc1200_rx_buffer[mdc1200_rx_buffer_index++] = mdc1200_sync_suc_xor[i] ^ (rx_sync_neg ? 0xFF : 0x00);
         }
+    }
 #endif
     }
 
@@ -632,7 +632,8 @@ void solve_sign(const uint16_t interrupt_bits) {
                         &mdc1200_op,
                         &mdc1200_arg,
                         &mdc1200_unit_id)) {
-                    mdc1200_rx_ready_tick_500ms = 2 * 5;  // 6 second MDC display time
+                    mdc1200_rx_pre_id = mdc1200_arg == 0x80;
+                    mdc1200_rx_ready_tick_500ms = mdc1200_rx_pre_id ? 0 : 4;
                     gUpdateDisplay = true;
 
                 }
@@ -646,6 +647,11 @@ void solve_sign(const uint16_t interrupt_bits) {
     }
 
     if (rx_finished) {
+
+#ifdef ENABLE_MDC1200
+        mdc1200_rx_buffer_index = 0;
+        MDC1200_reset_rx();
+#endif
 
         const uint16_t fsk_reg59 =
                 BK4819_ReadRegister(BK4819_REG_59) & ~((1u << 15) | (1u << 14) | (1u << 12) | (1u << 11));

@@ -963,7 +963,7 @@ void UI_DisplayMain(void) {
         const bool rx = FUNCTION_IsRx();
 #ifdef ENABLE_MDC1200
 
-        if (mdc1200_rx_ready_tick_500ms > 0 &&
+        if ((mdc1200_rx_pre_id || mdc1200_rx_ready_tick_500ms > 0) &&
             gCurrentFunction != FUNCTION_TRANSMIT &&
             gTalkPermitToast != TALK_PERMIT_TOAST_CALL_ENDED) {
             char mdc1200_contact[15];  // 14 chars + null terminator

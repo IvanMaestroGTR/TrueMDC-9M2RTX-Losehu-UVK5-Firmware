@@ -420,7 +420,6 @@ const char gSubMenu_ROGER[][13] =
                 Roger_2,
                 Roger_3,
                 Roger_4,
-                Roger_5,
                 Post_MDC,
                 Pre_MDC,
                 Both_MDC
