@@ -47,6 +47,8 @@ static const uint8_t DTMF_TONE2_GAIN = 93;
 static const uint8_t MDC_FSK_TX_GAIN = 96;  // FSK gain for MDC1200 TX (configurable: 0-127, default 96)
 
 static uint16_t gBK4819_GpioOutState;
+static uint8_t gSquelchOpenGlitchThresh;
+static bool gSquelchLongTail;
 
 bool gRxIdleMode;
 static bool gHytSecondaryTone;
@@ -329,7 +331,7 @@ void BK4819_PlayRoger(void) {
     if(stop_mdc_flag) return;
 #endif
     if (gEeprom.ROGER == ROGER_MODE_ROGER)
-        BK4819_PlayRogerNormal();
+        BK4819_PlayRogerOne();
     else
     if (gEeprom.ROGER == ROGER_MODE_ROGER_2)
         BK4819_PlayRogerTwo();
@@ -339,12 +341,7 @@ void BK4819_PlayRoger(void) {
     else
     if (gEeprom.ROGER == ROGER_MODE_ROGER_4)
         BK4819_PlayRogerFour();
-    // Cobra Roger beep temporarily disabled to save firmware space.
-    else
-    if (gEeprom.ROGER == ROGER_MODE_ROGER_5)
-        BK4819_PlayRogerSix();    
-    
-    
+
 #ifdef ENABLE_MDC1200
     else
     if ((gEeprom.ROGER == ROGER_MODE_MDC_END||gEeprom.ROGER==ROGER_MODE_MDC_BOTH)
@@ -801,6 +798,8 @@ void BK4819_SetupSquelch(
     //         0 ~ 255
     //
     BK4819_WriteRegister(BK4819_REG_4E, 0x4000 | SquelchOpenGlitchThresh);
+    gSquelchOpenGlitchThresh = SquelchOpenGlitchThresh;
+    gSquelchLongTail = false;
 
     // REG_4F
     //
@@ -825,6 +824,18 @@ void BK4819_SetupSquelch(
     BK4819_SetAF(BK4819_AF_MUTE);
 
     BK4819_RX_TurnOn();
+}
+
+void BK4819_SetSquelchLongTail(bool longTail) {
+    if (longTail == gSquelchLongTail)
+        return;
+
+    BK4819_WriteRegister(BK4819_REG_4E,
+                         (1u << 14) |
+                         (0u << 11) |
+                         (longTail ? (2u << 9) : 0u) |
+                         gSquelchOpenGlitchThresh);
+    gSquelchLongTail = longTail;
 }
 
 void BK4819_SetAF(BK4819_AF_Type_t AF) {
@@ -1987,46 +1998,7 @@ void BK4819_PrepareFSKReceive(void) {
 }
 
 
-void BK4819_PlayRogerNormal(void) {
-    const uint32_t tone1_Hz = 1397;  // F7
-    const uint32_t tone2_Hz = 1109;  // DFlat7
-    const uint32_t tone3_Hz = 932;  // BFlat6
-
-    BK4819_EnterTxMute();
-    AUDIO_AudioPathOn();
-    BK4819_SetAF(BK4819_AF_BEEP);
-
-    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-
-    BK4819_EnableTXLink();
-    SYSTEM_DelayMs(50);
-
-    // First tone: F7 (2637 Hz) - 250ms
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(50);
-    BK4819_EnterTxMute();
-
-    // Second tone: DFlat7 (2489 Hz) - 250ms - no gap
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone2_Hz));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(50);
-    BK4819_EnterTxMute();
-
-    // Third tone: BFlat6 (1865 Hz) - 250ms - no gap
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone3_Hz));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(50);
-    BK4819_EnterTxMute();
-
-    BK4819_WriteRegister(BK4819_REG_70, 0x0000);
-    SYSTEM_DelayMs(50);
-    AUDIO_AudioPathOff();
-    BK4819_SetAF(BK4819_AF_MUTE);
-    BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);   // 1 1 0000 0 1 1111 1 1 1 0
-}
-
-void BK4819_PlayRogerTwo(void) {
+void BK4819_PlayRogerOne(void) {
     const uint32_t tone1_Hz = 1001;  
 
     BK4819_EnterTxMute();
@@ -2065,7 +2037,7 @@ void BK4819_PlayRogerTwo(void) {
     BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);   // 1 1 0000 0 1 1111 1 1 1 0
 }
 
-void BK4819_PlayRogerThree(void) {
+void BK4819_PlayRogerTwo(void) {
     const uint32_t tone1_Hz = 627;
     const uint32_t tone2_Hz = 959;
 
@@ -2095,7 +2067,7 @@ void BK4819_PlayRogerThree(void) {
     BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
 }
 
-void BK4819_PlayRogerFour(void) {
+void BK4819_PlayRogerThree(void) {
     const uint32_t tone1_Hz = 785;
     const uint32_t tone2_Hz = 526;
 
@@ -2125,43 +2097,7 @@ void BK4819_PlayRogerFour(void) {
     BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
 }
 
-void BK4819_PlayRogerFive(void) {
-    const uint32_t tone1_Hz = 493;
-    const uint32_t tone2_Hz = 988;
-    const uint32_t tone3_Hz = 1976;
-
-    BK4819_EnterTxMute();
-    AUDIO_AudioPathOn();
-    BK4819_SetAF(BK4819_AF_BEEP);
-
-    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-
-    BK4819_EnableTXLink();
-    SYSTEM_DelayMs(50);
-
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(100);
-    BK4819_EnterTxMute();
-
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone2_Hz));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(100);
-    BK4819_EnterTxMute();
-
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone3_Hz));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(100);
-    BK4819_EnterTxMute();
-
-    BK4819_WriteRegister(BK4819_REG_70, 0x0000);
-    SYSTEM_DelayMs(50);
-    AUDIO_AudioPathOff();
-    BK4819_SetAF(BK4819_AF_MUTE);
-    BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
-}
-
-void BK4819_PlayRogerSix(void) {
+void BK4819_PlayRogerFour(void) {
     const uint32_t tone1_Hz = 1538;
     const uint32_t tone2_Hz = 1938;
     const uint32_t tone3_Hz = 1838;

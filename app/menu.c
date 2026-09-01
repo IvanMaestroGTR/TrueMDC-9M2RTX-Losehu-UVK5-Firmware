@@ -247,9 +247,9 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
         case MENU_ROGER:
             *pMin = 0;
 #ifndef ENABLE_MDC1200
-            *pMax = 1;
+            *pMax = ROGER_MODE_ROGER_4;
 #else
-            *pMax = 7;
+            *pMax = ROGER_MODE_MDC_BOTH;
 #endif
             break;
 
@@ -824,10 +824,7 @@ void MENU_AcceptSetting(void) {
                 break;
 #endif
         case MENU_ROGER:
-            if (gSubMenuSelection < ROGER_MODE_MDC_END)
-                gEeprom.ROGER = gSubMenuSelection;
-            else
-                gEeprom.ROGER = gSubMenuSelection + 1;
+            gEeprom.ROGER = gSubMenuSelection;
             break;
 
 #ifdef ENABLE_MDC1200
@@ -1243,12 +1240,7 @@ void MENU_ShowCurrentSetting(void) {
             break;
 #endif
         case MENU_ROGER:
-            if (gEeprom.ROGER == ROGER_MODE_ROGER_5)
-                gSubMenuSelection = ROGER_MODE_OFF;
-            else if (gEeprom.ROGER >= ROGER_MODE_MDC_END)
-                gSubMenuSelection = gEeprom.ROGER - 1;
-            else
-                gSubMenuSelection = gEeprom.ROGER;
+            gSubMenuSelection = gEeprom.ROGER;
             break;
 
 #ifdef ENABLE_MDC1200

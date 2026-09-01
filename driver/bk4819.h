@@ -92,6 +92,7 @@ void     BK4819_SetupSquelch(
 			uint8_t SquelchCloseNoiseThresh,
 			uint8_t SquelchCloseGlitchThresh,
 			uint8_t SquelchOpenGlitchThresh);
+void     BK4819_SetSquelchLongTail(bool longTail);
 
 void     BK4819_SetAF(BK4819_AF_Type_t AF);
 void     BK4819_RX_TurnOn(void);
@@ -174,12 +175,10 @@ void     BK4819_SendFSKData(uint16_t *pData);
 void     BK4819_PrepareFSKReceive(void);
 void BK4819_PlayRoger(void);
 
- void    BK4819_PlayRogerNormal(void);
- void    BK4819_PlayRogerTwo(void);
+ void    BK4819_PlayRogerOne(void);
+ void	 BK4819_PlayRogerTwo(void);
  void	 BK4819_PlayRogerThree(void);
  void	 BK4819_PlayRogerFour(void);
- void    BK4819_PlayRogerFive(void);
- void	 BK4819_PlayRogerSix(void);
 void     BK4819_PlayRogerMDC(void);
 	    
 void     BK4819_Enable_AfDac_DiscMode_TxDsp(void);

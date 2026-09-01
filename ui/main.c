@@ -215,8 +215,6 @@ void UI_SetTalkPermitToast(talk_permit_toast_t toast, uint8_t frame) {
         text = "[Wait]";
     else if (toast == TALK_PERMIT_TOAST_SEND)
         text = sendFrames[frame % ARRAY_SIZE(sendFrames)];
-    else if (toast == TALK_PERMIT_TOAST_STANDBY)
-        text = "[Call Ongoing]";
     else if (toast == TALK_PERMIT_TOAST_CALL_ENDED)
         text = "[Call Ended]";
     else
@@ -961,53 +959,8 @@ void UI_DisplayMain(void) {
     if (center_line == CENTER_LINE_NONE) {    // we're free to use the middle line
 
         const bool rx = FUNCTION_IsRx();
-#ifdef ENABLE_MDC1200
-
-        if ((mdc1200_rx_pre_id || mdc1200_rx_ready_tick_500ms > 0) &&
-            gCurrentFunction != FUNCTION_TRANSMIT &&
-            gTalkPermitToast != TALK_PERMIT_TOAST_CALL_ENDED) {
-            char mdc1200_contact[15];  // 14 chars + null terminator
-            center_line = CENTER_LINE_MDC1200;
-            const uint8_t print_col = 2; // left aligned for both cases
-            if (mdc1200_contact_find(mdc1200_unit_id, mdc1200_contact)) {
-                // Contact found: show alias and unit id
-                // Calculate max alias length to fit display format "ID: alias, XXXX"
-                // Available space is approximately 17 characters for the full line
-                const int max_display_chars = 17;
-                const int format_overhead = 10;  // "ID: " (4) + ", " (2) + "XXXX" (4)
-                int max_alias_len = max_display_chars - format_overhead;
-                if (max_alias_len < 1) max_alias_len = 1;
-                
-                // Find actual length of contact name (up to 14 chars)
-                int contact_len = 0;
-                for (int i = 0; i < 14 && mdc1200_contact[i] != '\0'; i++) {
-                    contact_len++;
-                }
-                
-                // Truncate if necessary
-                if (contact_len > max_alias_len) {
-                    mdc1200_contact[max_alias_len] = '\0';
-                }
-                
-                snprintf(String, sizeof(String), "ID: %s, %04X", mdc1200_contact, mdc1200_unit_id);
-            } else {
-                // No contact: show only unit id (also left aligned)
-                snprintf(String, sizeof(String), "ID: %04X", mdc1200_unit_id);
-            }
-
-            UI_PrintStringSmall(String, print_col, 0, 3);
-            for (uint8_t i = 1; i < 127; i++)
-            {
-                gFrameBuffer[2][i] ^= 0x80; // 1px top edge extension into row above
-                gFrameBuffer[3][i] ^= 0xFF;
-            }
-
-        } else
-#endif
-
 //#ifdef ENABLE_AUDIO_BAR
         if (gCurrentFunction == FUNCTION_TRANSMIT ||
-            (gTalkPermitToast == TALK_PERMIT_TOAST_STANDBY && !rx) ||
             gTalkPermitToast == TALK_PERMIT_TOAST_CALL_ENDED) {
             center_line = CENTER_LINE_IN_USE;
             UI_DisplayTalkPermitToast();
