@@ -1099,21 +1099,6 @@ void APP_TimeSlice10ms(void) {
     gFlashLightBlinkCounter++;
     static uint16_t powerSaveLedCounter = 0;
     static uint16_t rxBlinkCounter = 0;
-    static uint16_t squelchOpenTime;
-    static uint8_t squelchFlutterCount;
-    static uint8_t squelchWindowTime;
-    static bool squelchWasOpen;
-
-    // A signal that closes within 500 ms is treated as flutter.
-    const uint16_t squelchFlutterOpenTime = 50;
-    const uint8_t squelchFlutterWindowTime = 100;
-    const uint8_t squelchFlutterCountThreshold = 2;
-
-    const bool squelchRxActive =
-            gCurrentFunction == FUNCTION_RECEIVE ||
-            gCurrentFunction == FUNCTION_INCOMING ||
-            gCurrentFunction == FUNCTION_MONITOR;
-
 
     if (gRxEndTonePending) {
         if (gFlagPrepareTX || gCurrentFunction == FUNCTION_TRANSMIT ||
@@ -1132,49 +1117,6 @@ void APP_TimeSlice10ms(void) {
             BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
             BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
         }
-    }
-
-    if (squelchRxActive && !SCANNER_IsScanning()) {
-        if (squelchWindowTime < squelchFlutterWindowTime)
-            squelchWindowTime++;
-        else {
-            squelchWindowTime = 1;
-            squelchFlutterCount = 0;
-        }
-
-        if (g_SquelchLost) {
-            if (!squelchWasOpen) {
-                squelchOpenTime = 0;
-                BK4819_SetSquelchLongTail(true);
-            }
-
-            if (squelchOpenTime < UINT16_MAX)
-                squelchOpenTime++;
-
-            // A signal that remains open is stable; use the shortest tail.
-            if (squelchOpenTime >= squelchFlutterOpenTime &&
-                squelchFlutterCount < squelchFlutterCountThreshold)
-                BK4819_SetSquelchLongTail(false);
-        } else if (squelchWasOpen) {
-            // The tail decision follows the duration of the preceding open.
-            if (squelchOpenTime < squelchFlutterOpenTime) {
-                if (squelchFlutterCount < UINT8_MAX)
-                    squelchFlutterCount++;
-                if (squelchFlutterCount >= squelchFlutterCountThreshold)
-                    BK4819_SetSquelchLongTail(true);
-            } else if (squelchFlutterCount < squelchFlutterCountThreshold) {
-                BK4819_SetSquelchLongTail(false);
-            }
-            squelchOpenTime = 0;
-        }
-
-        squelchWasOpen = g_SquelchLost;
-    } else {
-        squelchOpenTime = 0;
-        squelchFlutterCount = 0;
-        squelchWindowTime = 0;
-        squelchWasOpen = false;
-        BK4819_SetSquelchLongTail(false);
     }
 
     // --- STANDBY BREATHING LIGHT LOGIC ---

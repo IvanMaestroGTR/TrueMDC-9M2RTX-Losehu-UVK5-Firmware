@@ -47,8 +47,6 @@ static const uint8_t DTMF_TONE2_GAIN = 93;
 static const uint8_t MDC_FSK_TX_GAIN = 96;  // FSK gain for MDC1200 TX (configurable: 0-127, default 96)
 
 static uint16_t gBK4819_GpioOutState;
-static uint8_t gSquelchOpenGlitchThresh;
-static bool gSquelchLongTail;
 
 bool gRxIdleMode;
 static bool gHytSecondaryTone;
@@ -797,9 +795,11 @@ void BK4819_SetupSquelch(
     // <7:0>   Glitch threshold for Squelch = open
     //         0 ~ 255
     //
-    BK4819_WriteRegister(BK4819_REG_4E, 0x4000 | SquelchOpenGlitchThresh);
-    gSquelchOpenGlitchThresh = SquelchOpenGlitchThresh;
-    gSquelchLongTail = false;
+    BK4819_WriteRegister(BK4819_REG_4E,
+                         (1u << 14) |
+                         (5u << 11) |
+                         (6u << 9) |
+                         SquelchOpenGlitchThresh);
 
     // REG_4F
     //
@@ -824,18 +824,6 @@ void BK4819_SetupSquelch(
     BK4819_SetAF(BK4819_AF_MUTE);
 
     BK4819_RX_TurnOn();
-}
-
-void BK4819_SetSquelchLongTail(bool longTail) {
-    if (longTail == gSquelchLongTail)
-        return;
-
-    BK4819_WriteRegister(BK4819_REG_4E,
-                         (1u << 14) |
-                         (0u << 11) |
-                         (longTail ? (2u << 9) : 0u) |
-                         gSquelchOpenGlitchThresh);
-    gSquelchLongTail = longTail;
 }
 
 void BK4819_SetAF(BK4819_AF_Type_t AF) {
