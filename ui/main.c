@@ -959,6 +959,25 @@ void UI_DisplayMain(void) {
     if (center_line == CENTER_LINE_NONE) {    // we're free to use the middle line
 
         const bool rx = FUNCTION_IsRx();
+#ifdef ENABLE_MDC1200
+        if (mdc1200_rx_ready_tick_500ms > 0 &&
+            gCurrentFunction != FUNCTION_TRANSMIT &&
+            gTalkPermitToast != TALK_PERMIT_TOAST_CALL_ENDED) {
+            char mdc1200_contact[15];
+            center_line = CENTER_LINE_MDC1200;
+            if (mdc1200_contact_find(mdc1200_unit_id, mdc1200_contact)) {
+                snprintf(String, sizeof(String), "ID: %.7s, %04X", mdc1200_contact, mdc1200_unit_id);
+            } else {
+                snprintf(String, sizeof(String), "ID: %04X", mdc1200_unit_id);
+            }
+
+            UI_PrintStringSmall(String, 2, 0, 3);
+            for (uint8_t i = 1; i < 127; i++) {
+                gFrameBuffer[2][i] ^= 0x80;
+                gFrameBuffer[3][i] ^= 0xFF;
+            }
+        } else
+#endif
 //#ifdef ENABLE_AUDIO_BAR
         if (gCurrentFunction == FUNCTION_TRANSMIT ||
             gTalkPermitToast == TALK_PERMIT_TOAST_CALL_ENDED) {

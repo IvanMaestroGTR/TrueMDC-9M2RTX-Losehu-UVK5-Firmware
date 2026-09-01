@@ -686,11 +686,6 @@ static void CheckRadioInterrupts(void) {
 
         if (interrupts.sqlFound) {
             g_SquelchLost = false;
-            mdc1200_rx_pre_id = false;
-            mdc1200_rx_ready_tick_500ms = 0;
-            if (center_line == CENTER_LINE_MDC1200)
-                center_line = CENTER_LINE_NONE;
-            gUpdateDisplay = true;
             // Ensure LED turns off immediately when signal is lost
             BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
         }
@@ -1530,7 +1525,6 @@ void APP_TimeSlice500ms(void) {
         {
             if (--mdc1200_rx_ready_tick_500ms == 0)
             {
-                mdc1200_rx_pre_id = false;
                 if (center_line == CENTER_LINE_MDC1200)
                     center_line = CENTER_LINE_NONE;
                 gUpdateDisplay = true;
@@ -1907,7 +1901,6 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 #ifdef ENABLE_MDC1200
         if (bKeyPressed && !bKeyHeld) {
             mdc1200_rx_ready_tick_500ms = 0;
-            mdc1200_rx_pre_id = false;
             if (center_line == CENTER_LINE_MDC1200)
                 center_line = CENTER_LINE_NONE;
             gUpdateDisplay = true;

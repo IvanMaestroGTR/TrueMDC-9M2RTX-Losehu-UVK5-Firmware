@@ -128,8 +128,8 @@ u8 vfo_open;
 u8 beep_control:1,
 boot_beep_control:1,
 call_end_tone:1,
-talk_permit_tone:2,
-settings_unknown:3;
+talk_permit_tone:3,
+settings_unknown:2;
 u8 mdc1200_id_low;
 u8 mdc1200_id_high;
 u8 screen_invert;
@@ -357,7 +357,7 @@ WELCOME_LIST = ["Off", "Pic", "Msg"]
 KEYPADTONE_LIST = ["Off", "Chinese", "English"]
 LANGUAGE_LIST = ["Chinese", "English"]
 ALARMMODE_LIST = ["Local", "Local+Remote"]
-REMENDOFTALK_LIST = ["Off", "Roger 1", "Roger 2", "Roger 3", "Roger 4", "Roger 5", "MDC Post", "MDC Pre", "MDC Both"]
+REMENDOFTALK_LIST = ["Off", "Roger 1", "Roger 2", "Roger 3", "Roger 4", "MDC Post", "MDC Pre", "MDC Both"]
 RTE_LIST = ["200ms", "300ms", "400ms", "500ms", "600ms", "700ms", "800ms", "900ms", "1000ms"]
 STE_LIST = ["Off", "55Hz", "180"]
 MDC_PREAMBLE_DURATION_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
@@ -1340,7 +1340,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             # UI Sound (Talk Permit Tone + Boot Beep)
             if element.get_name() == "ui_sound":
-                _mem.boot_beep_control = element.value and 1 or 0
+                _mem.boot_beep_control = int(bool(element.value))
 
             # Scan resume mode
             if element.get_name() == "scan_resume_mode":
@@ -1361,15 +1361,15 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             # UI Sound (Talk Permit Tone + Boot Beep)
             if element.get_name() == "ui_sound":
-                _mem.boot_beep_control = element.value and 1 or 0
+                _mem.boot_beep_control = int(bool(element.value))
 
             # C.End call-end tone
             if element.get_name() == "call_end_tone":
-                _mem.call_end_tone = element.value and 1 or 0
+                _mem.call_end_tone = int(bool(element.value))
 
             # TPT talk-permit tone
             if element.get_name() == "talk_permit_tone":
-                _mem.talk_permit_tone = TALK_PERMIT_TONE_LIST.index(str(element.value))
+                _mem.talk_permit_tone = int(TALK_PERMIT_TONE_LIST.index(str(element.value)))
 
             # MDC1200 ID
             if element.get_name() == "mdc1200_id":
@@ -1546,7 +1546,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                     get_mdc_contact_object(_mem, i).id = bytes.fromhex(k)[0:2]
 
                 if element_name == mdc_name:
-                    get_mdc_contact_object(_mem, i).name = str(element.value)[0:14]
+                    get_mdc_contact_object(_mem, i).name = str(element.value)[0:7]
 
                 mdc_obj = get_mdc_contact_object(_mem, i)
                 is_not_empty = mdc_obj.id.get_raw() != b'\x00' * 2 and mdc_obj.name.get_raw() != b'\x20' * 20
@@ -1885,9 +1885,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 mdcc.append(rs)
 
                 try:
-                    val = RadioSettingValueString(0, 14, c_name)
+                    val = RadioSettingValueString(0, 7, c_name)
                 except Exception:
-                    val = RadioSettingValueString(0, 14, '')
+                    val = RadioSettingValueString(0, 7, '')
                 rs = RadioSetting(mdc_name, mdc_name_descr, val)
                 mdcc.append(rs)
             else:
@@ -1895,7 +1895,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 rs = RadioSetting(mdc_id, mdc_id_descr, val)
                 mdcc.append(rs)
 
-                val = RadioSettingValueString(0, 14, '')
+                val = RadioSettingValueString(0, 7, '')
                 rs = RadioSetting(mdc_name, mdc_name_descr, val)
                 mdcc.append(rs)
 
@@ -2087,16 +2087,16 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         rs = RadioSetting(
                 "ui_sound",
                 "UI Sound",
-                RadioSettingValueBoolean(bool(_mem.boot_beep_control > 0)))
+            RadioSettingValueBoolean(bool(int(_mem.boot_beep_control))))
         basic.append(rs)
 
         rs = RadioSetting(
             "call_end_tone",
             "C.End",
-            RadioSettingValueBoolean(bool(_mem.call_end_tone > 0)))
+            RadioSettingValueBoolean(bool(int(_mem.call_end_tone))))
         basic.append(rs)
 
-        tmptpt = _mem.talk_permit_tone
+        tmptpt = int(_mem.talk_permit_tone)
         if tmptpt >= len(TALK_PERMIT_TONE_LIST):
             tmptpt = 0
         rs = RadioSetting(
