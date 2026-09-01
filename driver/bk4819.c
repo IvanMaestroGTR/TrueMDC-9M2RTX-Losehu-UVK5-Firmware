@@ -797,8 +797,8 @@ void BK4819_SetupSquelch(
     //
     BK4819_WriteRegister(BK4819_REG_4E,
                          (1u << 14) |
-                         (5u << 11) |
-                         (6u << 9) |
+                         (0u << 11) |
+                         (4u << 9) |
                          SquelchOpenGlitchThresh);
 
     // REG_4F
