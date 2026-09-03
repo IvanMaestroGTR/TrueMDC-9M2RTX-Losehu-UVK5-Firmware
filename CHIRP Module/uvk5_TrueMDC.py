@@ -125,11 +125,11 @@ u8 tail_note_elimination;
 u8 vfo_open;
 
 #seekto 0xe90;
-u8 beep_control:1,
-boot_beep_control:1,
-call_end_tone:1,
+u8 settings_unknown:2,
 talk_permit_tone:3,
-settings_unknown:2;
+call_end_tone:1,
+boot_beep_control:1,
+beep_control:1;
 u8 mdc1200_id_low;
 u8 mdc1200_id_high;
 u8 screen_invert;
@@ -1546,7 +1546,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                     get_mdc_contact_object(_mem, i).id = bytes.fromhex(k)[0:2]
 
                 if element_name == mdc_name:
-                    get_mdc_contact_object(_mem, i).name = str(element.value)[0:7]
+                    get_mdc_contact_object(_mem, i).name = str(element.value)[0:14]
 
                 mdc_obj = get_mdc_contact_object(_mem, i)
                 is_not_empty = mdc_obj.id.get_raw() != b'\x00' * 2 and mdc_obj.name.get_raw() != b'\x20' * 20
@@ -1885,9 +1885,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 mdcc.append(rs)
 
                 try:
-                    val = RadioSettingValueString(0, 7, c_name)
+                    val = RadioSettingValueString(0, 14, c_name)
                 except Exception:
-                    val = RadioSettingValueString(0, 7, '')
+                    val = RadioSettingValueString(0, 14, '')
                 rs = RadioSetting(mdc_name, mdc_name_descr, val)
                 mdcc.append(rs)
             else:
@@ -1895,7 +1895,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 rs = RadioSetting(mdc_id, mdc_id_descr, val)
                 mdcc.append(rs)
 
-                val = RadioSettingValueString(0, 7, '')
+                val = RadioSettingValueString(0, 14, '')
                 rs = RadioSetting(mdc_name, mdc_name_descr, val)
                 mdcc.append(rs)
 
