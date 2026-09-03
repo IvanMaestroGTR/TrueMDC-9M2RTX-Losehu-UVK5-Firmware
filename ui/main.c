@@ -966,7 +966,7 @@ void UI_DisplayMain(void) {
             char mdc1200_contact[15];
             center_line = CENTER_LINE_MDC1200;
             if (mdc1200_contact_find(mdc1200_unit_id, mdc1200_contact)) {
-                snprintf(String, sizeof(String), "%.14s", mdc1200_contact);
+                snprintf(String, sizeof(String), "ID: %.14s", mdc1200_contact);
             } else {
                 snprintf(String, sizeof(String), "ID: %04X", mdc1200_unit_id);
             }
