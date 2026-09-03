@@ -1073,6 +1073,25 @@ void BK4819_PlayRxEndTone(void) {
     BK4819_Enable_AfDac_DiscMode_TxDsp();
     SYSTEM_DelayMs(50);
 
+    if ((gEeprom.field38_0x33 & 7) == TALK_PERMIT_TONE_TRBO) {
+        BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+        BK4819_WriteRegister(BK4819_REG_71, scale_freq(627));
+        BK4819_ExitTxMute();
+        SYSTEM_DelayMs(100);
+        BK4819_EnterTxMute();
+
+        BK4819_WriteRegister(BK4819_REG_71, scale_freq(959));
+        BK4819_ExitTxMute();
+        SYSTEM_DelayMs(40);
+        BK4819_EnterTxMute();
+
+        AUDIO_AudioPathOff();
+        BK4819_SetAF(BK4819_AF_MUTE);
+        BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+        BK4819_TurnsOffTones_TurnsOnRX();
+        return;
+    }
+
     if ((gEeprom.field38_0x33 & 7) == TALK_PERMIT_TONE_TETRA) {
         BK4819_WriteRegister(BK4819_REG_71, scale_freq(785));
         BK4819_ExitTxMute();
