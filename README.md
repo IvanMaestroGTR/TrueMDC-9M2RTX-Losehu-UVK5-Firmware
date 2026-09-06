@@ -12,7 +12,7 @@ CHIRP support is included; the CHIRP module for this repository can be found in 
 
 Custom features:
 - Custom-length MDC preamble (menus 26 and 27)
-- 6 different Roger beeps + MDC modes (menu 28)
+- 4 different Roger beeps + MDC modes (menu 28)
 - UI tones: power-on beep and talk-permit tone (F + Down)
 - Screen inversion (F + Menu)
 - Call End Tone (C.End): optional FM call-end tone after the dual-watch inactivity delay, with red and green LEDs combined as a yellow indicator while pending, and also Call screen UI.
