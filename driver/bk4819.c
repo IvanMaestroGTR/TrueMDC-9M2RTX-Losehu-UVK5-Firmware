@@ -1110,7 +1110,7 @@ void BK4819_PlayRxEndTone(void) {
 
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(1480));
     BK4819_ExitTxMute();
-    SYSTEM_DelayMs(50);
+    SYSTEM_DelayMs(100);
     BK4819_EnterTxMute();
     SYSTEM_DelayMs(30);
 
