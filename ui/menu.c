@@ -88,6 +88,11 @@ const t_menu_item MenuList[] =
 #ifdef ENABLE_MDC1200
                 {/*"MDCPre",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_DURATION, "MDCPre"},
                 {/*"MDCWhn",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_WHEN, "MDCWhn"},
+#ifdef ENABLE_FLEETSYNC
+                {/*"IDType",*/ VOICE_ID_INVALID, MENU_MDC_PROTOCOL, "IDType"},
+                // {/*"FSFleet",*/ VOICE_ID_INVALID, MENU_FLEETSYNC_FLEET, "FSFleet"},  // hardcoded to 99
+                {/*"FSUnit",*/ VOICE_ID_INVALID, MENU_FLEETSYNC_UNIT, "FSUnit"},
+#endif
 #endif
 
                 {/*"Roger",*/  VOICE_ID_INVALID, MENU_ROGER, 首尾音},
@@ -416,10 +421,6 @@ const char gSubMenu_ROGER[][13] =
 //                "MDC"
 
                 关闭,
-                Roger_1,
-                Roger_2,
-                Roger_3,
-                Roger_4,
                 Post_MDC,
                 Pre_MDC,
                 Both_MDC
@@ -439,6 +440,9 @@ const char gSubMenu_MDC_PREAMBLE_WHEN[][5] =
                 "Post",
                 "Both"
 };
+#ifdef ENABLE_FLEETSYNC
+const char gSubMenu_MDC_PROTOCOL[][6] = { "MDC", "FSync" };
+#endif
 #endif
 
 #ifdef ENABLE_ENGLISH
@@ -462,6 +466,9 @@ const char gSubMenu_MDC_PREAMBLE_WHEN[][5] =
                 "Post",
                 "Both"
 };
+#ifdef ENABLE_FLEETSYNC
+const char gSubMenu_MDC_PROTOCOL[][6] = { "MDC", "FSync" };
+#endif
 #endif
 
         const char gSubMenu_RESET[][11] =//4
@@ -1039,6 +1046,28 @@ void UI_DisplayMenu(void) {
             break;
         }
 #endif
+#ifdef ENABLE_FLEETSYNC
+        case MENU_FLEETSYNC_UNIT: {
+            if (gIsInSubMenu) {
+                // show the FSUnit being edited
+                UI_PrintStringSmall(edit, menu_item_x1, menu_item_x2, 3);
+                if (edit_index < 4)
+                    UI_PrintStringSmall("^", menu_item_x1 + (((menu_item_x2 - menu_item_x1) - (28)) + 1) / 2 + (7 * edit_index), 0, 4); // show the cursor
+            } else {
+                sprintf(String, "%04u", gEeprom.FLEETSYNC_UNIT);
+                UI_PrintStringSmall(String, menu_item_x1, menu_item_x2, 3);
+
+                edit_index = -1;
+                edit[0] = String[0];
+                edit[1] = String[1];
+                edit[2] = String[2];
+                edit[3] = String[3];
+                edit[4] = '\0';
+            }
+            already_printed = true;
+            break;
+        }
+#endif
         case MENU_MEM_NAME: { //输入法显示
 //ok
 
@@ -1424,6 +1453,16 @@ void UI_DisplayMenu(void) {
             strcpy(String, options[gSubMenuSelection]);
             break;
         }
+#ifdef ENABLE_FLEETSYNC
+        case MENU_MDC_PROTOCOL:
+            strcpy(String, gSubMenu_MDC_PROTOCOL[gSubMenuSelection]);
+            break;
+
+        case MENU_FLEETSYNC_FLEET:
+            sprintf(String, "%u", (unsigned int)gSubMenuSelection + 99u);
+            break;
+
+#endif
 #endif
 
 //        case MENU_VOL:

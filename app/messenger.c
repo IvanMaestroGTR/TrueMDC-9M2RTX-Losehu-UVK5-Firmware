@@ -17,6 +17,12 @@
 #include "driver/uart.h"
 #include "stdbool.h"
 
+#ifdef ENABLE_FLEETSYNC
+#include "app/fleetsync.h"
+static uint8_t fleetsync_rx_buffer[FLEETSYNC_PACKET_SIZE];
+static unsigned int fleetsync_rx_buffer_index;
+#endif
+
 #if defined(ENABLE_UART)
 #include "driver/uart.h"
 #endif
@@ -580,7 +586,21 @@ void solve_sign(const uint16_t interrupt_bits) {
 
 #endif
 #ifdef ENABLE_MDC1200
+#ifdef ENABLE_FLEETSYNC
+    if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC) {
+        fleetsync_rx_buffer_index = 0;
+        fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = 0xaa;
+        fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = 0xaa;
+        fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = 0x23;
+        fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = 0xeb;
+    } else
+#endif
         mdc1200_rx_buffer_index = 0;
+#ifdef ENABLE_FLEETSYNC
+    if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+        ;
+    else
+#endif
         {
 //            memset(mdc1200_rx_buffer, 0, sizeof(mdc1200_rx_buffer));
             for (unsigned int  i = 0; i < sizeof(mdc1200_sync_suc_xor); i++)
@@ -596,13 +616,38 @@ void solve_sign(const uint16_t interrupt_bits) {
 #endif
 #ifdef ENABLE_MDC1200
 
+#ifdef ENABLE_FLEETSYNC
+        if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC) {
+            for (int i = 0; i < count; i++) {
+                read_reg[i] = BK4819_ReadRegister(0x5F);
+                // FleetSync payload bytes are not polarity-inverted by the protocol.
+                const uint16_t word = read_reg[i];
+
+                if (fleetsync_rx_buffer_index < sizeof(fleetsync_rx_buffer))
+                    fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = (word >> 0) & 0xff;
+                if (fleetsync_rx_buffer_index < sizeof(fleetsync_rx_buffer))
+                    fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = (word >> 8) & 0xff;
+            }
+
+            if (fleetsync_rx_buffer_index >= sizeof(fleetsync_rx_buffer)) {
+                uint16_t fleet;
+                uint16_t unit;
+
+                if (FleetSync_decode_ani(fleetsync_rx_buffer, &fleet, &unit)) {
+                    mdc1200_unit_id = unit;
+                    mdc1200_rx_ready_tick_500ms = 2 * 5;
+                    gUpdateDisplay = true;
+                }
+                fleetsync_rx_buffer_index = 0;
+            }
+        } else {
+#endif
         {
 
             // fetch received packet data
             for (int i = 0; i < count; i++) {
                 read_reg[i]=BK4819_ReadRegister(0x5F);
                 const uint16_t word =read_reg[i] ^ (rx_sync_neg ? 0xFFFF : 0x0000);
-
 
                 if (mdc1200_rx_buffer_index < sizeof(mdc1200_rx_buffer))
                     mdc1200_rx_buffer[mdc1200_rx_buffer_index++] = (word >> 0) & 0xff;
@@ -624,33 +669,58 @@ void solve_sign(const uint16_t interrupt_bits) {
 
             if (mdc1200_rx_buffer_index >= sizeof(mdc1200_rx_buffer)) {
 
+                // Only process MDC1200 if protocol is set to MDC (not FleetSync)
+#ifdef ENABLE_FLEETSYNC
+                if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_MDC)
+#endif
+                {
+                    if (MDC1200_process_rx_data(
+                            mdc1200_rx_buffer,
+                            mdc1200_rx_buffer_index,
+                            &mdc1200_op,
+                            &mdc1200_arg,
+                            &mdc1200_unit_id)) {
+                        mdc1200_rx_ready_tick_500ms = 2 * 5;
+                        gUpdateDisplay = true;
 
-                if (MDC1200_process_rx_data(
-                        mdc1200_rx_buffer,
-                        mdc1200_rx_buffer_index,
-                        &mdc1200_op,
-                        &mdc1200_arg,
-                        &mdc1200_unit_id)) {
-                    mdc1200_rx_ready_tick_500ms = 2 * 5;
-                    gUpdateDisplay = true;
-
+                    }
                 }
 
                 mdc1200_rx_buffer_index = 0;
             }
 
         }
+    #ifdef ENABLE_FLEETSYNC
+        }
+    #endif
 #endif
 
     }
 
     if (rx_finished) {
 
+#ifdef ENABLE_FLEETSYNC
+        if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC) {
+            if (fleetsync_rx_buffer_index >= sizeof(fleetsync_rx_buffer)) {
+                uint16_t fleet;
+                uint16_t unit;
+
+                if (FleetSync_decode_ani(fleetsync_rx_buffer, &fleet, &unit)) {
+                    mdc1200_unit_id = unit;
+                    mdc1200_rx_ready_tick_500ms = 2 * 5;
+                    gUpdateDisplay = true;
+                }
+            }
+            fleetsync_rx_buffer_index = 0;
+        }
+#endif
+
         const uint16_t fsk_reg59 =
                 BK4819_ReadRegister(BK4819_REG_59) & ~((1u << 15) | (1u << 14) | (1u << 12) | (1u << 11));
 
         BK4819_WriteRegister(BK4819_REG_59, (1u << 15) | (1u << 14) | fsk_reg59);
         BK4819_WriteRegister(BK4819_REG_59, (1u << 12) | fsk_reg59);
+        BK4819_WriteRegister(0x02, 0);
 #ifdef ENABLE_MESSENGER
 
         msgStatus = READY;
@@ -694,6 +764,11 @@ void solve_sign(const uint16_t interrupt_bits) {
                         }
                         snprintf(prefix, sizeof(prefix), "(%s)", mdc_contact);
                     } else if (mdc1200_unit_id != 0) {
+#ifdef ENABLE_FLEETSYNC
+                        if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+                            snprintf(prefix, sizeof(prefix), "(%04u)", mdc1200_unit_id);
+                        else
+#endif
                         snprintf(prefix, sizeof(prefix), "(%04X)", mdc1200_unit_id);
                     }
 

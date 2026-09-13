@@ -15,6 +15,9 @@
  */
 #include <stdio.h>
 #include "app/mdc1200.h"
+#ifdef ENABLE_FLEETSYNC
+#include "app/fleetsync.h"
+#endif
 #include <string.h>
 #include "driver/uart.h"
 #include "ui/helper.h"
@@ -246,11 +249,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
 
         case MENU_ROGER:
             *pMin = 0;
-#ifndef ENABLE_MDC1200
-            *pMax = ROGER_MODE_ROGER_4;
-#else
-            *pMax = ROGER_MODE_MDC_BOTH;
-#endif
+            *pMax = ARRAY_SIZE(gSubMenu_ROGER) - 1;
             break;
 
 #ifdef ENABLE_MDC1200
@@ -263,6 +262,16 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_MDC_PREAMBLE_WHEN) - 1;
             break;
+#ifdef ENABLE_FLEETSYNC
+        case MENU_MDC_PROTOCOL:
+            *pMin = 0;
+            *pMax = ARRAY_SIZE(gSubMenu_MDC_PROTOCOL) - 1;
+            break;
+        case MENU_FLEETSYNC_FLEET:
+            *pMin = 0;
+            *pMax = 255;
+            break;
+#endif
 #endif
 
 #if ENABLE_CHINESE_FULL == 4
@@ -627,6 +636,15 @@ void MENU_AcceptSetting(void) {
 
             return;
 #endif
+#ifdef ENABLE_FLEETSYNC
+        case MENU_FLEETSYNC_UNIT:
+            gEeprom.FLEETSYNC_UNIT = extractDecimal(edit);
+            if (gEeprom.FLEETSYNC_UNIT < FLEETSYNC_UNIT_MIN)
+                gEeprom.FLEETSYNC_UNIT = FLEETSYNC_UNIT_MIN;
+            else if (gEeprom.FLEETSYNC_UNIT > FLEETSYNC_UNIT_MAX)
+                gEeprom.FLEETSYNC_UNIT = FLEETSYNC_UNIT_MAX;
+            break;
+#endif
         case MENU_MEM_NAME: //���뷨
             // trailing trim
             for (int i = MAX_EDIT_INDEX - 1; i >= 0; i--) {
@@ -824,7 +842,15 @@ void MENU_AcceptSetting(void) {
                 break;
 #endif
         case MENU_ROGER:
-            gEeprom.ROGER = gSubMenuSelection;
+            {
+                static const ROGER_Mode_t roger_mode[] = {
+                    ROGER_MODE_OFF,
+                    ROGER_MODE_MDC_END,
+                    ROGER_MODE_MDC_HEAD,
+                    ROGER_MODE_MDC_BOTH
+                };
+                gEeprom.ROGER = roger_mode[gSubMenuSelection];
+            }
             break;
 
 #ifdef ENABLE_MDC1200
@@ -838,6 +864,16 @@ void MENU_AcceptSetting(void) {
         case MENU_MDC_PREAMBLE_WHEN:
             gEeprom.MDC1200_PREAMBLE_WHEN = gSubMenuSelection;
             break;
+#ifdef ENABLE_FLEETSYNC
+        case MENU_MDC_PROTOCOL:
+            gEeprom.MDC1200_PROTOCOL = gSubMenuSelection;
+            gFlagReconfigureVfos = true;
+            break;
+
+        case MENU_FLEETSYNC_FLEET:
+            gEeprom.FLEETSYNC_FLEET = (uint16_t)gSubMenuSelection + 99u;
+            break;
+#endif
 #endif
 
 //		case MENU_AM:
@@ -1240,7 +1276,12 @@ void MENU_ShowCurrentSetting(void) {
             break;
 #endif
         case MENU_ROGER:
-            gSubMenuSelection = gEeprom.ROGER;
+            switch (gEeprom.ROGER) {
+                case ROGER_MODE_MDC_END:  gSubMenuSelection = 1; break;
+                case ROGER_MODE_MDC_HEAD: gSubMenuSelection = 2; break;
+                case ROGER_MODE_MDC_BOTH: gSubMenuSelection = 3; break;
+                default:                  gSubMenuSelection = 0; break;
+            }
             break;
 
 #ifdef ENABLE_MDC1200
@@ -1261,6 +1302,15 @@ void MENU_ShowCurrentSetting(void) {
         case MENU_MDC_PREAMBLE_WHEN:
             gSubMenuSelection = gEeprom.MDC1200_PREAMBLE_WHEN;
             break;
+#ifdef ENABLE_FLEETSYNC
+        case MENU_MDC_PROTOCOL:
+            gSubMenuSelection = gEeprom.MDC1200_PROTOCOL;
+            break;
+
+        case MENU_FLEETSYNC_FLEET:
+            gSubMenuSelection = gEeprom.FLEETSYNC_FLEET - 99u;
+            break;
+#endif
 #endif
 
 //		case MENU_AM:
@@ -1401,6 +1451,9 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 #ifdef ENABLE_MDC1200_EDIT
                 || now_menu == MENU_MDC_ID
 #endif
+#endif
+#ifdef ENABLE_FLEETSYNC
+        || now_menu == MENU_FLEETSYNC_UNIT
 #endif
         ) &&
         edit_index >= 0) {    // currently editing the channel name
@@ -1644,6 +1697,13 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 static void MENU_Key_EXIT(bool bKeyPressed, bool bKeyHeld) {
     if (bKeyHeld || !bKeyPressed)
         return;
+#ifdef ENABLE_FLEETSYNC
+    if (UI_MENU_GetCurrentMenuId() == MENU_FLEETSYNC_UNIT && gIsInSubMenu && edit_index > 0 && gAskForConfirmation == 0) {
+        edit_index--;
+        gRequestDisplayScreen = DISPLAY_MENU;
+        return;
+    }
+#endif
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && gIsInSubMenu == true && edit_index >= 0&&gAskForConfirmation == 0) {
 #ifdef ENABLE_PINYIN
         if (INPUT_MODE == 0) {
@@ -1834,6 +1894,12 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
         }
 #endif
 #endif
+#ifdef ENABLE_FLEETSYNC
+    if (UI_MENU_GetCurrentMenuId() == MENU_FLEETSYNC_UNIT) {
+        edit_index = 0;
+        memmove(edit_original, edit, sizeof(edit_original));
+    }
+#endif
         return;
     }
 #ifdef ENABLE_MDC1200
@@ -1854,6 +1920,14 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
     }
 #endif
 
+#endif
+#ifdef ENABLE_FLEETSYNC
+    if (UI_MENU_GetCurrentMenuId() == MENU_FLEETSYNC_UNIT && edit_index < 4) {
+        if (++edit_index < 4)
+            return;
+
+        gAskForConfirmation = 0;
+    }
 #endif
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) { //���뷨MENU
         if (edit_index < 0) {    // enter channel name edit mode
@@ -2103,6 +2177,19 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction) 
             return;
         }
 #endif
+#endif
+#ifdef ENABLE_FLEETSYNC
+        if (UI_MENU_GetCurrentMenuId() == MENU_FLEETSYNC_UNIT) {
+            if (bKeyPressed && edit_index < 4) {
+                char c = edit[edit_index] + Direction;
+                if (c < '0') c = '9';
+                else if (c > '9') c = '0';
+
+                edit[edit_index] = c;
+                gRequestDisplayScreen = DISPLAY_MENU;
+            }
+            return;
+        }
 #endif
 
     }

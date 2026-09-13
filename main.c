@@ -181,9 +181,12 @@ void Main(void) {
 #endif
 
 #if ENABLE_CHINESE_FULL == 0
-    gMenuListCount = 52; //menu size without chinese stuff, if you want decode for dtmf, 54
+    gMenuListCount = 52;
 #else
     gMenuListCount = 53;
+#endif
+#ifdef ENABLE_FLEETSYNC
+    gMenuListCount += 2; // IDType and FSUnit (FSFleet hardcoded to 99)
 #endif
     gKeyReading0 = KEY_INVALID;
     gKeyReading1 = KEY_INVALID;

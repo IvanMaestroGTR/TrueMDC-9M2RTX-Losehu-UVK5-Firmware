@@ -20,6 +20,9 @@
 #ifdef ENABLE_FMRADIO
 #include "app/fm.h"
 #endif
+#ifdef ENABLE_FLEETSYNC
+#include "app/fleetsync.h"
+#endif
 #include "driver/bk4819.h"
 #include "driver/eeprom.h"
 #include "misc.h"
@@ -122,6 +125,10 @@ void SETTINGS_InitEEPROM(void)
     gEeprom.SCREEN_INVERT         = (Data[3] < 2) ? Data[3] : false;
 
     gEeprom.MDC1200_ID     =((uint16_t) (Data[2] << 8))|((uint16_t)(Data[1] ));
+#ifdef ENABLE_FLEETSYNC
+    gEeprom.MDC1200_PROTOCOL = (Data[4] < 2) ? Data[4] : MDC1200_PROTOCOL_MDC;
+    gEeprom.FLEETSYNC_UNIT = ((uint16_t)Data[6] << 8) | Data[5];
+#endif
 
 //    gEeprom.KEY_1_LONG_PRESS_ACTION      = (Data[2] < ACTION_OPT_LEN) ? Data[2] : ACTION_OPT_FLASHLIGHT;
 //    gEeprom.KEY_2_SHORT_PRESS_ACTION     = (Data[3] < ACTION_OPT_LEN) ? Data[3] : ACTION_OPT_SCAN;
@@ -168,13 +175,30 @@ void SETTINGS_InitEEPROM(void)
 #ifdef ENABLE_ALARM
     gEeprom.ALARM_MODE                 = (Data[0] <  2) ? Data[0] : true;
 #endif
-    gEeprom.ROGER                          = (Data[1] < 8) ? Data[1] : ROGER_MODE_OFF;
+    /* Legacy audible Roger values 1..4 are no longer supported. */
+    gEeprom.ROGER                          = (Data[1] == ROGER_MODE_OFF ||
+                                               (Data[1] >= ROGER_MODE_MDC_END && Data[1] <= ROGER_MODE_MDC_BOTH)) ?
+                                              Data[1] : ROGER_MODE_OFF;
     gEeprom.REPEATER_TAIL_TONE_ELIMINATION = (Data[2] >= 2 && Data[2] <= 10) ? Data[2] : 2;
     gEeprom.TX_VFO                         = (Data[3] <  2) ? Data[3] : 0;
     gEeprom.BATTERY_TYPE                   = (Data[4] < BATTERY_TYPE_UNKNOWN) ? Data[4] : BATTERY_TYPE_1600_MAH;
 #ifdef ENABLE_MDC1200
     gEeprom.MDC1200_PREAMBLE_DURATION      = (Data[5] >= 1 && Data[5] <= 10) ? Data[5] : 1;
     gEeprom.MDC1200_PREAMBLE_WHEN          = (Data[6] < 3) ? Data[6] : MDC_PREAMBLE_WHEN_BOTH;
+#ifdef ENABLE_FLEETSYNC
+    gEeprom.FLEETSYNC_FLEET                = (Data[7] != 0xffu) ? (uint16_t)Data[7] + 99u : 100u;
+#endif
+#endif
+
+    // 0EE0..0EE7 - FLEETSYNC Unit & Fleet
+#ifdef ENABLE_FLEETSYNC
+    // Hardcode FSFleet to 99 (minimum valid value)
+    gEeprom.FLEETSYNC_FLEET = FLEETSYNC_FLEET_MIN;  // 99
+    
+    EEPROM_ReadBuffer(0x0EE0, Data, 8);
+    gEeprom.FLEETSYNC_UNIT = ((uint16_t)Data[1] << 8) | Data[0];
+    if (gEeprom.FLEETSYNC_UNIT < FLEETSYNC_UNIT_MIN || gEeprom.FLEETSYNC_UNIT > FLEETSYNC_UNIT_MAX)
+        gEeprom.FLEETSYNC_UNIT = FLEETSYNC_UNIT_MIN;
 #endif
 
     // 0ED0..0ED7
@@ -570,6 +594,9 @@ void SETTINGS_SaveSettings(void)
     //State[3] = 0;//gEeprom.KEY_2_SHORT_PRESS_ACTION;
     State[3] = gEeprom.SCREEN_INVERT;   // <-- ADD THIS
     State[4] = 0;
+#ifdef ENABLE_FLEETSYNC
+    State[4] = gEeprom.MDC1200_PROTOCOL;
+#endif
     State[5] = gEeprom.SCAN_RESUME_MODE;
     State[6] = 0;//gEeprom.AUTO_KEYPAD_LOCK;
 #if ENABLE_CHINESE_FULL==4
@@ -616,12 +643,21 @@ void SETTINGS_SaveSettings(void)
 #ifdef ENABLE_MDC1200
     State[5] = gEeprom.MDC1200_PREAMBLE_DURATION;
     State[6] = gEeprom.MDC1200_PREAMBLE_WHEN;
+#ifdef ENABLE_FLEETSYNC
+    State[7] = (uint8_t)(gEeprom.FLEETSYNC_FLEET - 99u);
+#endif
 #else
     State[5] = 0xFF;
     State[6] = 0xFF;
 #endif
     EEPROM_WriteBuffer(0x0EA8, State,8);
-
+#ifdef ENABLE_FLEETSYNC
+    // 0EE0..0EE7 - FLEETSYNC Unit
+    memset(State, 0xFF, sizeof(State));
+    State[0] = (uint8_t)(gEeprom.FLEETSYNC_UNIT & 0xFF);
+    State[1] = (uint8_t)((gEeprom.FLEETSYNC_UNIT >> 8) & 0xFF);
+    EEPROM_WriteBuffer(0x0EE0, State, 8);
+#endif
     State[0] = gEeprom.DTMF_SIDE_TONE;
 #ifdef ENABLE_DTMF_CALLING
     State[1] = gEeprom.DTMF_SEPARATE_CODE;

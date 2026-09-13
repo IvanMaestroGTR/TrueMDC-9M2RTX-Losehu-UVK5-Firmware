@@ -48,6 +48,7 @@ ENABLE_MDC1200_SHOW_OP_ARG    = 0
 ENABLE_MDC1200_SIDE_BEEP      = 1
 ENABLE_MDC1200_CONTACT        = 0
 ENABLE_MDC1200_EDIT			  = 0
+ENABLE_FLEETSYNC              = 1
 ENABLE_UART_RW_BK_REGS 		  ?= 0
 ENABLE_AUDIO_BAR_DEFAULT      ?= 0
 ENABLE_EEPROM_TYPE        	   = 0
@@ -169,6 +170,10 @@ endif
 
 ifeq ($(ENABLE_MDC1200),1)
     OBJS += app/mdc1200.o
+ifeq ($(ENABLE_FLEETSYNC),1)
+    OBJS += app/fleetsync.o
+    CFLAGS += -DENABLE_FLEETSYNC
+endif
 endif
 ifeq ($(ENABLE_DOPPLER),1)
     OBJS += app/doppler.o

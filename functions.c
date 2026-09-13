@@ -225,7 +225,12 @@ void FUNCTION_Transmit() {
         if (preamble_duration == 1) {
             preamble_duration = 0;  // Remove 1 preamble entirely
         }
-        BK4819_send_MDC1200(1, 0x80, gEeprom.MDC1200_ID, preamble_duration);
+#ifdef ENABLE_FLEETSYNC
+        if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+            BK4819_send_FleetSync(gEeprom.FLEETSYNC_FLEET, gEeprom.FLEETSYNC_UNIT, false);
+        else
+#endif
+            BK4819_send_MDC1200(1, 0x80, gEeprom.MDC1200_ID, preamble_duration);
 
 #ifdef ENABLE_MDC1200_SIDE_BEEP
         BK4819_UnmuteMic();

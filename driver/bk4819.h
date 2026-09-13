@@ -173,11 +173,12 @@ void     BK4819_SendFSKData(uint16_t *pData);
 void     BK4819_PrepareFSKReceive(void);
 void BK4819_PlayRoger(void);
 
- void    BK4819_PlayRogerOne(void);
- void	 BK4819_PlayRogerTwo(void);
- void	 BK4819_PlayRogerThree(void);
- void	 BK4819_PlayRogerFour(void);
-void     BK4819_PlayRogerMDC(void);
+#ifdef ENABLE_LEGACY_ROGER_BEEPS
+void     BK4819_PlayRogerOne(void);
+void     BK4819_PlayRogerTwo(void);
+void     BK4819_PlayRogerThree(void);
+void     BK4819_PlayRogerFour(void);
+#endif
 	    
 void     BK4819_Enable_AfDac_DiscMode_TxDsp(void);
 	    
@@ -185,6 +186,9 @@ void     BK4819_GetVoxAmp(uint16_t *pResult);
 void     BK4819_SetScrambleFrequencyControlWord(uint32_t Frequency);
 void     BK4819_PlayDTMFEx(bool bLocalLoopback, char Code);
 void BK4819_send_MDC1200(const uint8_t op, const uint8_t arg, const uint16_t id, const uint8_t preamble_duration);
+#ifdef ENABLE_FLEETSYNC
+void BK4819_send_FleetSync(const uint16_t fleet, const uint16_t unit, const bool end_of_transmission);
+#endif
 
 void BK4819_stop_tones(const bool tx);
 void BK4819_start_tone(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_mute);

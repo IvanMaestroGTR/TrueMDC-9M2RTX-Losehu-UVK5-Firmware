@@ -968,6 +968,11 @@ void UI_DisplayMain(void) {
             if (mdc1200_contact_find(mdc1200_unit_id, mdc1200_contact)) {
                 snprintf(String, sizeof(String), "ID: %.14s", mdc1200_contact);
             } else {
+#ifdef ENABLE_FLEETSYNC
+                if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+                    snprintf(String, sizeof(String), "ID: %04u", mdc1200_unit_id);
+                else
+#endif
                 snprintf(String, sizeof(String), "ID: %04X", mdc1200_unit_id);
             }
 
