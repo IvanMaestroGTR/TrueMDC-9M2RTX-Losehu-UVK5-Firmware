@@ -267,10 +267,6 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_MDC_PROTOCOL) - 1;
             break;
-        case MENU_FLEETSYNC_FLEET:
-            *pMin = 0;
-            *pMax = 255;
-            break;
 #endif
 #endif
 
@@ -638,7 +634,17 @@ void MENU_AcceptSetting(void) {
 #endif
 #ifdef ENABLE_FLEETSYNC
         case MENU_FLEETSYNC_UNIT:
-            gEeprom.FLEETSYNC_UNIT = extractDecimal(edit);
+            gEeprom.FLEETSYNC_FLEET = (uint16_t)((edit[0] - '0') * 100u +
+                                                 (edit[1] - '0') * 10u +
+                                                 (edit[2] - '0'));
+            gEeprom.FLEETSYNC_UNIT = (uint16_t)((edit[4] - '0') * 1000u +
+                                                (edit[5] - '0') * 100u +
+                                                (edit[6] - '0') * 10u +
+                                                (edit[7] - '0'));
+            if (gEeprom.FLEETSYNC_FLEET < FLEETSYNC_FLEET_MIN)
+                gEeprom.FLEETSYNC_FLEET = FLEETSYNC_FLEET_MIN;
+            else if (gEeprom.FLEETSYNC_FLEET > FLEETSYNC_FLEET_MAX)
+                gEeprom.FLEETSYNC_FLEET = FLEETSYNC_FLEET_MAX;
             if (gEeprom.FLEETSYNC_UNIT < FLEETSYNC_UNIT_MIN)
                 gEeprom.FLEETSYNC_UNIT = FLEETSYNC_UNIT_MIN;
             else if (gEeprom.FLEETSYNC_UNIT > FLEETSYNC_UNIT_MAX)
@@ -870,9 +876,6 @@ void MENU_AcceptSetting(void) {
             gFlagReconfigureVfos = true;
             break;
 
-        case MENU_FLEETSYNC_FLEET:
-            gEeprom.FLEETSYNC_FLEET = (uint16_t)gSubMenuSelection + 99u;
-            break;
 #endif
 #endif
 
@@ -1307,9 +1310,6 @@ void MENU_ShowCurrentSetting(void) {
             gSubMenuSelection = gEeprom.MDC1200_PROTOCOL;
             break;
 
-        case MENU_FLEETSYNC_FLEET:
-            gSubMenuSelection = gEeprom.FLEETSYNC_FLEET - 99u;
-            break;
 #endif
 #endif
 
@@ -1442,7 +1442,8 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
     uint8_t now_menu = UI_MENU_GetCurrentMenuId();
 #ifdef ENABLE_MDC1200_EDIT //���뷨����
-    uint8_t end_index = now_menu == MENU_MEM_NAME ? MAX_EDIT_INDEX : 4;
+    uint8_t end_index = now_menu == MENU_MEM_NAME ? MAX_EDIT_INDEX :
+                        now_menu == MENU_FLEETSYNC_UNIT ? 8 : 4;
 #else
     uint8_t end_index = MAX_EDIT_INDEX;
 #endif
@@ -1699,7 +1700,10 @@ static void MENU_Key_EXIT(bool bKeyPressed, bool bKeyHeld) {
         return;
 #ifdef ENABLE_FLEETSYNC
     if (UI_MENU_GetCurrentMenuId() == MENU_FLEETSYNC_UNIT && gIsInSubMenu && edit_index > 0 && gAskForConfirmation == 0) {
-        edit_index--;
+        if (edit_index == 4)
+            edit_index = 2;
+        else
+            edit_index--;
         gRequestDisplayScreen = DISPLAY_MENU;
         return;
     }
@@ -1897,7 +1901,6 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
 #ifdef ENABLE_FLEETSYNC
     if (UI_MENU_GetCurrentMenuId() == MENU_FLEETSYNC_UNIT) {
         edit_index = 0;
-        memmove(edit_original, edit, sizeof(edit_original));
     }
 #endif
         return;
@@ -1922,8 +1925,10 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
 
 #endif
 #ifdef ENABLE_FLEETSYNC
-    if (UI_MENU_GetCurrentMenuId() == MENU_FLEETSYNC_UNIT && edit_index < 4) {
-        if (++edit_index < 4)
+    if (UI_MENU_GetCurrentMenuId() == MENU_FLEETSYNC_UNIT && edit_index < 8) {
+        if (++edit_index == 3)
+            ++edit_index;
+        if (edit_index < 8)
             return;
 
         gAskForConfirmation = 0;
@@ -2180,14 +2185,6 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction) 
 #endif
 #ifdef ENABLE_FLEETSYNC
         if (UI_MENU_GetCurrentMenuId() == MENU_FLEETSYNC_UNIT) {
-            if (bKeyPressed && edit_index < 4) {
-                char c = edit[edit_index] + Direction;
-                if (c < '0') c = '9';
-                else if (c > '9') c = '0';
-
-                edit[edit_index] = c;
-                gRequestDisplayScreen = DISPLAY_MENU;
-            }
             return;
         }
 #endif

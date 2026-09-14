@@ -694,14 +694,7 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld) {
             && gScanRangeStart == 0
 #endif
                 ) {    // start entering a DTMF string
-            gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-            memcpy(gDTMF_InputBox, gDTMF_String, MIN(sizeof(gDTMF_InputBox), sizeof(gDTMF_String) - 1));
-            gDTMF_InputBox_Index = 0;
-            gDTMF_InputMode = true;
-
-            gKeyInputCountdown = key_input_timeout_500ms;
-
-            gRequestDisplayScreen = DISPLAY_MAIN;
+            gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
         } else
             gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
     } else {    // with the F-key
@@ -880,18 +873,6 @@ void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
         return;
     }
 #endif
-
-    if (gDTMF_InputMode && bKeyPressed && !bKeyHeld) {
-        const char Character = DTMF_GetCharacter(Key);
-        if (Character != 0xFF) {    // add key to DTMF string
-            DTMF_Append(Character);
-            gKeyInputCountdown = key_input_timeout_500ms;
-            gRequestDisplayScreen = DISPLAY_MAIN;
-            gPttWasReleased = true;
-            gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-            return;
-        }
-    }
 
     // TODO: ???
 //	if (Key > KEY_PTT)

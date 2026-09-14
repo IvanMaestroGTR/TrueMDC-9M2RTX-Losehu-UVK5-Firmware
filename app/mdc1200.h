@@ -113,7 +113,6 @@ void MDC1200_init(void);
 
 
 uint16_t extractHex(const char *str);
-uint16_t extractDecimal(const char *str);
 
 //extern uint16_t MDC_ADD[6];
 #define MDC_NUM_ADD 0X1FFF

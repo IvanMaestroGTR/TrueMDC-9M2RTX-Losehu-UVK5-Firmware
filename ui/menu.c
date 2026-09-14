@@ -90,8 +90,7 @@ const t_menu_item MenuList[] =
                 {/*"MDCWhn",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_WHEN, "MDCWhn"},
 #ifdef ENABLE_FLEETSYNC
                 {/*"IDType",*/ VOICE_ID_INVALID, MENU_MDC_PROTOCOL, "IDType"},
-                // {/*"FSFleet",*/ VOICE_ID_INVALID, MENU_FLEETSYNC_FLEET, "FSFleet"},  // hardcoded to 99
-                {/*"FSUnit",*/ VOICE_ID_INVALID, MENU_FLEETSYNC_UNIT, "FSUnit"},
+                {/*"FScID",*/ VOICE_ID_INVALID, MENU_FLEETSYNC_UNIT, "FScID"},
 #endif
 #endif
 
@@ -1049,20 +1048,18 @@ void UI_DisplayMenu(void) {
 #ifdef ENABLE_FLEETSYNC
         case MENU_FLEETSYNC_UNIT: {
             if (gIsInSubMenu) {
-                // show the FSUnit being edited
-                UI_PrintStringSmall(edit, menu_item_x1, menu_item_x2, 3);
-                if (edit_index < 4)
-                    UI_PrintStringSmall("^", menu_item_x1 + (((menu_item_x2 - menu_item_x1) - (28)) + 1) / 2 + (7 * edit_index), 0, 4); // show the cursor
+                UI_PrintStringSmall(edit, menu_item_x1, menu_item_x2, 2);
+                if (edit_index < 8 && edit_index != 3) {
+                    const uint8_t line = edit_index < 3 ? 2 : 4;
+                    const uint8_t column = edit_index < 3 ? edit_index : edit_index - 4;
+                    UI_PrintStringSmall("^", menu_item_x1 + (((menu_item_x2 - menu_item_x1) - 28 + 1) / 2) + (7 * column), 0, line + 1);
+                }
             } else {
-                sprintf(String, "%04u", gEeprom.FLEETSYNC_UNIT);
-                UI_PrintStringSmall(String, menu_item_x1, menu_item_x2, 3);
+                sprintf(String, "%03u\n%04u", gEeprom.FLEETSYNC_FLEET, gEeprom.FLEETSYNC_UNIT);
+                UI_PrintStringSmall(String, menu_item_x1, menu_item_x2, 2);
 
                 edit_index = -1;
-                edit[0] = String[0];
-                edit[1] = String[1];
-                edit[2] = String[2];
-                edit[3] = String[3];
-                edit[4] = '\0';
+                sprintf(edit, "%03u\n%04u", gEeprom.FLEETSYNC_FLEET, gEeprom.FLEETSYNC_UNIT);
             }
             already_printed = true;
             break;
@@ -1456,10 +1453,6 @@ void UI_DisplayMenu(void) {
 #ifdef ENABLE_FLEETSYNC
         case MENU_MDC_PROTOCOL:
             strcpy(String, gSubMenu_MDC_PROTOCOL[gSubMenuSelection]);
-            break;
-
-        case MENU_FLEETSYNC_FLEET:
-            sprintf(String, "%u", (unsigned int)gSubMenuSelection + 99u);
             break;
 
 #endif

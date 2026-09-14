@@ -496,10 +496,10 @@ void UI_DisplayMain(void) {
 #endif
 
 
-            if (gDTMF_InputMode
-#ifdef ENABLE_DTMF_CALLING
+                if (false
+        #ifdef ENABLE_DTMF_CALLING
                 || gDTMF_CallState != DTMF_CALL_STATE_NONE || gDTMF_IsTx
-#endif
+        #endif
                     ) {
                 char *pPrintStr = "";
 
@@ -531,11 +531,7 @@ void UI_DisplayMain(void) {
                 }
                 else
 #endif
-                {
-                    sprintf(String, ">%s", gDTMF_InputBox);
-                    pPrintStr = String;
-
-                }
+                    pPrintStr = "";
                 UI_PrintStringSmall(pPrintStr, 2, 0, 0 + (vfo_num * 3));
                 center_line = CENTER_LINE_IN_USE;
 

@@ -2538,7 +2538,8 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
         BK4819_WriteRegister(0x72, scale_freq(1200));
         BK4819_WriteRegister(0x70, (1u << 7) | MDC_FSK_TX_GAIN);
 
-        fsk_reg59 = (1u << 3);
+        // Emit a 5-bit alternating preamble: 0101010101.
+        fsk_reg59 = (5u << 4) | (1u << 3);
         BK4819_WriteRegister(0x5A, 0x0000);
         BK4819_WriteRegister(0x5B, 0x0000);
         BK4819_WriteRegister(0x5C, 0x5625);

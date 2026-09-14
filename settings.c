@@ -186,15 +186,12 @@ void SETTINGS_InitEEPROM(void)
     gEeprom.MDC1200_PREAMBLE_DURATION      = (Data[5] >= 1 && Data[5] <= 10) ? Data[5] : 1;
     gEeprom.MDC1200_PREAMBLE_WHEN          = (Data[6] < 3) ? Data[6] : MDC_PREAMBLE_WHEN_BOTH;
 #ifdef ENABLE_FLEETSYNC
-    gEeprom.FLEETSYNC_FLEET                = (Data[7] != 0xffu) ? (uint16_t)Data[7] + 99u : 100u;
+    gEeprom.FLEETSYNC_FLEET                = (Data[7] != 0xffu) ? (uint16_t)Data[7] + FLEETSYNC_FLEET_MIN : FLEETSYNC_FLEET_MIN;
 #endif
 #endif
 
     // 0EE0..0EE7 - FLEETSYNC Unit & Fleet
 #ifdef ENABLE_FLEETSYNC
-    // Hardcode FSFleet to 99 (minimum valid value)
-    gEeprom.FLEETSYNC_FLEET = FLEETSYNC_FLEET_MIN;  // 99
-    
     EEPROM_ReadBuffer(0x0EE0, Data, 8);
     gEeprom.FLEETSYNC_UNIT = ((uint16_t)Data[1] << 8) | Data[0];
     if (gEeprom.FLEETSYNC_UNIT < FLEETSYNC_UNIT_MIN || gEeprom.FLEETSYNC_UNIT > FLEETSYNC_UNIT_MAX)
@@ -644,7 +641,7 @@ void SETTINGS_SaveSettings(void)
     State[5] = gEeprom.MDC1200_PREAMBLE_DURATION;
     State[6] = gEeprom.MDC1200_PREAMBLE_WHEN;
 #ifdef ENABLE_FLEETSYNC
-    State[7] = (uint8_t)(gEeprom.FLEETSYNC_FLEET - 99u);
+    State[7] = (uint8_t)(gEeprom.FLEETSYNC_FLEET - FLEETSYNC_FLEET_MIN);
 #endif
 #else
     State[5] = 0xFF;

@@ -319,13 +319,6 @@ uint16_t extractHex(const char *str) {
     return result;
 }
 
-uint16_t extractDecimal(const char *str) {
-    uint16_t result = 0;
-    for (unsigned int i = 0; i < 4; i++)
-        result = (uint16_t)(result * 10u + (uint16_t)(str[i] - '0'));
-    return result;
-}
-
 #ifdef  ENABLE_MDC1200_CONTACT
 uint8_t contact_num=0;
 void mdc1200_update_contact_num() {
