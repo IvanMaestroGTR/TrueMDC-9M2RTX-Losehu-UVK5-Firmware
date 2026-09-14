@@ -10,15 +10,25 @@ Thanks IJV! If you use his firmware, please support him.
 CHIRP support is included; the CHIRP module for this repository can be found in the CHIRP Module folder.
 
 
-Custom features:
-- Custom-length MDC preamble (menus 26 and 27)
-- 4 different Roger beeps + MDC modes (menu 28)
-- UI tones: power-on beep and talk-permit tone (F + Down)
-- Screen inversion (F + Menu)
-- Call End Tone (C.End): optional FM call-end tone after the dual-watch inactivity delay, with red and green LEDs combined as a yellow indicator while pending, and also Call screen UI.
-- Talk Permit Tone (TPT): selectable XTS, TRBO, HYT and TETRA talk-permit tones after pre-ID signaling.
-- C.End and TPT settings are saved in EEPROM; F + Down UI-tone mute overrides playback without changing their saved settings
-- Power calibration menu added for easier power calibration.
+Custom features and ongoing enhancements:
+- FleetSync II support with separate Fleet and Unit IDs, including validation and clamping to safe limits.
+- FleetSync audio/Roger behavior aligned to the active family selection so the decoder and transmit path follow the same mode.
+- MDC1200 support with user-configurable ID and signaling timing options.
+- Talk Permit Tone (TPT) selection, including XTS, TRBO, HYT and TETRA variants with Auto behavior and Roger-family aware operation.
+- Roger mode selection for Off, Pre, Post and Both for both MDC and FleetSync signaling.
+- Call End Tone (C.End) and UI tones with EEPROM persistence; F + Down can mute UI tones without changing saved settings.
+- Power calibration entries and menu-level adjustments for easier field tuning.
+- CHIRP module support for import/export of the updated settings and limits.
+
+FleetSync notes:
+- FleetSync uses a separate Fleet ID and Unit ID.
+- Valid Fleet ID range in the current implementation: 100 to 349.
+- Valid Unit ID range in the current implementation: 100 to 4999.
+- Values outside these limits are clamped to the nearest valid bound so the radio stays within the supported protocol range.
+- The FleetSync ID is handled independently from the MDC ID, and the active Roger mode determines whether the FleetSync path is used for pre/post signaling.
+
+Menu count note:
+- The menu total is currently kept at 54 active entries in the current build after the removed menu item, matching the active menu list in this firmware revision.
 
 I would like to thank everyone who trusts my work and those who have tested my builds. Special thanks to Sara Sinn for early testing, 9W2BIL for extensive beta testing of new features, 9W3MIG, 9W3KKW, and 9W3JJJ for supporting this firmware, and 9W2DSL and 9W2ESR for their ideas and feedback. Special thanks to BI7CZK on his professional advice on Hytera Radio audio UI. Thanks also to everyone else who has used my firmware, and to those who have helped keep the spirit of this project lively and forward-moving!
 

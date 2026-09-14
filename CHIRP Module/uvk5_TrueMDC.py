@@ -158,10 +158,15 @@ u8 tx_vfo;
 u8 battery_type;
 u8 mdc1200_preamble_duration;
 u8 mdc1200_preamble_when;
+u8 fleetsync_fleet;
 
 #seekto 0xeb0;
 char logo_line1[16];
 char logo_line2[16];
+
+#seekto 0xee0;
+u8 fleetsync_unit_low;
+u8 fleetsync_unit_high;
 
 #seekto 0xed0;
 struct {
@@ -303,7 +308,7 @@ CHANNELDISP_LIST = ["Freq", "ChanNum", "Nam", "Name+Freq"]
 BATSAVE_LIST = ["Off", "1:1", "1:2", "1:3", "1:4", "1:5", "1:6"]
 
 # call-end and talk-permit tones
-TALK_PERMIT_TONE_LIST = ["Off", "XTS", "TRBO", "HYT", "TETRA"]
+TALK_PERMIT_TONE_LIST = ["Off", "XTS", "TRBO", "Kenw", "Auto"]
 
 # Backlight auto mode
 BACKLIGHT_LIST = ["Off", "5s", "10s", "20s", "1mins", "2mins", "4mins", "On"]
@@ -357,9 +362,13 @@ WELCOME_LIST = ["Off", "Pic", "Msg"]
 KEYPADTONE_LIST = ["Off", "Chinese", "English"]
 LANGUAGE_LIST = ["Chinese", "English"]
 ALARMMODE_LIST = ["Local", "Local+Remote"]
-REMENDOFTALK_LIST = ["Off", "Roger 1", "Roger 2", "Roger 3", "Roger 4", "MDC Post", "MDC Pre", "MDC Both"]
+REMENDOFTALK_LIST = ["Off", "Pre MDC", "Post MDC", "Both MDC", "Pre FSync", "Post FSync", "Both FSync"]
 RTE_LIST = ["200ms", "300ms", "400ms", "500ms", "600ms", "700ms", "800ms", "900ms", "1000ms"]
 STE_LIST = ["Off", "55Hz", "180"]
+FLEETSYNC_FLEET_MIN = 100
+FLEETSYNC_FLEET_MAX = 499
+FLEETSYNC_UNIT_MIN = 1000
+FLEETSYNC_UNIT_MAX = 4999
 MDC_PREAMBLE_DURATION_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 MDC_PREAMBLE_WHEN_LIST = ["TX Pre-ID", "TX Post-ID", "TX Both"]
 OFF_ON_LIST = ["Off", "On"]
@@ -497,6 +506,28 @@ class RadioSettingChineseValueString(RadioSettingValueString):
                 raise InvalidValueError("Value contains invalid " +
                                         "character `%s'" % char)
         RadioSettingValue.set_value(self, value)
+
+
+class ClampedRadioSettingValueInteger(RadioSettingValueInteger):
+    """Integer setting that clamps to a valid radio range."""
+
+    def __init__(self, minimum, maximum, current):
+        self._minimum = int(minimum)
+        self._maximum = int(maximum)
+        RadioSettingValueInteger.__init__(self, minimum, maximum, current)
+
+    def set_value(self, value):
+        try:
+            value = int(value)
+        except (TypeError, ValueError):
+            raise InvalidValueError("Value must be an integer")
+
+        if value < self._minimum:
+            value = self._minimum
+        elif value > self._maximum:
+            value = self._maximum
+
+        RadioSettingValueInteger.set_value(self, value)
 
 
 def get_mdc_contact_object(mem_obj, index):
@@ -1380,6 +1411,30 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 except ValueError:
                     pass
 
+            # FleetSync ID settings
+            if element.get_name() == "fleetsync_fleet_id":
+                try:
+                    fleet_id = int(element.value)
+                    if fleet_id < FLEETSYNC_FLEET_MIN:
+                        fleet_id = FLEETSYNC_FLEET_MIN
+                    elif fleet_id > FLEETSYNC_FLEET_MAX:
+                        fleet_id = FLEETSYNC_FLEET_MAX
+                    _mem.fleetsync_fleet = fleet_id - FLEETSYNC_FLEET_MIN
+                except Exception:
+                    pass
+
+            if element.get_name() == "fleetsync_unit_id":
+                try:
+                    unit_id = int(element.value)
+                    if unit_id < FLEETSYNC_UNIT_MIN:
+                        unit_id = FLEETSYNC_UNIT_MIN
+                    elif unit_id > FLEETSYNC_UNIT_MAX:
+                        unit_id = FLEETSYNC_UNIT_MAX
+                    _mem.fleetsync_unit_low = unit_id & 0xFF
+                    _mem.fleetsync_unit_high = (unit_id >> 8) & 0xFF
+                except Exception:
+                    pass
+
             # MDC Preamble Duration
             if element.get_name() == "mdc1200_preamble_duration":
                 _mem.mdc1200_preamble_duration = MDC_PREAMBLE_DURATION_LIST.index(
@@ -2159,6 +2214,32 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 "mdc1200_id",
                 "MDC1200 ID",
                 RadioSettingValueString(0, 4, '%04X' % mdc_id, charset='0123456789ABCDEFabcdef'))
+        basic.append(rs)
+
+        # FleetSync ID split fields
+        fleet_id = FLEETSYNC_FLEET_MIN + int(getattr(_mem, 'fleetsync_fleet', 0))
+        if fleet_id < FLEETSYNC_FLEET_MIN or fleet_id > FLEETSYNC_FLEET_MAX:
+            fleet_id = FLEETSYNC_FLEET_MIN
+        unit_id = ((getattr(_mem, 'fleetsync_unit_high', 0) << 8) | getattr(_mem, 'fleetsync_unit_low', 0))
+        if unit_id < FLEETSYNC_UNIT_MIN or unit_id > FLEETSYNC_UNIT_MAX:
+            unit_id = FLEETSYNC_UNIT_MIN
+
+        rs = RadioSetting(
+                "fleetsync_fleet_id",
+                "FleetSync Fleet (100..499)",
+                ClampedRadioSettingValueInteger(FLEETSYNC_FLEET_MIN, FLEETSYNC_FLEET_MAX, fleet_id))
+        basic.append(rs)
+
+        rs = RadioSetting(
+                "fleetsync_unit_id",
+                "FleetSync Unit (1000..4999)",
+                ClampedRadioSettingValueInteger(FLEETSYNC_UNIT_MIN, FLEETSYNC_UNIT_MAX, unit_id))
+        basic.append(rs)
+
+        rs = RadioSetting(
+                "fleetsync_full_id",
+                "FleetSync Full ID (Fleet-Unit)",
+                RadioSettingValueString(0, 10, "%03d-%04d" % (fleet_id, unit_id), charset='0123456789-'))
         basic.append(rs)
 
         # MDC Preamble Duration
