@@ -82,16 +82,17 @@ const t_menu_item MenuList[] =
 #endif
                 {/*"BackLt",*/ VOICE_ID_INVALID, MENU_ABR, 自动背光}, // was "ABR"
                 {/*"BLMax",*/  VOICE_ID_INVALID, MENU_ABR_MAX, 背光亮度},
-                {/*"MDCID",*/  VOICE_ID_INVALID, MENU_MDC_ID, MDC_ID},
-                {/*"MDCDly",*/ VOICE_ID_INVALID, MENU_RP_STE, "MDCDly"},
-
 #ifdef ENABLE_MDC1200
-                {/*"MDCPre",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_DURATION, "MDCPre"},
-                {/*"MDCWhn",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_WHEN, "MDCWhn"},
 #ifdef ENABLE_FLEETSYNC
                 {/*"IDType",*/ VOICE_ID_INVALID, MENU_MDC_PROTOCOL, "IDType"},
+#endif
+                {/*"MDCID",*/  VOICE_ID_INVALID, MENU_MDC_ID, MDC_ID},
+ #ifdef ENABLE_FLEETSYNC
                 {/*"FScID",*/ VOICE_ID_INVALID, MENU_FLEETSYNC_UNIT, "FScID"},
 #endif
+                {/*"IDDly",*/ VOICE_ID_INVALID, MENU_RP_STE, "ID Dly"},
+                {/*"MDCPre",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_DURATION, "MDCPre"},
+                {/*"MDCWhn",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_WHEN, "MDCWhn"},
 #endif
 
                 {/*"Roger",*/  VOICE_ID_INVALID, MENU_ROGER, 首尾音},
@@ -1048,15 +1049,21 @@ void UI_DisplayMenu(void) {
 #ifdef ENABLE_FLEETSYNC
         case MENU_FLEETSYNC_UNIT: {
             if (gIsInSubMenu) {
-                UI_PrintStringSmall(edit, menu_item_x1, menu_item_x2, 2);
+                char separator = edit[3];
+                edit[3] = '\0';
+                UI_PrintStringSmall(edit, menu_item_x1, 0, 2);
+                edit[3] = separator;
+                UI_PrintStringSmall(edit + 4, menu_item_x1, 0, 4);
                 if (edit_index < 8 && edit_index != 3) {
                     const uint8_t line = edit_index < 3 ? 2 : 4;
                     const uint8_t column = edit_index < 3 ? edit_index : edit_index - 4;
-                    UI_PrintStringSmall("^", menu_item_x1 + (((menu_item_x2 - menu_item_x1) - 28 + 1) / 2) + (7 * column), 0, line + 1);
+                    UI_PrintStringSmall("^", menu_item_x1 + (7 * column), 0, line + 1);
                 }
             } else {
-                sprintf(String, "%03u\n%04u", gEeprom.FLEETSYNC_FLEET, gEeprom.FLEETSYNC_UNIT);
-                UI_PrintStringSmall(String, menu_item_x1, menu_item_x2, 2);
+                sprintf(String, "%03u", gEeprom.FLEETSYNC_FLEET);
+                UI_PrintStringSmall(String, menu_item_x1, 0, 2);
+                sprintf(String, "%04u", gEeprom.FLEETSYNC_UNIT);
+                UI_PrintStringSmall(String, menu_item_x1, 0, 4);
 
                 edit_index = -1;
                 sprintf(edit, "%03u\n%04u", gEeprom.FLEETSYNC_FLEET, gEeprom.FLEETSYNC_UNIT);

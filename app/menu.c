@@ -2082,14 +2082,6 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld) {
     if (gRxVfo->Modulation == MODULATION_FM)
 #endif
     {
-        if ((UI_MENU_GetCurrentMenuId() == MENU_R_CTCS || UI_MENU_GetCurrentMenuId() == MENU_R_DCS) &&
-            gIsInSubMenu) {    // scan CTCSS or DCS to find the tone/code of the incoming signal
-            if (!SCANNER_IsScanning())
-                MENU_StartCssScan();
-            else
-                MENU_StopCssScan();
-        }
-
         gPttWasReleased = true;
         return;
     }

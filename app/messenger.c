@@ -720,7 +720,6 @@ void solve_sign(const uint16_t interrupt_bits) {
 
         BK4819_WriteRegister(BK4819_REG_59, (1u << 15) | (1u << 14) | fsk_reg59);
         BK4819_WriteRegister(BK4819_REG_59, (1u << 12) | fsk_reg59);
-        BK4819_WriteRegister(0x02, 0);
 #ifdef ENABLE_MESSENGER
 
         msgStatus = READY;
@@ -766,7 +765,8 @@ void solve_sign(const uint16_t interrupt_bits) {
                     } else if (mdc1200_unit_id != 0) {
 #ifdef ENABLE_FLEETSYNC
                         if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
-                            snprintf(prefix, sizeof(prefix), "(%04u)", mdc1200_unit_id);
+                            snprintf(prefix, sizeof(prefix), "(%03u%04u)",
+                                     gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id);
                         else
 #endif
                         snprintf(prefix, sizeof(prefix), "(%04X)", mdc1200_unit_id);

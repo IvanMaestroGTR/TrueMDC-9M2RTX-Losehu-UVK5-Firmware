@@ -707,11 +707,11 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld) {
         }
 #endif
 
-        // scan the CTCSS/DCS code
-        gBackup_CROSS_BAND_RX_TX = gEeprom.CROSS_BAND_RX_TX;
-        gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
-        SCANNER_Start(true);
-        gRequestDisplayScreen = DISPLAY_SCANNER;
+    // scan the CTCSS/DCS code
+    gBackup_CROSS_BAND_RX_TX = gEeprom.CROSS_BAND_RX_TX;
+    gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
+    SCANNER_Start(true);
+    gRequestDisplayScreen = DISPLAY_SCANNER;
     }
 
     gPttWasReleased = true;
