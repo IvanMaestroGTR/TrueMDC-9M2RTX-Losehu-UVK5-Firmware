@@ -205,10 +205,15 @@ void FUNCTION_Transmit() {
 #ifdef ENABLE_MESSENGER
     if(!stop_mdc_flag){
 #endif
-    if ((gEeprom.ROGER == ROGER_MODE_MDC_HEAD || gEeprom.ROGER == ROGER_MODE_MDC_BOTH)
+    const bool useFleetSyncRoger = (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
+    const bool hasPreIdRoger = (gEeprom.ROGER == ROGER_MODE_MDC_PRE ||
+                               gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
+                               gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                               gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
 
-
-        ) {
+    if (hasPreIdRoger) {
 //        BK4819_start_tone(740, 60, true, true);
 //                            SYSTEM_DelayMs(120);
 //                            BK4819_stop_tones(true);    //off as they get quite annoying sometimes...
@@ -226,7 +231,7 @@ void FUNCTION_Transmit() {
             preamble_duration = 0;  // Remove 1 preamble entirely
         }
 #ifdef ENABLE_FLEETSYNC
-        if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+        if (useFleetSyncRoger)
             BK4819_send_FleetSync(gEeprom.FLEETSYNC_FLEET, gEeprom.FLEETSYNC_UNIT, false);
         else
 #endif

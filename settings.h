@@ -119,14 +119,12 @@ typedef enum ALARM_Mode_t ALARM_Mode_t;
 
 enum ROGER_Mode_t {
     ROGER_MODE_OFF = 0,
-    ROGER_MODE_ROGER,
-    ROGER_MODE_ROGER_2,
-    ROGER_MODE_ROGER_3,
-	ROGER_MODE_ROGER_4,
-    ROGER_MODE_MDC_END,
-    ROGER_MODE_MDC_HEAD,
-    ROGER_MODE_MDC_BOTH
-
+    ROGER_MODE_MDC_PRE,
+    ROGER_MODE_MDC_POST,
+    ROGER_MODE_MDC_BOTH,
+    ROGER_MODE_FLEETSYNC_PRE,
+    ROGER_MODE_FLEETSYNC_POST,
+    ROGER_MODE_FLEETSYNC_BOTH
 };
 typedef enum ROGER_Mode_t ROGER_Mode_t;
 
@@ -165,10 +163,12 @@ enum TALK_PERMIT_TONE_t {
     TALK_PERMIT_TONE_OFF = 0,
     TALK_PERMIT_TONE_XTS,
     TALK_PERMIT_TONE_TRBO,
-    TALK_PERMIT_TONE_HYT,
-    TALK_PERMIT_TONE_TETRA
+    TALK_PERMIT_TONE_KENW,
+    TALK_PERMIT_TONE_AUTO
 };
 typedef enum TALK_PERMIT_TONE_t TALK_PERMIT_TONE_t;
+
+#define TALK_PERMIT_TONE_TETRA TALK_PERMIT_TONE_AUTO
 
 typedef struct {
     uint8_t               ScreenChannel[2]; // current channels set in the radio (memory or frequency channels)

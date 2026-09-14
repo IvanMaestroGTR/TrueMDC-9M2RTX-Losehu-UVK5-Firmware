@@ -577,6 +577,9 @@ void solve_sign(const uint16_t interrupt_bits) {
 
     const bool rx_sync_neg = (rx_sync_flags & (1u << 7)) ? true : false;
 #endif
+    const bool useFleetSyncDecode = (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                                    gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                                    gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
     if (rx_sync) {
 #ifdef ENABLE_MESSENGER
 
@@ -587,7 +590,7 @@ void solve_sign(const uint16_t interrupt_bits) {
 #endif
 #ifdef ENABLE_MDC1200
 #ifdef ENABLE_FLEETSYNC
-    if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC) {
+    if (useFleetSyncDecode) {
         fleetsync_rx_buffer_index = 0;
         fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = 0xaa;
         fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = 0xaa;
@@ -597,7 +600,7 @@ void solve_sign(const uint16_t interrupt_bits) {
 #endif
         mdc1200_rx_buffer_index = 0;
 #ifdef ENABLE_FLEETSYNC
-    if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+    if (useFleetSyncDecode)
         ;
     else
 #endif
@@ -617,7 +620,7 @@ void solve_sign(const uint16_t interrupt_bits) {
 #ifdef ENABLE_MDC1200
 
 #ifdef ENABLE_FLEETSYNC
-        if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC) {
+        if (useFleetSyncDecode) {
             for (int i = 0; i < count; i++) {
                 read_reg[i] = BK4819_ReadRegister(0x5F);
                 // FleetSync payload bytes are not polarity-inverted by the protocol.
@@ -671,7 +674,7 @@ void solve_sign(const uint16_t interrupt_bits) {
 
                 // Only process MDC1200 if protocol is set to MDC (not FleetSync)
 #ifdef ENABLE_FLEETSYNC
-                if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_MDC)
+                if (!useFleetSyncDecode)
 #endif
                 {
                     if (MDC1200_process_rx_data(
@@ -700,7 +703,7 @@ void solve_sign(const uint16_t interrupt_bits) {
     if (rx_finished) {
 
 #ifdef ENABLE_FLEETSYNC
-        if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC) {
+        if (useFleetSyncDecode) {
             if (fleetsync_rx_buffer_index >= sizeof(fleetsync_rx_buffer)) {
                 uint16_t fleet;
                 uint16_t unit;
@@ -764,7 +767,7 @@ void solve_sign(const uint16_t interrupt_bits) {
                         snprintf(prefix, sizeof(prefix), "(%s)", mdc_contact);
                     } else if (mdc1200_unit_id != 0) {
 #ifdef ENABLE_FLEETSYNC
-                        if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+                        if (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH)
                             snprintf(prefix, sizeof(prefix), "(%03u%04u)",
                                      gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id);
                         else

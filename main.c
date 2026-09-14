@@ -181,7 +181,7 @@ void Main(void) {
 #endif
 
 #if ENABLE_CHINESE_FULL == 0
-    gMenuListCount = 52;
+    gMenuListCount = 53; //menu size
 #else
     gMenuListCount = 53;
 #endif

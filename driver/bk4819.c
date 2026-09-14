@@ -52,7 +52,7 @@ static const uint8_t MDC_FSK_TX_GAIN = 96;  // FSK gain for MDC1200 TX (configur
 static uint16_t gBK4819_GpioOutState;
 
 bool gRxIdleMode;
-static bool gHytSecondaryTone;
+static bool gKenwSecondaryTone;
 
 __inline uint16_t scale_freq(const uint16_t freq) {
 //	return (((uint32_t)freq * 1032444u) + 50000u) / 100000u;   // with rounding
@@ -332,10 +332,15 @@ void BK4819_PlayRoger(void) {
     if(stop_mdc_flag) return;
 #endif
 #ifdef ENABLE_MDC1200
-    if ((gEeprom.ROGER == ROGER_MODE_MDC_END||gEeprom.ROGER==ROGER_MODE_MDC_BOTH)
+    const bool useFleetSyncRoger = (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
+    const bool hasPostIdRoger = (gEeprom.ROGER == ROGER_MODE_MDC_POST ||
+                                gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
+                                gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                                gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
 
-
-    ) {
+    if (hasPostIdRoger) {
 
         // Mute mic before POST-ID MDC delay
         BK4819_MuteMic();
@@ -347,7 +352,7 @@ void BK4819_PlayRoger(void) {
         uint8_t preamble_duration = (gEeprom.MDC1200_PREAMBLE_WHEN == MDC_PREAMBLE_WHEN_PRE) ? 
                                      0 : gEeprom.MDC1200_PREAMBLE_DURATION;
 #ifdef ENABLE_FLEETSYNC
-        if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+        if (useFleetSyncRoger)
             BK4819_send_FleetSync(gEeprom.FLEETSYNC_FLEET, gEeprom.FLEETSYNC_UNIT, true);
         else
 #endif
@@ -1087,22 +1092,7 @@ void BK4819_PlayRxEndTone(void) {
         return;
     }
 
-    if ((gEeprom.field38_0x33 & 7) == TALK_PERMIT_TONE_TETRA) {
-        BK4819_WriteRegister(BK4819_REG_71, scale_freq(785));
-        BK4819_ExitTxMute();
-        SYSTEM_DelayMs(350);
-        BK4819_EnterTxMute();
-        BK4819_WriteRegister(BK4819_REG_71, scale_freq(525));
-        BK4819_ExitTxMute();
-        SYSTEM_DelayMs(250);
-        BK4819_EnterTxMute();
-        AUDIO_AudioPathOff();
-        BK4819_SetAF(BK4819_AF_MUTE);
-        BK4819_WriteRegister(BK4819_REG_70, 0x0000);
-        BK4819_TurnsOffTones_TurnsOnRX();
-        return;
-    }
-
+    // Auto mode should use the Hytera-style call end tone, not the TETRA one.
     BK4819_WriteRegister(BK4819_REG_71, scale_freq(1480));
     BK4819_ExitTxMute();
     SYSTEM_DelayMs(100);
@@ -1127,11 +1117,11 @@ void BK4819_PlayRxEndTone(void) {
 }
 
 void BK4819_ResetTalkPermitToneState(void) {
-    gHytSecondaryTone = false;
+    gKenwSecondaryTone = false;
 }
 
 void BK4819_MarkTalkPermitToneRx(void) {
-    gHytSecondaryTone = true;
+    gKenwSecondaryTone = true;
 }
 
 void BK4819_PlayTalkPermitTone(uint8_t mode) {
@@ -1139,34 +1129,44 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
     static const uint16_t xtsDurations[] = {100, 20, 30, 20, 60};
     static const uint16_t trboFrequencies[] = {1570, 1050, 1570, 1317};
     static const uint16_t trboDurations[] = {100, 40, 40, 40};
-    static const uint16_t hytPrimaryFrequencies[] = {392, 587, 392, 784};
-    static const uint16_t hytPrimaryDurations[] = {135, 75, 75, 75};
-    static const uint16_t hytSecondaryFrequencies[] = {1565, 531, 1565, 1317};
-    static const uint16_t hytSecondaryDurations[] = {100, 40, 40, 40};
+    static const uint16_t fleetSyncFrequencies[] = {1215, 1629, 1215, 1629};
+    static const uint16_t fleetSyncDurations[] = {100, 30, 30, 30};
     const uint16_t *frequencies;
     const uint16_t *durations;
     unsigned int count;
+    uint8_t selectedMode = mode;
 
-    if (mode == TALK_PERMIT_TONE_XTS) {
+    if (selectedMode == TALK_PERMIT_TONE_AUTO) {
+        const bool hasSignalling = (gEeprom.ROGER == ROGER_MODE_MDC_PRE ||
+                                   gEeprom.ROGER == ROGER_MODE_MDC_POST ||
+                                   gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
+                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
+
+        if (!hasSignalling) {
+            selectedMode = TALK_PERMIT_TONE_XTS;
+        } else if (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH) {
+            selectedMode = TALK_PERMIT_TONE_KENW;
+        } else {
+            selectedMode = TALK_PERMIT_TONE_TRBO;
+        }
+    }
+
+    if (selectedMode == TALK_PERMIT_TONE_XTS) {
         frequencies = xtsFrequencies;
         durations = xtsDurations;
         count = 5;
-    } else if (mode == TALK_PERMIT_TONE_TRBO) {
+    } else if (selectedMode == TALK_PERMIT_TONE_TRBO) {
         frequencies = trboFrequencies;
         durations = trboDurations;
         count = 4;
-    } else if (mode == TALK_PERMIT_TONE_HYT) {
-        if (gEeprom.field37_0x32 && gHytSecondaryTone) {
-            frequencies = hytSecondaryFrequencies;
-            durations = hytSecondaryDurations;
-            count = 4;
-        } else {
-            if (!gEeprom.field37_0x32)
-                gHytSecondaryTone = false;
-            frequencies = hytPrimaryFrequencies;
-            durations = hytPrimaryDurations;
-            count = 4;
-        }
+    } else if (selectedMode == TALK_PERMIT_TONE_KENW) {
+        frequencies = fleetSyncFrequencies;
+        durations = fleetSyncDurations;
+        count = 4;
     } else {
         return;
     }
@@ -1194,62 +1194,54 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
     BK4819_WriteRegister(BK4819_REG_70, 0);
     BK4819_TurnsOffTones_TurnsOnRX();
 
-    if (mode == TALK_PERMIT_TONE_HYT && gEeprom.field37_0x32)
-        gHytSecondaryTone = true;
+    if (mode == TALK_PERMIT_TONE_KENW && gEeprom.field37_0x32)
+        gKenwSecondaryTone = true;
 }
 
 void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     static const uint16_t xtsFrequencies[] = {910, 0, 910, 0, 910};
     static const uint16_t xtsDurations[] = {100, 20, 30, 20, 60};
-    static const uint16_t trboFrequencies[] = {1570, 1050, 1570, 1317, 784, 523, 784, 659};
+    static const uint16_t trboFrequencies[] = {1570, 1050, 1570, 1317};
     static const uint16_t trboDurations[] = {100, 40, 40, 40};
-    static const uint16_t hytPrimaryFrequencies[] = {392, 587, 392, 784};
-    static const uint16_t hytPrimaryDurations[] = {135, 75, 75, 75};
-    static const uint16_t hytSecondaryFrequencies[] = {1565, 531, 1565, 1317};
-    static const uint16_t hytSecondaryDurations[] = {100, 40, 40, 40};
-    static const uint16_t tetraPrimaryFrequencies[] = {525, 785};
-    static const uint16_t tetraPrimaryDurations[] = {350, 250};
-    static const uint16_t tetraSecondaryFrequencies[] = {785, 0, 657};
-    static const uint16_t tetraSecondaryDurations[] = {200, 50, 200};
+    static const uint16_t fleetSyncFrequencies[] = {1215, 1629, 1215, 1629};
+    static const uint16_t fleetSyncDurations[] = {100, 30, 30, 30};
     const uint16_t *frequencies;
     const uint16_t *durations;
     uint8_t toneGain = 55;
     unsigned int count;
+    uint8_t selectedMode = mode;
 
-    if (mode == TALK_PERMIT_TONE_XTS) {
+    if (selectedMode == TALK_PERMIT_TONE_AUTO) {
+        const bool hasSignalling = (gEeprom.ROGER == ROGER_MODE_MDC_PRE ||
+                                   gEeprom.ROGER == ROGER_MODE_MDC_POST ||
+                                   gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
+                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
+
+        if (!hasSignalling) {
+            selectedMode = TALK_PERMIT_TONE_XTS;
+        } else if (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH) {
+            selectedMode = TALK_PERMIT_TONE_KENW;
+        } else {
+            selectedMode = TALK_PERMIT_TONE_TRBO;
+        }
+    }
+
+    if (selectedMode == TALK_PERMIT_TONE_XTS) {
         frequencies = xtsFrequencies;
         durations = xtsDurations;
         count = 5;
-    } else if (mode == TALK_PERMIT_TONE_TRBO) {
-                frequencies = trboFrequencies +
-                                            (((gCurrentVfo->SCRAMBLING_TYPE && gSetting_ScrambleEnable) ||
-                                                (gEeprom.field38_0x33 & 0x40)) ? 4 : 0);
-                if (frequencies == trboFrequencies + 4)
-                    toneGain = 66; //MotoTRBO Encrypted TPT is low due to low note, 66 would be moderate.
+    } else if (selectedMode == TALK_PERMIT_TONE_TRBO) {
+        frequencies = trboFrequencies;
         durations = trboDurations;
         count = 4;
-    } else if (mode == TALK_PERMIT_TONE_HYT) {
-        if (gEeprom.field37_0x32 && gHytSecondaryTone) {
-            frequencies = hytSecondaryFrequencies;
-            durations = hytSecondaryDurations;
-            count = 4;
-        } else {
-            if (!gEeprom.field37_0x32)
-                gHytSecondaryTone = false;
-            frequencies = hytPrimaryFrequencies;
-            durations = hytPrimaryDurations;
-            count = 4;
-        }
-    } else if (mode == TALK_PERMIT_TONE_TETRA) {
-        if (!gEeprom.field37_0x32 || gHytSecondaryTone) {
-            frequencies = tetraSecondaryFrequencies;
-            durations = tetraSecondaryDurations;
-            count = 3;
-        } else {
-            frequencies = tetraPrimaryFrequencies;
-            durations = tetraPrimaryDurations;
-            count = 2;
-        }
+    } else if (selectedMode == TALK_PERMIT_TONE_KENW) {
+        frequencies = fleetSyncFrequencies;
+        durations = fleetSyncDurations;
+        count = 4;
     } else {
         return;
     }
@@ -1286,9 +1278,6 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     SYSTEM_DelayMs(1);
 
     UI_SetTalkPermitToast(TALK_PERMIT_TOAST_SEND, 0);
-
-    if ((mode == TALK_PERMIT_TONE_HYT || mode == TALK_PERMIT_TONE_TETRA) && gEeprom.field37_0x32)
-        gHytSecondaryTone = true;
 }
 
 void BK4819_EnterTxMute(void) {
@@ -2554,6 +2543,11 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
 
         BK4819_WriteRegister(0x3F, BK4819_REG_3F_FSK_TX_FINISHED);
         BK4819_WriteRegister(0x59, (1u << 11) | fsk_reg59);
+
+        // Kenwood FleetSync timing: add a small fixed gap before the ID payload starts.
+        // This makes the configured pre-ID delay effectively become +75 ms.
+        SYSTEM_DelayMs(75);
+
         for (unsigned int timeout = 125; timeout-- > 0;) {
             SYSTEM_DelayMs(4);
             if (BK4819_ReadRegister(0x0C) & 1u) {
@@ -2663,6 +2657,9 @@ void enable_msg_rx(const bool enable) {
     // set the packet size
 
     if (enable) {
+        const bool useFleetSyncRoger = (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                                       gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                                       gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
         const uint16_t fsk_reg59 =
                 (0u << 15) |   // 1 = clear TX FIFO
                 (0u << 14) |   // 1 = clear RX FIFO
@@ -2737,7 +2734,7 @@ void enable_msg_rx(const bool enable) {
         // < 7:0> sync byte 1
 //			BK4819_WriteRegister(0x5A, ((uint16_t)mdc1200_sync_suc_xor[0] << 8) | (mdc1200_sync_suc_xor[1] << 0));
 #ifdef ENABLE_FLEETSYNC
-    if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+    if (useFleetSyncRoger)
         BK4819_WriteRegister(0x5A, 0xAAAA);
     else
 #endif
@@ -2749,7 +2746,7 @@ void enable_msg_rx(const bool enable) {
         // < 7:0> sync byte 3
 //			BK4819_WriteRegister(0x5B, ((uint16_t)mdc1200_sync_suc_xor[2] << 8) | (mdc1200_sync_suc_xor[3] << 0));
 #ifdef ENABLE_FLEETSYNC
-    if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+    if (useFleetSyncRoger)
         BK4819_WriteRegister(0x5B, 0x23EB);
     else
 #endif
@@ -2771,7 +2768,7 @@ void enable_msg_rx(const bool enable) {
 //			}
         {
 #ifdef ENABLE_FLEETSYNC
-            if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+            if (useFleetSyncRoger)
                 BK4819_WriteRegister(0x5D, ((FLEETSYNC_PACKET_SIZE - 1u) << 8));
             else
 #endif

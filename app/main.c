@@ -551,8 +551,6 @@ static void MAIN_Key_EXIT(bool bKeyPressed, bool bKeyHeld) {
 }
 
 static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
-    static uint8_t trboToneToggleCount;
-
     if (bKeyPressed && !bKeyHeld)
         // menu key pressed
         gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
@@ -592,10 +590,6 @@ static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
             // F + MENU = toggle screen invert
             gWasFKeyPressed = false;
             gEeprom.SCREEN_INVERT = !gEeprom.SCREEN_INVERT;
-            if (++trboToneToggleCount == 4) {
-                gEeprom.field38_0x33 ^= 0x40;
-                trboToneToggleCount = 0;
-            }
             gToastType = TOAST_NIGHT_MODE;
             gToastTimerSingleLine = 4;
             gRequestSaveSettings = true;

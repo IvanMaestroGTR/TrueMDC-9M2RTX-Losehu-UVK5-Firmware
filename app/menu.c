@@ -464,7 +464,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
 
         case MENU_TALK_PERMIT_TONE:
             *pMin = TALK_PERMIT_TONE_OFF;
-            *pMax = TALK_PERMIT_TONE_TETRA;
+            *pMax = TALK_PERMIT_TONE_AUTO;
             break;
 
         case MENU_CALL_END_TONE:
@@ -851,9 +851,12 @@ void MENU_AcceptSetting(void) {
             {
                 static const ROGER_Mode_t roger_mode[] = {
                     ROGER_MODE_OFF,
-                    ROGER_MODE_MDC_END,
-                    ROGER_MODE_MDC_HEAD,
-                    ROGER_MODE_MDC_BOTH
+                    ROGER_MODE_MDC_PRE,
+                    ROGER_MODE_MDC_POST,
+                    ROGER_MODE_MDC_BOTH,
+                    ROGER_MODE_FLEETSYNC_PRE,
+                    ROGER_MODE_FLEETSYNC_POST,
+                    ROGER_MODE_FLEETSYNC_BOTH
                 };
                 gEeprom.ROGER = roger_mode[gSubMenuSelection];
             }
@@ -1280,10 +1283,13 @@ void MENU_ShowCurrentSetting(void) {
 #endif
         case MENU_ROGER:
             switch (gEeprom.ROGER) {
-                case ROGER_MODE_MDC_END:  gSubMenuSelection = 1; break;
-                case ROGER_MODE_MDC_HEAD: gSubMenuSelection = 2; break;
-                case ROGER_MODE_MDC_BOTH: gSubMenuSelection = 3; break;
-                default:                  gSubMenuSelection = 0; break;
+                case ROGER_MODE_MDC_PRE:           gSubMenuSelection = 1; break;
+                case ROGER_MODE_MDC_POST:          gSubMenuSelection = 2; break;
+                case ROGER_MODE_MDC_BOTH:          gSubMenuSelection = 3; break;
+                case ROGER_MODE_FLEETSYNC_PRE:     gSubMenuSelection = 4; break;
+                case ROGER_MODE_FLEETSYNC_POST:    gSubMenuSelection = 5; break;
+                case ROGER_MODE_FLEETSYNC_BOTH:    gSubMenuSelection = 6; break;
+                default:                           gSubMenuSelection = 0; break;
             }
             break;
 

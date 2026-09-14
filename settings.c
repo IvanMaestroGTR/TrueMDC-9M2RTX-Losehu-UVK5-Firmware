@@ -119,7 +119,7 @@ void SETTINGS_InitEEPROM(void)
     gEeprom.BEEP_CONTROL                 = Data[0] & 1;
     gEeprom.BOOT_BEEP_CONTROL            = (Data[0] >> 1) & 1;
     gEeprom.field37_0x32                 = (Data[0] >> 2) & 1;
-    gEeprom.field38_0x33                 = (((Data[0] >> 3) & 7) <= TALK_PERMIT_TONE_TETRA ?
+    gEeprom.field38_0x33                 = (((Data[0] >> 3) & 7) <= TALK_PERMIT_TONE_AUTO ?
                                            (Data[0] >> 3) & 7 : TALK_PERMIT_TONE_OFF) |
                                            (Data[0] & 0x40);
     gEeprom.SCREEN_INVERT         = (Data[3] < 2) ? Data[3] : false;
@@ -175,9 +175,9 @@ void SETTINGS_InitEEPROM(void)
 #ifdef ENABLE_ALARM
     gEeprom.ALARM_MODE                 = (Data[0] <  2) ? Data[0] : true;
 #endif
-    /* Legacy audible Roger values 1..4 are no longer supported. */
-    gEeprom.ROGER                          = (Data[1] == ROGER_MODE_OFF ||
-                                               (Data[1] >= ROGER_MODE_MDC_END && Data[1] <= ROGER_MODE_MDC_BOTH)) ?
+    /* Supported Roger values: Off, Pre/Post/Both for MDC and FleetSync. */
+    gEeprom.ROGER                          = (Data[1] >= ROGER_MODE_OFF &&
+                                               Data[1] <= ROGER_MODE_FLEETSYNC_BOTH) ?
                                               Data[1] : ROGER_MODE_OFF;
     gEeprom.REPEATER_TAIL_TONE_ELIMINATION = (Data[2] >= 2 && Data[2] <= 10) ? Data[2] : 2;
     gEeprom.TX_VFO                         = (Data[3] <  2) ? Data[3] : 0;

@@ -416,14 +416,13 @@ const char gSubMenu_ROGER[][13] =
         const char gSubMenu_ROGER[][15] =
 #endif
         {
-//                "OFF",
-//                "ROGER",
-//                "MDC"
-
                 关闭,
-                Post_MDC,
-                Pre_MDC,
-                Both_MDC
+                "Pre MDC",
+                "Post MDC",
+                "Both MDC",
+                "Pre FSync",
+                "Post FSync",
+                "Both FSync"
         };
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
 
@@ -568,8 +567,8 @@ const char gSubMenu_TALK_PERMIT_TONE[][6] =
         "OFF",
         "XTS",
         "TRBO",
-        "HYT",
-        "TETRA"
+        "Kenw",
+        "Auto"
     };
 
 const char gSubMenu_CALL_END_TONE[][4] =
