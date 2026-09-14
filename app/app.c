@@ -90,6 +90,10 @@
 #include "ui/ui.h"
 
 static bool gRxEndTonePending;
+// A received signal on dual watch must return to alternating VFOs before its
+// call-end tone is played.  Otherwise the LED state changes made by the
+// alternate race the pending-tone indication.
+static bool gRxEndToneWaitForDualWatch;
 static bool gRxTalkPermitPlayed;
 static uint16_t gRxEndToneCountdown_10ms;
 #include "messenger.h"
@@ -380,7 +384,10 @@ static void HandleReceive(void) {
 
             if (gRxVfo->Modulation == MODULATION_FM && gEeprom.field37_0x32) {
                 gRxEndTonePending = true;
-                gRxEndToneCountdown_10ms = dual_watch_count_after_2_10ms;
+                gRxEndToneWaitForDualWatch =
+                    gEeprom.DUAL_WATCH != DUAL_WATCH_OFF && gScanStateDir == SCAN_OFF;
+                gRxEndToneCountdown_10ms = gRxEndToneWaitForDualWatch ? 0 :
+                                                dual_watch_count_after_2_10ms;
             }
 
 #ifdef ENABLE_NOAA
@@ -719,6 +726,7 @@ static void APP_ScheduleCallEndToneAfterTx(void) {
         gEeprom.field37_0x32) {
         gRxEndTonePending = true;
         gRxEndToneCountdown_10ms = dual_watch_count_after_tx_10ms;
+        gRxEndToneWaitForDualWatch = false;
     }
 }
 
@@ -1104,9 +1112,12 @@ void APP_TimeSlice10ms(void) {
         if (gFlagPrepareTX || gCurrentFunction == FUNCTION_TRANSMIT ||
             gRxVfo->Modulation != MODULATION_FM || g_SquelchLost) {
             gRxEndTonePending = false;
+            gRxEndToneWaitForDualWatch = false;
             gRxEndToneCountdown_10ms = 0;
             BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
             BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+        } else if (gRxEndToneWaitForDualWatch && !gDualWatchActive) {
+            // Keep the yellow call-status light on until dual watch resumes.
         } else if (gRxEndToneCountdown_10ms > 0) {
             gRxEndToneCountdown_10ms--;
         } else {
@@ -1114,6 +1125,7 @@ void APP_TimeSlice10ms(void) {
             if (gEeprom.field37_0x32 && gEeprom.BOOT_BEEP_CONTROL)
                 BK4819_PlayRxEndTone();
             gRxEndTonePending = false;
+            gRxEndToneWaitForDualWatch = false;
             BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
             BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
         }
@@ -1214,10 +1226,15 @@ void APP_TimeSlice10ms(void) {
         rxBlinkCounter = 0;
     }
 
-    if (gRxEndTonePending) {
+    // The call-status indicator is yellow (red + green).  With dual watch it
+    // remains on only until the first alternate; the pending-tone logic above
+    // then turns it off and plays the end tone in that same transition.
+    if (gRxEndTonePending &&
+        (!gRxEndToneWaitForDualWatch || !gDualWatchActive)) {
         BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
         BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
     }
+
 #ifdef ENABLE_MESSENGER
     keyTickCounter++;
 #endif

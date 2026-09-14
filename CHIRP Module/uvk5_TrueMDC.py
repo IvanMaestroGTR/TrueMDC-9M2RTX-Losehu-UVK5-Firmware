@@ -2236,12 +2236,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 ClampedRadioSettingValueInteger(FLEETSYNC_UNIT_MIN, FLEETSYNC_UNIT_MAX, unit_id))
         basic.append(rs)
 
-        rs = RadioSetting(
-                "fleetsync_full_id",
-                "FleetSync Full ID (Fleet-Unit)",
-                RadioSettingValueString(0, 10, "%03d-%04d" % (fleet_id, unit_id), charset='0123456789-'))
-        basic.append(rs)
-
         # MDC Preamble Duration
         tmpmdc_pre_dur = _mem.mdc1200_preamble_duration
         if tmpmdc_pre_dur < 1 or tmpmdc_pre_dur > 10:
