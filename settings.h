@@ -137,11 +137,6 @@ enum MDC_PREAMBLE_WHEN_t {
 };
 typedef enum MDC_PREAMBLE_WHEN_t MDC_PREAMBLE_WHEN_t;
 
-enum MDC1200_PROTOCOL_t {
-    MDC1200_PROTOCOL_MDC = 0,
-    MDC1200_PROTOCOL_FLEETSYNC
-};
-typedef enum MDC1200_PROTOCOL_t MDC1200_PROTOCOL_t;
 #endif
 
 enum CHANNEL_DisplayMode_t {
@@ -311,7 +306,6 @@ typedef struct {
     uint8_t                  MDC1200_PREAMBLE_DURATION;  // 1-10 cycles
     MDC_PREAMBLE_WHEN_t      MDC1200_PREAMBLE_WHEN;
 #ifdef ENABLE_FLEETSYNC
-    MDC1200_PROTOCOL_t       MDC1200_PROTOCOL;
     uint16_t                 FLEETSYNC_FLEET;
     uint16_t                 FLEETSYNC_UNIT;
 #endif

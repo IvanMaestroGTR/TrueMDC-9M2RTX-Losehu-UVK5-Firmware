@@ -965,7 +965,9 @@ void UI_DisplayMain(void) {
                 snprintf(String, sizeof(String), "ID: %.14s", mdc1200_contact);
             } else {
 #ifdef ENABLE_FLEETSYNC
-                if (gEeprom.MDC1200_PROTOCOL == MDC1200_PROTOCOL_FLEETSYNC)
+                if (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                    gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                    gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH)
                     snprintf(String, sizeof(String), "ID: %03u%04u",
                              gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id);
                 else

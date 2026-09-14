@@ -126,7 +126,6 @@ void SETTINGS_InitEEPROM(void)
 
     gEeprom.MDC1200_ID     =((uint16_t) (Data[2] << 8))|((uint16_t)(Data[1] ));
 #ifdef ENABLE_FLEETSYNC
-    gEeprom.MDC1200_PROTOCOL = (Data[4] < 2) ? Data[4] : MDC1200_PROTOCOL_MDC;
     gEeprom.FLEETSYNC_UNIT = ((uint16_t)Data[6] << 8) | Data[5];
 #endif
 
@@ -591,9 +590,6 @@ void SETTINGS_SaveSettings(void)
     //State[3] = 0;//gEeprom.KEY_2_SHORT_PRESS_ACTION;
     State[3] = gEeprom.SCREEN_INVERT;   // <-- ADD THIS
     State[4] = 0;
-#ifdef ENABLE_FLEETSYNC
-    State[4] = gEeprom.MDC1200_PROTOCOL;
-#endif
     State[5] = gEeprom.SCAN_RESUME_MODE;
     State[6] = 0;//gEeprom.AUTO_KEYPAD_LOCK;
 #if ENABLE_CHINESE_FULL==4

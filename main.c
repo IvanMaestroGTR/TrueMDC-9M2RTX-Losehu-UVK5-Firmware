@@ -185,9 +185,6 @@ void Main(void) {
 #else
     gMenuListCount = 53;
 #endif
-#ifdef ENABLE_FLEETSYNC
-    gMenuListCount += 1; // current active FleetSync menu set: FSUnit only
-#endif
     gKeyReading0 = KEY_INVALID;
     gKeyReading1 = KEY_INVALID;
     gDebounceCounter = 0;

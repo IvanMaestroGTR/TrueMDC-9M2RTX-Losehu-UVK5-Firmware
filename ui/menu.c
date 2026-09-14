@@ -83,9 +83,6 @@ const t_menu_item MenuList[] =
                 {/*"BackLt",*/ VOICE_ID_INVALID, MENU_ABR, 自动背光}, // was "ABR"
                 {/*"BLMax",*/  VOICE_ID_INVALID, MENU_ABR_MAX, 背光亮度},
 #ifdef ENABLE_MDC1200
-#ifdef ENABLE_FLEETSYNC
-                {/*"IDType",*/ VOICE_ID_INVALID, MENU_MDC_PROTOCOL, "IDType"},
-#endif
                 {/*"MDCID",*/  VOICE_ID_INVALID, MENU_MDC_ID, MDC_ID},
  #ifdef ENABLE_FLEETSYNC
                 {/*"FScID",*/ VOICE_ID_INVALID, MENU_FLEETSYNC_UNIT, "FScID"},
@@ -439,9 +436,6 @@ const char gSubMenu_MDC_PREAMBLE_WHEN[][5] =
                 "Post",
                 "Both"
 };
-#ifdef ENABLE_FLEETSYNC
-const char gSubMenu_MDC_PROTOCOL[][6] = { "MDC", "FSync" };
-#endif
 #endif
 
 #ifdef ENABLE_ENGLISH
@@ -465,9 +459,6 @@ const char gSubMenu_MDC_PREAMBLE_WHEN[][5] =
                 "Post",
                 "Both"
 };
-#ifdef ENABLE_FLEETSYNC
-const char gSubMenu_MDC_PROTOCOL[][6] = { "MDC", "FSync" };
-#endif
 #endif
 
         const char gSubMenu_RESET[][11] =//4
@@ -1456,12 +1447,6 @@ void UI_DisplayMenu(void) {
             strcpy(String, options[gSubMenuSelection]);
             break;
         }
-#ifdef ENABLE_FLEETSYNC
-        case MENU_MDC_PROTOCOL:
-            strcpy(String, gSubMenu_MDC_PROTOCOL[gSubMenuSelection]);
-            break;
-
-#endif
 #endif
 
 //        case MENU_VOL:

@@ -93,7 +93,6 @@ enum {
     MENU_MDC_PREAMBLE_DURATION,
     MENU_MDC_PREAMBLE_WHEN,
 #ifdef ENABLE_FLEETSYNC
-    MENU_MDC_PROTOCOL,
     MENU_FLEETSYNC_UNIT,
 #endif
 #endif
@@ -271,9 +270,6 @@ extern const char        gSubMenu_MDC_PREAMBLE_WHEN[3][5];
 #else
 extern const char gSubMenu_MDC_PREAMBLE_DURATION[8][4];
 extern const char gSubMenu_MDC_PREAMBLE_WHEN[3][5];
-#endif
-#ifdef ENABLE_FLEETSYNC
-extern const char gSubMenu_MDC_PROTOCOL[2][6];
 #endif
 #endif
 

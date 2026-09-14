@@ -262,12 +262,6 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_MDC_PREAMBLE_WHEN) - 1;
             break;
-#ifdef ENABLE_FLEETSYNC
-        case MENU_MDC_PROTOCOL:
-            *pMin = 0;
-            *pMax = ARRAY_SIZE(gSubMenu_MDC_PROTOCOL) - 1;
-            break;
-#endif
 #endif
 
 #if ENABLE_CHINESE_FULL == 4
@@ -873,13 +867,6 @@ void MENU_AcceptSetting(void) {
         case MENU_MDC_PREAMBLE_WHEN:
             gEeprom.MDC1200_PREAMBLE_WHEN = gSubMenuSelection;
             break;
-#ifdef ENABLE_FLEETSYNC
-        case MENU_MDC_PROTOCOL:
-            gEeprom.MDC1200_PROTOCOL = gSubMenuSelection;
-            gFlagReconfigureVfos = true;
-            break;
-
-#endif
 #endif
 
 //		case MENU_AM:
@@ -1311,12 +1298,6 @@ void MENU_ShowCurrentSetting(void) {
         case MENU_MDC_PREAMBLE_WHEN:
             gSubMenuSelection = gEeprom.MDC1200_PREAMBLE_WHEN;
             break;
-#ifdef ENABLE_FLEETSYNC
-        case MENU_MDC_PROTOCOL:
-            gSubMenuSelection = gEeprom.MDC1200_PROTOCOL;
-            break;
-
-#endif
 #endif
 
 //		case MENU_AM:
