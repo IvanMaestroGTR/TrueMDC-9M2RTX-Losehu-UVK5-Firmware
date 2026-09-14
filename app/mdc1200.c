@@ -349,4 +349,47 @@ bool mdc1200_contact_find(uint16_t mdc_id, char *contact) {
     }
     return false;
 }
+
+bool fleetsync_contact_find(uint16_t fleet_id, uint16_t unit_id, char *contact) {
+    char stored_fleet[4];
+    char stored_unit[5];
+    const uint16_t fleet_digits = fleet_id;
+    const uint16_t unit_digits = unit_id;
+
+    for (unsigned int i = 0; i < 16; i++) {
+        uint8_t read_once[16] = {0};
+        EEPROM_ReadBuffer(0x1C00 + (i * 16), read_once, 16);
+
+        if (read_once[0] == 0xFF || read_once[0] == 0)
+            continue;
+
+        if (read_once[0] < ' ' || read_once[0] > '~')
+            continue;
+
+        memset(stored_fleet, 0, sizeof(stored_fleet));
+        memset(stored_unit, 0, sizeof(stored_unit));
+        memcpy(stored_fleet, &read_once[8], 3);
+        memcpy(stored_unit, &read_once[11], 4);
+
+        const uint16_t stored_fleet_id = (uint16_t)(
+            ((read_once[8] >= '0' && read_once[8] <= '9') ? (read_once[8] - '0') : 0) * 100u +
+            ((read_once[9] >= '0' && read_once[9] <= '9') ? (read_once[9] - '0') : 0) * 10u +
+            ((read_once[10] >= '0' && read_once[10] <= '9') ? (read_once[10] - '0') : 0));
+        const uint16_t stored_unit_id = (uint16_t)(
+            ((read_once[11] >= '0' && read_once[11] <= '9') ? (read_once[11] - '0') : 0) * 1000u +
+            ((read_once[12] >= '0' && read_once[12] <= '9') ? (read_once[12] - '0') : 0) * 100u +
+            ((read_once[13] >= '0' && read_once[13] <= '9') ? (read_once[13] - '0') : 0) * 10u +
+            ((read_once[14] >= '0' && read_once[14] <= '9') ? (read_once[14] - '0') : 0));
+
+        if (stored_fleet_id == fleet_digits && stored_unit_id == unit_digits) {
+            memcpy(contact, read_once, 8);
+            contact[8] = '\0';
+            while (contact[0] != '\0' && contact[strlen(contact) - 1] == ' ')
+                contact[strlen(contact) - 1] = '\0';
+            return true;
+        }
+    }
+
+    return false;
+}
 #endif

@@ -755,6 +755,13 @@ void solve_sign(const uint16_t interrupt_bits) {
                     // Try to find contact name for this unit ID
                     if (mdc1200_unit_id != 0) {
                         has_contact = mdc1200_contact_find(mdc1200_unit_id, mdc_contact);
+#ifdef ENABLE_FLEETSYNC
+                        if (!has_contact && (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                                             gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                                             gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH)) {
+                            has_contact = fleetsync_contact_find(gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id, mdc_contact);
+                        }
+#endif
                     }
 
                     if (has_contact && mdc_contact[0] != '\0') {

@@ -963,6 +963,16 @@ void UI_DisplayMain(void) {
             center_line = CENTER_LINE_MDC1200;
             if (mdc1200_contact_find(mdc1200_unit_id, mdc1200_contact)) {
                 snprintf(String, sizeof(String), "ID: %.14s", mdc1200_contact);
+#ifdef ENABLE_FLEETSYNC
+            } else if (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+                       gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+                       gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH) {
+                if (fleetsync_contact_find(gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id, mdc1200_contact))
+                    snprintf(String, sizeof(String), "ID: %.14s", mdc1200_contact);
+                else
+                    snprintf(String, sizeof(String), "ID: %03u%04u",
+                             gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id);
+#endif
             } else {
 #ifdef ENABLE_FLEETSYNC
                 if (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||

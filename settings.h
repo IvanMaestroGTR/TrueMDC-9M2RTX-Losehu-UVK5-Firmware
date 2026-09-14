@@ -301,7 +301,7 @@ typedef struct {
     uint8_t               S0_LEVEL;
 	uint8_t               S9_LEVEL;
 #endif
-    uint32_t MDC1200_ID;
+    uint16_t MDC1200_ID;
 #ifdef ENABLE_MDC1200
     uint8_t                  MDC1200_PREAMBLE_DURATION;  // 1-10 cycles
     MDC_PREAMBLE_WHEN_t      MDC1200_PREAMBLE_WHEN;

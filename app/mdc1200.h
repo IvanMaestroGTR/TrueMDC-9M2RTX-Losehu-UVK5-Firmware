@@ -97,6 +97,7 @@ extern uint8_t mdc1200_arg;
 extern uint16_t mdc1200_unit_id;
 
 bool mdc1200_contact_find(uint16_t mdc_id, char *contact);
+bool fleetsync_contact_find(uint16_t fleet_id, uint16_t unit_id, char *contact);
 
 extern uint8_t mdc1200_rx_buffer[5 + (MDC1200_FEC_K * 2)];
 extern unsigned int mdc1200_rx_buffer_index;

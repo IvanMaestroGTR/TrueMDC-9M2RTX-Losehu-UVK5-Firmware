@@ -223,8 +223,8 @@ char name[16];
 #seekto 0x1c00;
 struct {
 char name[8];
-char number[3];
-char unused_00[5];
+char number[7];
+char unused_00[1];
 } dtmfcontact[16];
 
 #seekto 0x1d00;
@@ -294,8 +294,8 @@ POWER_UL = 0b11
 PTTID_LIST = ["None", "Pre", "Post", "Pre+Post"]
 
 # power
-UVK5_POWER_LEVELS = [chirp_common.PowerLevel("L",  watts=0.50),
-                     chirp_common.PowerLevel("M",  watts=3.00),
+UVK5_POWER_LEVELS = [chirp_common.PowerLevel("L", watts=0.50),
+                     chirp_common.PowerLevel("M", watts=3.00),
                      chirp_common.PowerLevel("H", watts=5.00),
                      chirp_common.PowerLevel("UL", watts=0.25)]
 
@@ -366,7 +366,7 @@ REMENDOFTALK_LIST = ["Off", "Pre MDC", "Post MDC", "Both MDC", "Pre FSync", "Pos
 RTE_LIST = ["200ms", "300ms", "400ms", "500ms", "600ms", "700ms", "800ms", "900ms", "1000ms"]
 STE_LIST = ["Off", "55Hz", "180"]
 FLEETSYNC_FLEET_MIN = 100
-FLEETSYNC_FLEET_MAX = 499
+FLEETSYNC_FLEET_MAX = 349
 FLEETSYNC_UNIT_MIN = 1000
 FLEETSYNC_UNIT_MAX = 4999
 MDC_PREAMBLE_DURATION_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
@@ -431,8 +431,8 @@ VFO_CHANNEL_NAMES = ["F1(50M-76M)A", "F1(50M-76M)B",
 SCANLIST_LIST = ["None", "1", "2", "1+2"]
 
 DTMF_CHARS = "0123456789ABCD*# "
-DTMF_CHARS_ID = "0123456789ABCDabcd"
-DTMF_CHARS_KILL = "0123456789ABCDabcd"
+DTMF_CHARS_ID = "0123456789ABCDabcd "
+DTMF_CHARS_KILL = "0123456789ABCDabcd "
 DTMF_CHARS_UPDOWN = "0123456789ABCDabcd#* "
 DTMF_CODE_CHARS = "ABCD*# "
 DTMF_DECODE_RESPONSE_LIST = ["Off", "Ring", "Reply", "Ring+Reply"]
@@ -454,7 +454,7 @@ def get_gb2312_chinese_characters() -> List[str]:
             try:
                 characters.append(bytes([i, j]).decode('gb2312'))
             except Exception:
-                pass  # 忽略无法解码的字节对
+                pass  # Ignore un-decodable byte pairs
     return characters
 
 
@@ -471,10 +471,19 @@ def convert_bytes_to_chinese(data: bytes) -> str:
 
 
 def convert_chinese_to_bytes(data: str) -> bytes:
+    """Encode a CHIRP channel/settings string as GB2312.
+
+    Do not silently turn an encoding failure into an empty string: that can
+    make CHIRP appear to accept a value while writing the wrong bytes to the
+    radio.
+    """
     try:
         return data.encode('gb2312')
-    except Exception:
-        return b''
+    except UnicodeEncodeError as e:
+        raise InvalidValueError(
+            "Value contains a character that cannot be encoded as GB2312: "
+            "%s" % e.object[e.start:e.end]
+        ) from e
 
 
 def check_text_in_charset(text: str) -> bool:
@@ -491,20 +500,32 @@ class RadioSettingChineseValueString(RadioSettingValueString):
     _fw_version: str
 
     def __init__(self, minlength, maxlength, current, fw_version: str, autopad=True,
-                 charset=chirp_common.CHARSET_ASCII):
+                 charset=None):
+        if charset is None:
+            charset = VALID_CHARACTERS
         self._fw_version = fw_version
         RadioSettingValueString.__init__(self, minlength, maxlength, current, autopad, charset)
 
     def set_value(self, value):
-        if len(value) < self._minlength or len(convert_chinese_to_bytes(value)) > self._maxlength:
-            raise InvalidValueError("Value must be between %i and %i chars" %
-                                    (self._minlength, self._maxlength))
-        if self._autopad:
-            value = value.ljust(self._maxlength)
+        if len(value) < self._minlength:
+            raise InvalidValueError("Value must be at least %i chars" %
+                                    self._minlength)
+
+        # The radio stores this field in bytes, not Unicode characters.
+        # Check the encoded length before CHIRP pads the displayed value.
+        encoded = convert_chinese_to_bytes(value)
+        if len(encoded) > self._maxlength:
+            raise InvalidValueError(
+                "Value is too long for the radio (%i encoded bytes maximum)" %
+                self._maxlength)
+
         for char in value:
             if char not in self._charset:
                 raise InvalidValueError("Value contains invalid " +
                                         "character `%s'" % char)
+
+        if self._autopad:
+            value = value.ljust(self._maxlength)
         RadioSettingValue.set_value(self, value)
 
 
@@ -570,7 +591,6 @@ def _send_command(serport, data: bytes):
 
     crc = calculate_crc16_xmodem(data)
     data2 = data + struct.pack("<H", crc)
-
     command = struct.pack(">HBB", 0xabcd, len(data), 0) + \
         xorarr(data2) + \
         struct.pack(">H", 0xdcba)
@@ -661,60 +681,18 @@ def _readmem(serport, offset, length):
     readmem = b"\x1b\x05\x08\x00" + \
         struct.pack("<HBB", offset, length, 0) + \
         b"\x6a\x39\x57\x64"
+
     _send_command(serport, readmem)
     o = _receive_reply(serport)
+
     if DEBUG_SHOW_MEMORY_ACTIONS:
         LOG.debug("readmem Received data len=0x%4.4x:\n%s" %
                   (len(o), util.hexprint(o)))
-    return o[8:]
 
+    if len(o) < 8 + length:
+        raise errors.RadioError("Memory read response incomplete")
 
-def _read_extra_mem(serport, offset: int, length: int, extra: int):
-    extra_bytes = struct.pack("<H", extra)
-    LOG.debug(
-        "Sending read_extra_mem offset=0x%4.4x len=0x%4.4x extra=0x%4.4x" % (offset, length, extra))
-
-    readmem = b"\x2b\x05\x08\x00" + \
-              struct.pack("<HBB", offset, length, 0) + \
-              b"\x6a\x39\x57\x64" + \
-              extra_bytes
-    _send_command(serport, readmem)
-    o = _receive_reply(serport)
-    if DEBUG_SHOW_MEMORY_ACTIONS:
-        LOG.debug("read_extra_mem Received data len=0x%4.4x:\n%s" %
-                  (len(o), util.hexprint(o)))
-    return o[8:]
-
-
-def _write_extra_mem(serport, offset: int, extra: int, data):
-    extra_bytes = struct.pack("<H", extra)
-    length = len(data) + len(extra_bytes)
-    LOG.debug("Sending write_extra_mem offset=0x%4.4x len=0x%4.4x extra=0x%4.4x" %
-              (offset, length, extra))
-
-    if DEBUG_SHOW_MEMORY_ACTIONS:
-        LOG.debug("write_extra_mem sent data offset=0x%4.4x len=0x%4.4x add=0x%4.4x:\n%s" %
-                  (offset, length, extra, util.hexprint(data)))
-
-    writemem = b"\x38\x05\x1c\x00" + \
-        struct.pack("<HBB", offset, length, 0) + \
-        b"\x6a\x39\x57\x64" + \
-        extra_bytes + data
-
-    _send_command(serport, writemem)
-    o = _receive_reply(serport)
-
-    LOG.debug("write_extra_mem Received data: %s len=%i" % (util.hexprint(o), len(o)))
-
-    if (o[0] == 0x1e
-            and
-            o[4] == (offset & 0xff)
-            and
-            o[5] == (offset >> 8) & 0xff):
-        return True
-    else:
-        LOG.warning("Bad data from write_extra_mem")
-        raise errors.RadioError("Bad response to write_extra_mem")
+    return o[8:8 + length]
 
 
 def _writemem(serport, data, offset):
@@ -727,23 +705,22 @@ def _writemem(serport, data, offset):
 
     dlen = len(data)
     writemem = b"\x1d\x05" + \
-        struct.pack("<BBHBB", dlen+8, 0, offset, dlen, 1) + \
-        b"\x6a\x39\x57\x64"+data
+        struct.pack("<BBHBB", dlen + 8, 0, offset, dlen, 1) + \
+        b"\x6a\x39\x57\x64" + data
 
     _send_command(serport, writemem)
     o = _receive_reply(serport)
 
-    LOG.debug("writemem Received data: %s len=%i" % (util.hexprint(o), len(o)))
+    LOG.debug("writemem Received data: %s len=%i" %
+              (util.hexprint(o), len(o)))
 
-    if (o[0] == 0x1e
-            and
-            o[4] == (offset & 0xff)
-            and
-            o[5] == (offset >> 8) & 0xff):
+    if (len(o) >= 6 and o[0] == 0x1e and
+            o[4] == (offset & 0xff) and
+            o[5] == ((offset >> 8) & 0xff)):
         return True
-    else:
-        LOG.warning("Bad data from writemem")
-        raise errors.RadioError("Bad response to writemem")
+
+    LOG.warning("Bad data from writemem")
+    raise errors.RadioError("Bad response to writemem")
 
 
 def _resetradio(serport):
@@ -819,6 +796,7 @@ def do_extra_download(radio):
         radio.status_fn(status)
         return [b'', b'']
 
+
 def do_upload(radio):
     serport = radio.pipe
     serport.timeout = 0.5
@@ -857,42 +835,6 @@ def do_upload(radio):
     return True
 
 
-"""def do_extra_upload(radio):
-    serport = radio.pipe
-    serport.timeout = 0.5
-    status = chirp_common.Status()
-    status.cur = 0
-    status.max = 3
-    status.msg = "正在向电台上传扩容部分数据"
-    radio.status_fn(status)
-
-    f = _sayhello(serport)
-    if f:
-        radio.FIRMWARE_VERSION = f
-    else:
-        return False
-
-    if radio.FIRMWARE_VERSION.endswith('K') or radio.FIRMWARE_VERSION.endswith('H'):
-        welcome_logo = radio.get_welcome_logo()
-        _write_extra_mem(serport, 0x00, 0x2024, bytes([len(x) for x in welcome_logo]))
-        status.cur += 1
-        radio.status_fn(status)
-        _write_extra_mem(serport, 0x00, 0x2000, b'\x00' * 18)
-        _write_extra_mem(serport, 0x00, 0x2000, welcome_logo[0])
-        status.cur += 1
-        radio.status_fn(status)
-        _write_extra_mem(serport, 0x00, 0x2012, b'\x00' * 18)
-        _write_extra_mem(serport, 0x00, 0x2012, welcome_logo[1])
-        status.cur += 1
-        radio.status_fn(status)
-    else:
-        status.cur += 3
-        radio.status_fn(status)
-    status.msg = "扩容部分数据上传完成"
-
-    return True
-"""
-
 def _find_band(nolimits, hz):
     mhz = hz/1000000.0
     if nolimits:
@@ -921,14 +863,14 @@ class UVK5Radio(chirp_common.CloneModeRadio):
     _expanded_limits = True
 
     def __init__(self, pipe):
-          super().__init__(pipe)
-          self._welcome_logo = [b'', b'']
+        super().__init__(pipe)
+        self._welcome_logo = [b'', b'']
 
     def get_prompts(x=None):
         rp = chirp_common.RadioPrompts()
         rp.experimental = (
             '这是用于 Quansheng UV-K5 的实验性驱动。它可能会损坏您的电台，甚至更糟。请自行承担风险。\n'
-            '\n' 
+            '\n'
             '在尝试进行任何更改之前，请使用 CHIRP 从电台中下载信道镜像并保存下来。这稍后可以用于恢复原始设置。\n'
             '\n'
             '一些细节尚未实现')
@@ -993,14 +935,13 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         self._mmap = do_download(self)
         try:
             self._welcome_logo = do_extra_download(self)
-        except:
+        except Exception:
             self._welcome_logo = [b'', b'']
         self.process_mmap()
 
     # Do an upload of the radio to the serial port
     def sync_out(self):
         do_upload(self)
-#        do_extra_upload(self)
         _resetradio(self.pipe)
 
     # Convert the raw byte array into a memory object structure
@@ -1032,7 +973,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         # find band
         band = _find_band(self._expanded_limits, txfreq)
         if band is False:
-            msg = "Transmit frequency %.4f MHz is not supported by this radio"\
+            msg = "Transmit frequency %.4f MHz is not supported by this radio" \
                    % (txfreq/1000000.0)
             msgs.append(chirp_common.ValidationError(msg))
 
@@ -1052,7 +993,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             txtoval = CTCSS_TONES.index(txtone)
             txmoval = 0b01
         elif txmode == "DTCS":
-            txmoval = txpol == "R" and 0b11 or 0b10
+            txmoval = 0b11 if txpol == "R" else 0b10
             txtoval = DTCS_CODES.index(txtone)
         else:
             txmoval = 0
@@ -1062,7 +1003,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             rxtoval = CTCSS_TONES.index(rxtone)
             rxmoval = 0b01
         elif rxmode == "DTCS":
-            rxmoval = rxpol == "R" and 0b11 or 0b10
+            rxmoval = 0b11 if rxpol == "R" else 0b10
             rxtoval = DTCS_CODES.index(rxtone)
         else:
             rxmoval = 0
@@ -1109,8 +1050,8 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 rx_tone = 0
                 rx_tmode = ""
 
-        tx_pol = txtype == 0x03 and "R" or "N"
-        rx_pol = rxtype == 0x03 and "R" or "N"
+        tx_pol = "R" if txtype == 0x03 else "N"
+        rx_pol = "R" if rxtype == 0x03 else "N"
 
         chirp_common.split_tone_decode(mem, (tx_tmode, tx_tone, tx_pol),
                                        (rx_tmode, rx_tone, rx_pol))
@@ -1185,11 +1126,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 RadioSettingValueList(SCANLIST_LIST, SCANLIST_LIST[0]))
             mem.extra.append(rs)
 
-            # actually the step and duplex are overwritten by chirp based on
-            # bandplan. they are here to document sane defaults for IARU r1
-            # mem.tuning_step = 25.0
-            # mem.duplex = ""
-
             return mem
 
         if number > 199:
@@ -1262,27 +1198,27 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         is_bclo = bool(_mem.bclo > 0)
         rs = RadioSetting("bclo", "Busy Lockout", RadioSettingValueBoolean(is_bclo))
         mem.extra.append(rs)
-        tmpcomment += "BCLO:"+(is_bclo and "ON" or "off")+" "
+        tmpcomment += "BCLO:" + ("ON" if is_bclo else "off") + " "
 
-        # Frequency reverse - whatever that means, don't see it in the manual
+        # Frequency reverse
         is_frev = bool(_mem.freq_reverse > 0)
         rs = RadioSetting("frev", "Reverse", RadioSettingValueBoolean(is_frev))
         mem.extra.append(rs)
-        tmpcomment += "FreqReverse:"+(is_frev and "ON" or "off")+" "
+        tmpcomment += "FreqReverse:" + ("ON" if is_frev else "off") + " "
 
         # PTTID
         pttid = _mem.dtmf_pttid
         rs = RadioSetting("pttid", "PTTID", RadioSettingValueList(
             PTTID_LIST, PTTID_LIST[pttid]))
         mem.extra.append(rs)
-        tmpcomment += "PTTid:"+PTTID_LIST[pttid]+" "
+        tmpcomment += "PTTid:" + PTTID_LIST[pttid] + " "
 
         # DTMF DECODE
         is_dtmf = bool(_mem.dtmf_decode > 0)
         rs = RadioSetting("dtmfdecode", "DTMF Decode",
                           RadioSettingValueBoolean(is_dtmf))
         mem.extra.append(rs)
-        tmpcomment += "DTMFdecode:"+(is_dtmf and "ON" or "off")+" "
+        tmpcomment += "DTMFdecode:" + ("ON" if is_dtmf else "off") + " "
 
         # Scrambler
         if _mem.scrambler & 0x0f < len(SCRAMBLER_LIST):
@@ -1293,7 +1229,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         rs = RadioSetting("scrambler", "Scrambler", RadioSettingValueList(
             SCRAMBLER_LIST, SCRAMBLER_LIST[enc]))
         mem.extra.append(rs)
-        tmpcomment += "Scrambler:"+SCRAMBLER_LIST[enc]+" "
+        tmpcomment += "Scrambler:" + SCRAMBLER_LIST[enc] + " "
 
         rs = RadioSetting("scanlists", "Scanlist", RadioSettingValueList(
             SCANLIST_LIST, tmpscn))
@@ -1312,26 +1248,27 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             # call channel
             if element.get_name() == "call_channel":
-                _mem.call_channel = int(element.value)-1
+                _mem.call_channel = int(element.value) - 1
 
             # squelch
             if element.get_name() == "squelch":
                 _mem.squelch = int(element.value)
+
             # TOT
             if element.get_name() == "tot":
                 _mem.max_talk_time = int(element.value)
 
             # NOAA autoscan
             if element.get_name() == "noaa_autoscan":
-                _mem.noaa_autoscan = element.value and 1 or 0
+                _mem.noaa_autoscan = 1 if element.value.get_value() else 0
 
             # VOX switch
             if element.get_name() == "vox_switch":
-                _mem.vox_switch = element.value and 1 or 0
+                _mem.vox_switch = 1 if element.value.get_value() else 0
 
             # vox level
             if element.get_name() == "vox_level":
-                _mem.vox_level = int(element.value)-1
+                _mem.vox_level = int(element.value) - 1
 
             # mic gain
             if element.get_name() == "mic_gain":
@@ -1352,6 +1289,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             # Battery Save
             if element.get_name() == "battery_save":
                 _mem.battery_save = BATSAVE_LIST.index(str(element.value))
+
             # Dual Watch
             if element.get_name() == "dualwatch":
                 _mem.dual_watch = DUALWATCH_LIST.index(str(element.value))
@@ -1367,11 +1305,11 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             # VFO Open
             if element.get_name() == "vfo_open":
-                _mem.vfo_open = element.value and 1 or 0
+                _mem.vfo_open = 1 if element.value.get_value() else 0
 
             # UI Sound (Talk Permit Tone + Boot Beep)
             if element.get_name() == "ui_sound":
-                _mem.boot_beep_control = int(bool(element.value))
+                _mem.boot_beep_control = int(bool(element.value.get_value()))
 
             # Scan resume mode
             if element.get_name() == "scan_resume_mode":
@@ -1380,23 +1318,19 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             # Keypad lock
             if element.get_name() == "key_lock":
-                _mem.key_lock = element.value and 1 or 0
+                _mem.key_lock = 1 if element.value.get_value() else 0
 
             # Auto keypad lock
             if element.get_name() == "auto_keypad_lock":
-                _mem.auto_keypad_lock = element.value and 1 or 0
+                _mem.auto_keypad_lock = 1 if element.value.get_value() else 0
 
             # Power on display mode
             if element.get_name() == "welcome_mode":
                 _mem.power_on_dispmode = WELCOME_LIST.index(str(element.value))
 
-            # UI Sound (Talk Permit Tone + Boot Beep)
-            if element.get_name() == "ui_sound":
-                _mem.boot_beep_control = int(bool(element.value))
-
             # C.End call-end tone
             if element.get_name() == "call_end_tone":
-                _mem.call_end_tone = int(bool(element.value))
+                _mem.call_end_tone = int(bool(element.value.get_value()))
 
             # TPT talk-permit tone
             if element.get_name() == "talk_permit_tone":
@@ -1405,34 +1339,37 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             # MDC1200 ID
             if element.get_name() == "mdc1200_id":
                 try:
-                    mdc_id = int(str(element.value), 16)
+                    value = str(element.value).strip()
+                    if len(value) != 4:
+                        raise ValueError
+                    if any(c not in "0123456789ABCDEFabcdef" for c in value):
+                        raise ValueError
+                    mdc_id = int(value, 16)
+
                     _mem.mdc1200_id_low = mdc_id & 0xFF
                     _mem.mdc1200_id_high = (mdc_id >> 8) & 0xFF
-                except ValueError:
+
+                except (TypeError, ValueError):
                     pass
 
-            # FleetSync ID settings
-            if element.get_name() == "fleetsync_fleet_id":
+            # Combined FleetSync ID: FFFUUUU
+            # Fleet = 100..349, Unit = 1000..4999.
+            if element.get_name() == "fleetsync_id":
                 try:
-                    fleet_id = int(element.value)
-                    if fleet_id < FLEETSYNC_FLEET_MIN:
-                        fleet_id = FLEETSYNC_FLEET_MIN
-                    elif fleet_id > FLEETSYNC_FLEET_MAX:
-                        fleet_id = FLEETSYNC_FLEET_MAX
+                    value = str(element.value).strip()
+                    if len(value) != 7 or not value.isdigit():
+                        raise ValueError
+                    fleet_id = int(value[:3])
+                    unit_id = int(value[3:])
+                    if not (FLEETSYNC_FLEET_MIN <= fleet_id <= FLEETSYNC_FLEET_MAX):
+                        raise ValueError
+                    if not (FLEETSYNC_UNIT_MIN <= unit_id <= FLEETSYNC_UNIT_MAX):
+                        raise ValueError
+
                     _mem.fleetsync_fleet = fleet_id - FLEETSYNC_FLEET_MIN
-                except Exception:
-                    pass
-
-            if element.get_name() == "fleetsync_unit_id":
-                try:
-                    unit_id = int(element.value)
-                    if unit_id < FLEETSYNC_UNIT_MIN:
-                        unit_id = FLEETSYNC_UNIT_MIN
-                    elif unit_id > FLEETSYNC_UNIT_MAX:
-                        unit_id = FLEETSYNC_UNIT_MAX
                     _mem.fleetsync_unit_low = unit_id & 0xFF
                     _mem.fleetsync_unit_high = (unit_id >> 8) & 0xFF
-                except Exception:
+                except (TypeError, ValueError):
                     pass
 
             # MDC Preamble Duration
@@ -1459,13 +1396,13 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             # Logo string 1
             if element.get_name() == "logo1":
-                b = str(element.value).rstrip("\x20\xff\x00")+"\x00"*12
-                _mem.logo_line1 = b[0:12]+"\x00\xff\xff\xff"
+                b = str(element.value).rstrip("\x20\xff\x00") + "\x00" * 12
+                _mem.logo_line1 = b[0:12] + "\x00\xff\xff\xff"
 
             # Logo string 2
             if element.get_name() == "logo2":
-                b = str(element.value).rstrip("\x20\xff\x00")+"\x00"*12
-                _mem.logo_line2 = b[0:12]+"\x00\xff\xff\xff"
+                b = str(element.value).rstrip("\x20\xff\x00") + "\x00" * 12
+                _mem.logo_line2 = b[0:12] + "\x00\xff\xff\xff"
 
             # unlock settings
 
@@ -1473,29 +1410,13 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             if element.get_name() == "flock":
                 _mem.lock_flock = FLOCK_LIST.index(str(element.value))
 
-            # # 350TX
-            # if element.get_name() == "tx350":
-            #     _mem.lock.tx350 = element.value and 1 or 0
-            #
-            # # 200TX
-            # if element.get_name() == "tx200":
-            #     _mem.lock.tx200 = element.value and 1 or 0
-            #
-            # # 500TX
-            # if element.get_name() == "tx500":
-            #     _mem.lock.tx500 = element.value and 1 or 0
-            #
-            # # 350EN
-            # if element.get_name() == "en350":
-            #     _mem.lock.en350 = element.value and 1 or 0
-
             # SCREN
             if element.get_name() == "enscramble":
-                _mem.lock_enscramble = element.value and 1 or 0
+                _mem.lock_enscramble = 1 if element.value.get_value() else 0
 
             # KILLED
             if element.get_name() == "killed":
-                _mem.lock_killed = element.value and 1 or 0
+                _mem.lock_killed = 1 if element.value.get_value() else 0
 
             # fm radio
             for i in range(1, 21):
@@ -1509,21 +1430,17 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
                     if val2 < FMMIN*10 or val2 > FMMAX*10:
                         val2 = 0xffff
-#                        raise errors.InvalidValueError(
-#                                "FM radio frequency should be a value "
-#                                "in the range %.1f - %.1f" % (FMMIN , FMMAX))
                     _mem.fmfreq[i-1] = val2
 
             # dtmf settings
             if element.get_name() == "dtmf_side_tone":
-                _mem.dtmf_settings.side_tone = \
-                        element.value and 1 or 0
+                _mem.dtmf_settings.side_tone = 1 if element.value.get_value() else 0
 
             if element.get_name() == "dtmf_separate_code":
                 _mem.dtmf_settings.separate_code = str(element.value)
 
             if element.get_name() == "dtmf_group_call_code":
-                _mem.dtmf_settings.group_call_code = element.value
+                _mem.dtmf_settings.group_call_code = str(element.value)
 
             if element.get_name() == "dtmf_decode_response":
                 _mem.dtmf_settings.decode_response = \
@@ -1554,8 +1471,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                         int(int(element.value)/10)
 
             if element.get_name() == "dtmf_permit_remote_kill":
-                _mem.dtmf_settings.permit_remote_kill = \
-                        element.value and 1 or 0
+                _mem.dtmf_settings.permit_remote_kill = 1 if element.value.get_value() else 0
 
             if element.get_name() == "dtmf_dtmf_local_code":
                 k = str(element.value).rstrip("\x20\xff\x00") + "\x00"*3
@@ -1586,8 +1502,8 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
                 varnumname = "DTMFNUM_" + str(i)
                 if element.get_name() == varnumname:
-                    k = str(element.value).rstrip("\x20\xff\x00") + "\xff"*3
-                    _mem.dtmfcontact[i-1].number = k[0:3]
+                    k = str(element.value).rstrip("\x20\xff\x00") + "\xff"*7
+                    _mem.dtmfcontact[i-1].number = k[0:7]
 
             # MDC Alias
             element_name = element.get_name()
@@ -1597,14 +1513,43 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 mdc_id = "MDC_ID_" + str(i)
                 mdc_name = "MDC_NAME_" + str(i)
                 if element_name == mdc_id:
-                    k = str(element.value).replace(' ', '').rjust(4, '0')
-                    get_mdc_contact_object(_mem, i).id = bytes.fromhex(k)[0:2]
+                    value = str(element.value).strip()
+
+                    try:
+                        if value == "":
+                            # Blank alias ID = empty ID
+                            get_mdc_contact_object(_mem, i).id = b"\x00\x00"
+                        else:
+                            value = value.upper()
+
+                            if len(value) > 4:
+                                value = value[:4]
+
+                            if any(c not in "0123456789ABCDEF" for c in value):
+                                raise ValueError
+
+                            value = value.rjust(4, "0")
+                            get_mdc_contact_object(_mem, i).id = bytes.fromhex(value)
+
+                    except ValueError:
+                        LOG.warning(
+                            "Invalid MDC Alias ID %s: %r",
+                            i,
+                            element.value
+                        )
 
                 if element_name == mdc_name:
                     get_mdc_contact_object(_mem, i).name = str(element.value)[0:14]
 
                 mdc_obj = get_mdc_contact_object(_mem, i)
-                is_not_empty = mdc_obj.id.get_raw() != b'\x00' * 2 and mdc_obj.name.get_raw() != b'\x20' * 20
+                mdc_raw_id = mdc_obj.id.get_raw()
+                mdc_raw_name = mdc_obj.name.get_raw()
+
+                is_not_empty = (
+                    mdc_raw_id != b'\x00\x00' and
+                    mdc_raw_id != b'\xff\xff' and
+                    mdc_raw_name.strip(b'\x00\x20\xff') != b''
+                )
                 if is_not_empty and (last_valid == i - 1 or last_valid == 0):
                     valid_mdc = i
                     last_valid = i
@@ -1612,21 +1557,19 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             # scanlist stuff
             if element.get_name() == "scanlist_default":
-                val = (int(element.value) == 2) and 1 or 0
+                val = 1 if int(element.value) == 2 else 0
                 _mem.scanlist_default = val
 
             if element.get_name() == "scanlist1_priority_scan":
-                _mem.scanlist1_priority_scan = \
-                        element.value and 1 or 0
+                _mem.scanlist1_priority_scan = 1 if element.value.get_value() else 0
 
             if element.get_name() == "scanlist2_priority_scan":
-                _mem.scanlist2_priority_scan = \
-                        element.value and 1 or 0
+                _mem.scanlist2_priority_scan = 1 if element.value.get_value() else 0
 
-            if element.get_name() == "scanlist1_priority_ch1" or \
-                    element.get_name() == "scanlist1_priority_ch2" or \
-                    element.get_name() == "scanlist2_priority_ch1" or \
-                    element.get_name() == "scanlist2_priority_ch2":
+            if element.get_name() in ("scanlist1_priority_ch1",
+                                      "scanlist1_priority_ch2",
+                                      "scanlist2_priority_ch1",
+                                      "scanlist2_priority_ch2"):
 
                 val = int(element.value)
 
@@ -1666,14 +1609,14 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             if element.get_name() == "nolimits":
                 LOG.warning("User expanded band limits")
-                self._expanded_limits = bool(element.value)
+                self._expanded_limits = bool(element.value.get_value())
 
     def get_settings(self):
         _mem = self._memobj
         basic = RadioSettingGroup("basic", "Basic Settings")
         keya = RadioSettingGroup("keya", "User Defined Sidekeys")
         dtmf = RadioSettingGroup("dtmf", "DTMF Settings")
-        dtmfc = RadioSettingGroup("dtmfc", "DTMF Alias")
+        dtmfc = RadioSettingGroup("dtmfc", "FleetSync Alias")
         mdcc = RadioSettingGroup("mdcc", "MDC Alias")
         scanl = RadioSettingGroup("scn", "Scanlists")
         unlock = RadioSettingGroup("unlock", "Unlock settings")
@@ -1826,7 +1769,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             else:
                 tmpval = "103"
                 break
-        val = RadioSettingValueString(3, 3, tmpval)
+        val = RadioSettingValueString(0, 3, tmpval, autopad=False)
         val.set_charset(DTMF_CHARS_ID)
         rs = RadioSetting("dtmf_dtmf_local_code",
                           "Radio ID (3 Letter 0-9 ABCD)", val)
@@ -1840,7 +1783,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             else:
                 tmpval = "123"
                 break
-        val = RadioSettingValueString(1, 16, tmpval)
+        val = RadioSettingValueString(0, 16, tmpval, autopad=False)
         val.set_charset(DTMF_CHARS_UPDOWN)
         rs = RadioSetting("dtmf_dtmf_up_code",
                           "Upcode (1-16 digits, 0-9 ABCD*#)", val)
@@ -1854,7 +1797,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             else:
                 tmpval = "456"
                 break
-        val = RadioSettingValueString(1, 16, tmpval)
+        val = RadioSettingValueString(0, 16, tmpval, autopad=False)
         val.set_charset(DTMF_CHARS_UPDOWN)
         rs = RadioSetting("dtmf_dtmf_down_code",
                           "Downcode (1-16 digits, 0-9 ABCD*#)", val)
@@ -1870,7 +1813,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 break
         if not len(tmpval) == 5:
             tmpval = "77777"
-        val = RadioSettingValueString(5, 5, tmpval)
+        val = RadioSettingValueString(0, 5, tmpval, autopad=False)
         val.set_charset(DTMF_CHARS_KILL)
         rs = RadioSetting("dtmf_kill_code",
                           "StunCode (5 digits, 0-9 ABCD)", val)
@@ -1886,18 +1829,17 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 break
         if not len(tmpval) == 5:
             tmpval = "88888"
-        val = RadioSettingValueString(5, 5, tmpval)
+        val = RadioSettingValueString(0, 5, tmpval, autopad=False)
         val.set_charset(DTMF_CHARS_KILL)
         rs = RadioSetting("dtmf_revive_code",
                           "WakeCode (5 digits, 0-9 ABCD)", val)
         dtmf.append(rs)
 
         val = RadioSettingValueString(0, 80,
-                                      "DTMF Alias, 3 Letters"
-                                      "(0-9 * # ABCD), "
-                                      "Or Blank", charset=VALID_CHARACTERS)
+                                      "FleetSync Alias, 7 digits"
+                                      " (fleet + unit, 000-999 + 0000-9999)", charset=VALID_CHARACTERS)
         val.set_mutable(False)
-        rs = RadioSetting("dtmf_descr1", "DTMF Alias", val)
+        rs = RadioSetting("dtmf_descr1", "FleetSync Alias", val)
         dtmfc.append(rs)
 
         for i in range(1, 17):
@@ -1909,12 +1851,11 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             cntn = str(_mem.dtmfcontact[i-1].name).strip("\x20\x00\xff")
             cntnum = str(_mem.dtmfcontact[i-1].number).strip("\x20\x00\xff")
 
-            val = RadioSettingValueString(0, 8, cntn)
+            val = RadioSettingChineseValueString(0, 8, cntn, self.FIRMWARE_VERSION, charset=VALID_CHARACTERS)
             rs = RadioSetting(varname, vardescr, val)
             dtmfc.append(rs)
 
-            val = RadioSettingValueString(0, 3, cntnum)
-            val.set_charset(DTMF_CHARS)
+            val = RadioSettingValueString(0, 7, cntnum, autopad=False, charset="0123456789")
             rs = RadioSetting(varnumname, varinumdescr, val)
             dtmfc.append(rs)
 
@@ -1935,22 +1876,34 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 c_id = ''.join(['{:02X}'.format(int(byte)) for byte in mdc_obj.id])
                 c_name = str(mdc_obj.name)
 
-                val = RadioSettingValueString(0, 4, c_id, charset=' 0123456789ABCDEF')
+                val = RadioSettingValueString(
+                    0,
+                    4,
+                    c_id,
+                    autopad=False,
+                    charset="0123456789ABCDEFabcdef"
+                )
                 rs = RadioSetting(mdc_id, mdc_id_descr, val)
                 mdcc.append(rs)
 
                 try:
-                    val = RadioSettingValueString(0, 14, c_name)
+                    val = RadioSettingChineseValueString(0, 14, c_name, self.FIRMWARE_VERSION, charset=VALID_CHARACTERS)
                 except Exception:
-                    val = RadioSettingValueString(0, 14, '')
+                    val = RadioSettingChineseValueString(0, 14, '', self.FIRMWARE_VERSION, charset=VALID_CHARACTERS)
                 rs = RadioSetting(mdc_name, mdc_name_descr, val)
                 mdcc.append(rs)
             else:
-                val = RadioSettingValueString(0, 4, '', charset=' 0123456789ABCDEF')
+                val = RadioSettingValueString(
+                    0,
+                    4,
+                    "",
+                    autopad=False,
+                    charset="0123456789ABCDEFabcdef"
+                )
                 rs = RadioSetting(mdc_id, mdc_id_descr, val)
                 mdcc.append(rs)
 
-                val = RadioSettingValueString(0, 14, '')
+                val = RadioSettingChineseValueString(0, 14, '', self.FIRMWARE_VERSION, charset=VALID_CHARACTERS)
                 rs = RadioSetting(mdc_name, mdc_name_descr, val)
                 mdcc.append(rs)
 
@@ -2142,7 +2095,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         rs = RadioSetting(
                 "ui_sound",
                 "UI Sound",
-            RadioSettingValueBoolean(bool(int(_mem.boot_beep_control))))
+                RadioSettingValueBoolean(bool(int(_mem.boot_beep_control))))
         basic.append(rs)
 
         rs = RadioSetting(
@@ -2209,31 +2162,34 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         basic.append(rs)
 
         # MDC ID
-        mdc_id = (_mem.mdc1200_id_high << 8) | _mem.mdc1200_id_low
+        mdc_id = (int(_mem.mdc1200_id_high) << 8) | int(_mem.mdc1200_id_low)
+
         rs = RadioSetting(
-                "mdc1200_id",
-                "MDC1200 ID",
-                RadioSettingValueString(0, 4, '%04X' % mdc_id, charset='0123456789ABCDEFabcdef'))
+            "mdc1200_id",
+            "MDC1200 ID (Hex)",
+            RadioSettingValueString(4, 4, "{:04X}".format(mdc_id),
+                                    autopad=False,
+                                    charset="0123456789ABCDEFabcdef")
+        )
         basic.append(rs)
 
-        # FleetSync ID split fields
+        # Combined FleetSync ID: FFFUUUU
         fleet_id = FLEETSYNC_FLEET_MIN + int(getattr(_mem, 'fleetsync_fleet', 0))
         if fleet_id < FLEETSYNC_FLEET_MIN or fleet_id > FLEETSYNC_FLEET_MAX:
             fleet_id = FLEETSYNC_FLEET_MIN
-        unit_id = ((getattr(_mem, 'fleetsync_unit_high', 0) << 8) | getattr(_mem, 'fleetsync_unit_low', 0))
+
+        unit_id = ((getattr(_mem, 'fleetsync_unit_high', 0) << 8) |
+                   getattr(_mem, 'fleetsync_unit_low', 0))
         if unit_id < FLEETSYNC_UNIT_MIN or unit_id > FLEETSYNC_UNIT_MAX:
             unit_id = FLEETSYNC_UNIT_MIN
 
+        fleetsync_value = "{:03d}{:04d}".format(fleet_id, unit_id)
         rs = RadioSetting(
-                "fleetsync_fleet_id",
-                "FleetSync Fleet (100..499)",
-                ClampedRadioSettingValueInteger(FLEETSYNC_FLEET_MIN, FLEETSYNC_FLEET_MAX, fleet_id))
-        basic.append(rs)
-
-        rs = RadioSetting(
-                "fleetsync_unit_id",
-                "FleetSync Unit (1000..4999)",
-                ClampedRadioSettingValueInteger(FLEETSYNC_UNIT_MIN, FLEETSYNC_UNIT_MAX, unit_id))
+                "fleetsync_id",
+                "FleetSync ID (FFFUUUU)",
+                RadioSettingValueString(7, 7, fleetsync_value,
+                                        autopad=False,
+                                        charset="0123456789"))
         basic.append(rs)
 
         # MDC Preamble Duration
@@ -2295,14 +2251,14 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         logo1 = str(_mem.logo_line1).strip("\x20\x00\xff") + "\x00"
         logo1 = _getstring(logo1.encode('ascii', errors='ignore'), 0, 12)
         rs = RadioSetting("logo1", "Logo String 1 (12 Letter)",
-                          RadioSettingValueString(0, 12, logo1, False))
+                          RadioSettingChineseValueString(0, 12, logo1, self.FIRMWARE_VERSION, charset=VALID_CHARACTERS, autopad=False))
         basic.append(rs)
 
         # Logo string 2
         logo2 = str(_mem.logo_line2).strip("\x20\x00\xff") + "\x00"
         logo2 = _getstring(logo2.encode('ascii', errors='ignore'), 0, 12)
         rs = RadioSetting("logo2", "Logo String 2 (12 Letter)",
-                          RadioSettingValueString(0, 12, logo2, False))
+                          RadioSettingChineseValueString(0, 12, logo2, self.FIRMWARE_VERSION, charset=VALID_CHARACTERS, autopad=False))
         basic.append(rs)
 
         # FM radio
@@ -2329,38 +2285,14 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             RadioSettingValueList(FLOCK_LIST, FLOCK_LIST[tmpflock]))
         unlock.append(rs)
 
-        # # 350TX
-        # rs = RadioSetting("tx350", "350TX - unlock 350-400 MHz TX",
-        #                   RadioSettingValueBoolean(
-        #                       bool(_mem.lock.tx350 > 0)))
-        # unlock.append(rs)
-
         # Killed
-        rs = RadioSetting("Killed", "Radio Stun",
+        rs = RadioSetting("killed", "Radio Stun",
                           RadioSettingValueBoolean(
                               bool(_mem.lock_killed > 0)))
         unlock.append(rs)
 
-        # # 200TX
-        # rs = RadioSetting("tx200", "200TX - unlock 174-350 MHz TX",
-        #                   RadioSettingValueBoolean(
-        #                       bool(_mem.lock.tx200 > 0)))
-        # unlock.append(rs)
-        #
-        # # 500TX
-        # rs = RadioSetting("tx500", "500TX - unlock 500-600 MHz TX",
-        #                   RadioSettingValueBoolean(
-        #                       bool(_mem.lock.tx500 > 0)))
-        # unlock.append(rs)
-        #
-        # # 350EN
-        # rs = RadioSetting("en350", "350EN - unlock 350-400 MHz RX",
-        #                   RadioSettingValueBoolean(
-        #                       bool(_mem.lock.en350 > 0)))
-        # unlock.append(rs)
-
         # SCREEN
-        rs = RadioSetting("scrambler", "Scrambler",
+        rs = RadioSetting("enscramble", "Scrambler",
                           RadioSettingValueBoolean(
                               bool(_mem.lock_enscramble > 0)))
         unlock.append(rs)
@@ -2437,7 +2369,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             _mem4.channel_attributes[number].band = 0x7
 
         # find band
-        band = _find_band(self, mem.freq)
+        band = _find_band(self._expanded_limits, mem.freq)
 
         # mode
         if mem.mode == "NFM":
@@ -2454,8 +2386,8 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             _mem.enable_am = 1
 
         # frequency/offset
-        _mem.freq = mem.freq/10
-        _mem.offset = mem.offset/10
+        _mem.freq = int(mem.freq / 10)
+        _mem.offset = int(mem.offset / 10)
 
         if mem.duplex == "":
             _mem.offset = 0
@@ -2474,7 +2406,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             _mem4.channel_attributes[number].is_free = 0
             _mem4.channel_attributes[number].band = band
 
-        # channels >200 are the 14 VFO chanells and don't have names
+        # channels >200 are the 14 VFO channels and don't have names
         if number < 200:
             _mem2 = self._memobj.channelname[number]
             text = convert_chinese_to_bytes(mem.name)
@@ -2505,16 +2437,16 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             svalue = setting.value.get_value()
 
             if sname == "bclo":
-                _mem.bclo = svalue and 1 or 0
+                _mem.bclo = 1 if svalue else 0
 
             if sname == "pttid":
                 _mem.dtmf_pttid = PTTID_LIST.index(svalue)
 
             if sname == "frev":
-                _mem.freq_reverse = svalue and 1 or 0
+                _mem.freq_reverse = 1 if svalue else 0
 
             if sname == "dtmfdecode":
-                _mem.dtmf_decode = svalue and 1 or 0
+                _mem.dtmf_decode = 1 if svalue else 0
 
             if sname == "scrambler":
                 _mem.scrambler = (
