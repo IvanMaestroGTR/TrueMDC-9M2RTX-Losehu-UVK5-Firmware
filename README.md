@@ -19,7 +19,7 @@ Custom features and ongoing enhancements:
 FleetSync notes:
 - FleetSync uses a separate Fleet ID and Unit ID.
 - Valid Fleet ID range in the current implementation: 100 to 349.
-- Valid Unit ID range in the current implementation: 100 to 4999.
+- Valid Unit ID range in the current implementation: 1000 to 4999.
 - Values outside these limits are clamped to the nearest valid bound so the radio stays within the supported protocol range.
 - The FleetSync ID is handled independently from the MDC ID, and the active Roger mode determines whether the FleetSync path is used for pre/post signaling.
 - FleetSync EOT squelch-tail elimination: when the receiver decodes a valid FleetSync end-of-transmission packet, it immediately mutes the received audio path to remove the post-ID squelch tail.

@@ -10,7 +10,7 @@
 /* FleetSync carries a 12-bit unit offset from the displayed value 999. */
 #define FLEETSYNC_FLEET_MIN 100u
 #define FLEETSYNC_FLEET_MAX 349u
-#define FLEETSYNC_UNIT_MIN  100u
+#define FLEETSYNC_UNIT_MIN  1000u
 #define FLEETSYNC_UNIT_MAX  4999u
 
 /*

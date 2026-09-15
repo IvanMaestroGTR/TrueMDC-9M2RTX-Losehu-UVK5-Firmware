@@ -366,7 +366,7 @@ RTE_LIST = ["200ms", "300ms", "400ms", "500ms", "600ms", "700ms", "800ms", "900m
 STE_LIST = ["Off", "55Hz", "180"]
 FLEETSYNC_FLEET_MIN = 100
 FLEETSYNC_FLEET_MAX = 349
-FLEETSYNC_UNIT_MIN = 100
+FLEETSYNC_UNIT_MIN = 1000
 FLEETSYNC_UNIT_MAX = 4999
 MDC_PREAMBLE_DURATION_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 MDC_PREAMBLE_WHEN_LIST = ["TX Pre-ID", "TX Post-ID", "TX Both"]
@@ -1848,7 +1848,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
         val = RadioSettingValueString(0, 80,
                                       "FleetSync Alias, 7 digits"
-                                      " (fleet + unit, 000-999 + 0000-9999)", charset=VALID_CHARACTERS)
+                                      " (fleet + unit, 100-349 + 1000-4999)", charset=VALID_CHARACTERS)
         val.set_mutable(False)
         rs = RadioSetting("dtmf_descr1", "FleetSync Alias", val)
         dtmfc.append(rs)
