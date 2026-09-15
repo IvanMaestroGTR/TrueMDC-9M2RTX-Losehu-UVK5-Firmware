@@ -637,6 +637,7 @@ void solve_sign(const uint16_t interrupt_bits) {
                 uint16_t unit;
 
                 if (FleetSync_decode_ani(fleetsync_rx_buffer, &fleet, &unit)) {
+                    mdc1200_fleet_id = fleet;
                     mdc1200_unit_id = unit;
                     mdc1200_rx_ready_tick_500ms = 2 * 5;
                     gUpdateDisplay = true;
@@ -754,7 +755,7 @@ void solve_sign(const uint16_t interrupt_bits) {
                         if (!has_contact && (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
                                              gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
                                              gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH)) {
-                            has_contact = fleetsync_contact_find(gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id, mdc_contact);
+                            has_contact = fleetsync_contact_find(mdc1200_fleet_id, mdc1200_unit_id, mdc_contact);
                         }
 #endif
                     }
@@ -771,7 +772,7 @@ void solve_sign(const uint16_t interrupt_bits) {
 #ifdef ENABLE_FLEETSYNC
                         if (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH)
                             snprintf(prefix, sizeof(prefix), "(%03u%04u)",
-                                     gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id);
+                                     mdc1200_fleet_id, mdc1200_unit_id);
                         else
 #endif
                         snprintf(prefix, sizeof(prefix), "(%04X)", mdc1200_unit_id);

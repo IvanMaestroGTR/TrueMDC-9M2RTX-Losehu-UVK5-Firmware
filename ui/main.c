@@ -967,11 +967,11 @@ void UI_DisplayMain(void) {
             } else if (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
                        gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
                        gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH) {
-                if (fleetsync_contact_find(gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id, mdc1200_contact))
+                if (fleetsync_contact_find(mdc1200_fleet_id, mdc1200_unit_id, mdc1200_contact))
                     snprintf(String, sizeof(String), "ID: %.14s", mdc1200_contact);
                 else
                     snprintf(String, sizeof(String), "ID: %03u%04u",
-                             gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id);
+                             mdc1200_fleet_id, mdc1200_unit_id);
 #endif
             } else {
 #ifdef ENABLE_FLEETSYNC
@@ -979,7 +979,7 @@ void UI_DisplayMain(void) {
                     gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
                     gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH)
                     snprintf(String, sizeof(String), "ID: %03u%04u",
-                             gEeprom.FLEETSYNC_FLEET, mdc1200_unit_id);
+                             mdc1200_fleet_id, mdc1200_unit_id);
                 else
 #endif
                 snprintf(String, sizeof(String), "ID: %04X", mdc1200_unit_id);

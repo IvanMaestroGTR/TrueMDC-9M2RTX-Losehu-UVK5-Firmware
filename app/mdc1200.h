@@ -95,6 +95,7 @@ extern const uint8_t mdc1200_sync_suc_xor[5];
 extern uint8_t mdc1200_op;
 extern uint8_t mdc1200_arg;
 extern uint16_t mdc1200_unit_id;
+extern uint16_t mdc1200_fleet_id;
 
 bool mdc1200_contact_find(uint16_t mdc_id, char *contact);
 bool fleetsync_contact_find(uint16_t fleet_id, uint16_t unit_id, char *contact);

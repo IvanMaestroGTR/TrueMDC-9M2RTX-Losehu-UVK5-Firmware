@@ -164,10 +164,6 @@ u8 fleetsync_fleet;
 char logo_line1[16];
 char logo_line2[16];
 
-#seekto 0xee0;
-u8 fleetsync_unit_low;
-u8 fleetsync_unit_high;
-
 #seekto 0xed0;
 struct {
 u8 side_tone;
@@ -205,6 +201,9 @@ u8 scanlist2_priority_ch1;
 u8 scanlist2_priority_ch2;
 u8 scanlist_unknown_0xff;
 
+#seekto 0xf20;
+u8 fleetsync_unit_low;
+u8 fleetsync_unit_high;
 
 #seekto 0xf40;
 u8 lock_flock;
@@ -367,7 +366,7 @@ RTE_LIST = ["200ms", "300ms", "400ms", "500ms", "600ms", "700ms", "800ms", "900m
 STE_LIST = ["Off", "55Hz", "180"]
 FLEETSYNC_FLEET_MIN = 100
 FLEETSYNC_FLEET_MAX = 349
-FLEETSYNC_UNIT_MIN = 1000
+FLEETSYNC_UNIT_MIN = 100
 FLEETSYNC_UNIT_MAX = 4999
 MDC_PREAMBLE_DURATION_LIST = ["Off", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 MDC_PREAMBLE_WHEN_LIST = ["TX Pre-ID", "TX Post-ID", "TX Both"]

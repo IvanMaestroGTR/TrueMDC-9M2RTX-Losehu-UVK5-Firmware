@@ -10,6 +10,7 @@
 uint8_t      mdc1200_op;
 uint8_t      mdc1200_arg;
 uint16_t     mdc1200_unit_id;
+uint16_t     mdc1200_fleet_id;
 uint8_t      mdc1200_rx_ready_tick_500ms;
 uint8_t      mdc1200_rx_buffer[5 + (MDC1200_FEC_K * 2)];
 unsigned int mdc1200_rx_buffer_index = 0;
@@ -361,9 +362,6 @@ bool fleetsync_contact_find(uint16_t fleet_id, uint16_t unit_id, char *contact) 
         EEPROM_ReadBuffer(0x1C00 + (i * 16), read_once, 16);
 
         if (read_once[0] == 0xFF || read_once[0] == 0)
-            continue;
-
-        if (read_once[0] < ' ' || read_once[0] > '~')
             continue;
 
         memset(stored_fleet, 0, sizeof(stored_fleet));
