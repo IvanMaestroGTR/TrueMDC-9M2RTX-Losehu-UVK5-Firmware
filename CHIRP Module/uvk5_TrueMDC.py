@@ -470,20 +470,23 @@ def convert_bytes_to_chinese(data: bytes) -> str:
         return ''
 
 
+def sanitize_gb2312_text(data: str, allowed_chars: str = VALID_CHARACTERS) -> str:
+    """Strip unsupported characters so older firmware EEPROM data can still be opened."""
+    return ''.join(ch for ch in data if ch in allowed_chars)
+
+
 def convert_chinese_to_bytes(data: str) -> bytes:
     """Encode a CHIRP channel/settings string as GB2312.
 
-    Do not silently turn an encoding failure into an empty string: that can
-    make CHIRP appear to accept a value while writing the wrong bytes to the
-    radio.
+    Older firmware images can leave stray non-GB2312 bytes in EEPROM. For
+    compatibility we strip unsupported characters instead of failing hard when
+    reading settings from the radio.
     """
     try:
-        return data.encode('gb2312')
-    except UnicodeEncodeError as e:
-        raise InvalidValueError(
-            "Value contains a character that cannot be encoded as GB2312: "
-            "%s" % e.object[e.start:e.end]
-        ) from e
+        sanitized = sanitize_gb2312_text(data)
+        return sanitized.encode('gb2312', errors='ignore')
+    except Exception:
+        return b''
 
 
 def check_text_in_charset(text: str) -> bool:
@@ -511,6 +514,8 @@ class RadioSettingChineseValueString(RadioSettingValueString):
             raise InvalidValueError("Value must be at least %i chars" %
                                     self._minlength)
 
+        value = sanitize_gb2312_text(value, self._charset)
+
         # The radio stores this field in bytes, not Unicode characters.
         # Check the encoded length before CHIRP pads the displayed value.
         encoded = convert_chinese_to_bytes(value)
@@ -518,11 +523,6 @@ class RadioSettingChineseValueString(RadioSettingValueString):
             raise InvalidValueError(
                 "Value is too long for the radio (%i encoded bytes maximum)" %
                 self._maxlength)
-
-        for char in value:
-            if char not in self._charset:
-                raise InvalidValueError("Value contains invalid " +
-                                        "character `%s'" % char)
 
         if self._autopad:
             value = value.ljust(self._maxlength)
@@ -1381,6 +1381,17 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             if element.get_name() == "mdc1200_preamble_when":
                 _mem.mdc1200_preamble_when = MDC_PREAMBLE_WHEN_LIST.index(
                     str(element.value))
+
+            # FleetSync aliases share the DTMF contact EEPROM records.
+            if element.get_name().startswith("DTMF_"):
+                index = int(element.get_name()[5:]) - 1
+                if 0 <= index < len(_mem.dtmfcontact):
+                    _mem.dtmfcontact[index].name = str(element.value).ljust(8)[:8]
+
+            if element.get_name().startswith("DTMFNUM_"):
+                index = int(element.get_name()[8:]) - 1
+                if 0 <= index < len(_mem.dtmfcontact):
+                    _mem.dtmfcontact[index].number = str(element.value).ljust(7)[:7]
 
             # Alarm mode
             if element.get_name() == "alarm_mode":

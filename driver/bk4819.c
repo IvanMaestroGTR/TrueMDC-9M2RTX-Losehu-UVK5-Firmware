@@ -358,8 +358,9 @@ void BK4819_PlayRoger(void) {
 #endif
             BK4819_send_MDC1200(MDC1200_OP_CODE_POST_ID, 0x00, gEeprom.MDC1200_ID, preamble_duration);
         
-        // Short delay after POST-ID MDC before ending TX (20ms) - mic stays muted
-        SYSTEM_DelayMs(20);
+        // Keep FleetSync TX active slightly longer after the post packet.
+        // MDC keeps the original 20 ms hold.
+        SYSTEM_DelayMs(useFleetSyncRoger ? 40 : 20);
 
     }
 #endif
@@ -1063,6 +1064,24 @@ void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay,
         BK4819_ExitTxMute();
     }
 }
+
+//void BK4819_PlaySquelchTailBeep(void) {
+//    BK4819_EnterTxMute();
+//    AUDIO_AudioPathOn();
+//    BK4819_SetAF(BK4819_AF_BEEP);
+//    BK4819_Enable_AfDac_DiscMode_TxDsp();
+//    BK4819_WriteRegister(BK4819_REG_70,
+//                         BK4819_REG_70_ENABLE_TONE1 |
+//                         (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+//    BK4819_WriteRegister(BK4819_REG_71, scale_freq(1397));
+//    BK4819_ExitTxMute();
+//    SYSTEM_DelayMs(75);
+//    BK4819_EnterTxMute();
+//    AUDIO_AudioPathOff();
+//    BK4819_SetAF(BK4819_AF_MUTE);
+//    BK4819_WriteRegister(BK4819_REG_70, 0);
+//    BK4819_TurnsOffTones_TurnsOnRX();
+//}
 
 void BK4819_PlayRxEndTone(void) {
     UI_SetTalkPermitToast(TALK_PERMIT_TOAST_CALL_ENDED, 0);
@@ -2262,11 +2281,7 @@ void BK4819_stop_tones(const bool tx)
     BK4819_SetAF(BK4819_AF_MUTE);
 
 //	BK4819_EnterTxMute();
-
-    SYSTEM_DelayMs(1);
-
     BK4819_WriteRegister(0x70, 0);
-
     BK4819_WriteRegister(0x30, 0);
     if (!tx)
     {

@@ -641,9 +641,19 @@ void solve_sign(const uint16_t interrupt_bits) {
                     mdc1200_unit_id = unit;
                     mdc1200_rx_ready_tick_500ms = 2 * 5;
                     gUpdateDisplay = true;
+
+                    // FleetSync EOT marks the end of the voice transmission.
+                    // Mute the received audio immediately, while leaving the
+                    // FSK receiver armed for another ID on a shared carrier.
+                    //if (fleetsync_rx_buffer[4] == 0x00) {
+                    //    BK4819_SetAF(BK4819_AF_MUTE);
+                    //    g_SquelchLost = true;
+                    //    BK4819_PlaySquelchTailBeep();
+                    //}
                 }
                 fleetsync_rx_buffer_index = 0;
             }
+
         } else {
 #endif
         {
@@ -705,11 +715,6 @@ void solve_sign(const uint16_t interrupt_bits) {
 
 #ifdef ENABLE_FLEETSYNC
         if (useFleetSyncDecode) {
-            /*
-             * FleetSync packets are already decoded when the RX FIFO reaches the
-             * full packet size in the FIFO-almost-full path.  Do not decode again
-             * here; just reset the RX buffer state for the next burst.
-             */
             fleetsync_rx_buffer_index = 0;
         }
 #endif
