@@ -22,7 +22,11 @@ FleetSync notes:
 - Valid Unit ID range in the current implementation: 1000 to 4999.
 - Values outside these limits are clamped to the nearest valid bound so the radio stays within the supported protocol range.
 - The FleetSync ID is handled independently from the MDC ID, and the active Roger mode determines whether the FleetSync path is used for pre/post signaling.
-- FleetSync EOT squelch-tail elimination: when the receiver decodes a valid FleetSync end-of-transmission packet, it immediately mutes the received audio path to remove the post-ID squelch tail.
+
+MDC Notes:
+- A valid personal ID starts from 0001-D999
+- E001-E999 is reserved for group calling in MDC, and it is best used for selective group calling only. Avoid saving your ID with this prefix.
+- Also avoid the use of FFFF, which is used in selective calling for all call.
 
 I would like to thank everyone who trusts my work and those who have tested my builds. Special thanks to Sara Sinn for early testing, 9W2BIL for extensive beta testing of new features, 9W3MIG, 9W3KKW, and 9W3JJJ for supporting this firmware, and 9W2DSL and 9W2ESR for their ideas and feedback. Special thanks to BI7CZK on his professional advice on Hytera Radio audio UI. Thanks also to everyone else who has used my firmware, and to those who have helped keep the spirit of this project lively and forward-moving!
 
