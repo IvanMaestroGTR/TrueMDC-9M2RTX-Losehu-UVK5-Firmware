@@ -3,6 +3,10 @@
         "/^wsl make full$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^python -m py_compile \"CHIRP Module\\\\uvk5_TrueMDC\\.py\"; echo EXIT:\\$\\?; grep -n \"mdccontact2\\\\\\[6\\\\\\]\\\\\\|MAX_MDC_CONTACTS\\\\\\|range\\(1, MAX_MDC_CONTACTS\" \"CHIRP Module\\\\uvk5_TrueMDC\\.py\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

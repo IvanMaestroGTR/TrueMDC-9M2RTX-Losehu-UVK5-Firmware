@@ -260,7 +260,7 @@ ul16 battery_level[6];
 struct {
     u8 id[2];
     char name[14];
-} mdccontact2[6];
+} mdccontact2[5];
 
 #seekto 0x1ff8;
 u8 mkey_longpress_action;
@@ -376,6 +376,7 @@ OFF_ON_LIST = ["Off", "On"]
 MEM_SIZE = 0x2000  # size of all memory
 PROG_SIZE = 0x1e00  # size of the memory that we will write
 MEM_BLOCK = 0x80  # largest block of memory that we can reliably write
+MAX_MDC_CONTACTS = 21  # 16 aliases at 0x1D00 + 5 aliases at 0x1F90
 
 # fm radio supported frequencies
 FMMIN = 64.0
@@ -1509,7 +1510,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             element_name = element.get_name()
             valid_mdc = 0
             last_valid = 0
-            for i in range(1, 23):
+            for i in range(1, MAX_MDC_CONTACTS + 1):
                 mdc_id = "MDC_ID_" + str(i)
                 mdc_name = "MDC_NAME_" + str(i)
                 if element_name == mdc_id:
@@ -1866,7 +1867,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         rs = RadioSetting("mdc_descr1", "MDC Alias", val)
         mdcc.append(rs)
 
-        for i in range(1, 23):
+        for i in range(1, MAX_MDC_CONTACTS + 1):
             mdc_id = "MDC_ID_" + str(i)
             mdc_name = "MDC_NAME_" + str(i)
             mdc_id_descr = "Alias" + str(i) + " | MDC ID"

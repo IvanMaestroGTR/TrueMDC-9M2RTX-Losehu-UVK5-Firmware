@@ -704,16 +704,11 @@ void solve_sign(const uint16_t interrupt_bits) {
 
 #ifdef ENABLE_FLEETSYNC
         if (useFleetSyncDecode) {
-            if (fleetsync_rx_buffer_index >= sizeof(fleetsync_rx_buffer)) {
-                uint16_t fleet;
-                uint16_t unit;
-
-                if (FleetSync_decode_ani(fleetsync_rx_buffer, &fleet, &unit)) {
-                    mdc1200_unit_id = unit;
-                    mdc1200_rx_ready_tick_500ms = 2 * 5;
-                    gUpdateDisplay = true;
-                }
-            }
+            /*
+             * FleetSync packets are already decoded when the RX FIFO reaches the
+             * full packet size in the FIFO-almost-full path.  Do not decode again
+             * here; just reset the RX buffer state for the next burst.
+             */
             fleetsync_rx_buffer_index = 0;
         }
 #endif

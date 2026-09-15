@@ -125,9 +125,6 @@ void SETTINGS_InitEEPROM(void)
     gEeprom.SCREEN_INVERT         = (Data[3] < 2) ? Data[3] : false;
 
     gEeprom.MDC1200_ID     =((uint16_t) (Data[2] << 8))|((uint16_t)(Data[1] ));
-#ifdef ENABLE_FLEETSYNC
-    gEeprom.FLEETSYNC_UNIT = ((uint16_t)Data[6] << 8) | Data[5];
-#endif
 
 //    gEeprom.KEY_1_LONG_PRESS_ACTION      = (Data[2] < ACTION_OPT_LEN) ? Data[2] : ACTION_OPT_FLASHLIGHT;
 //    gEeprom.KEY_2_SHORT_PRESS_ACTION     = (Data[3] < ACTION_OPT_LEN) ? Data[3] : ACTION_OPT_SCAN;
@@ -189,9 +186,9 @@ void SETTINGS_InitEEPROM(void)
 #endif
 #endif
 
-    // 0EE0..0EE7 - FLEETSYNC Unit & Fleet
+    // 0F20..0F27 - FLEETSYNC Unit (custom reserved block)
 #ifdef ENABLE_FLEETSYNC
-    EEPROM_ReadBuffer(0x0EE0, Data, 8);
+    EEPROM_ReadBuffer(0x0F20, Data, 8);
     gEeprom.FLEETSYNC_UNIT = ((uint16_t)Data[1] << 8) | Data[0];
     if (gEeprom.FLEETSYNC_UNIT < FLEETSYNC_UNIT_MIN || gEeprom.FLEETSYNC_UNIT > FLEETSYNC_UNIT_MAX)
         gEeprom.FLEETSYNC_UNIT = FLEETSYNC_UNIT_MIN;
@@ -645,11 +642,11 @@ void SETTINGS_SaveSettings(void)
 #endif
     EEPROM_WriteBuffer(0x0EA8, State,8);
 #ifdef ENABLE_FLEETSYNC
-    // 0EE0..0EE7 - FLEETSYNC Unit
+    // 0F20..0F27 - FLEETSYNC Unit (custom reserved block)
     memset(State, 0xFF, sizeof(State));
     State[0] = (uint8_t)(gEeprom.FLEETSYNC_UNIT & 0xFF);
     State[1] = (uint8_t)((gEeprom.FLEETSYNC_UNIT >> 8) & 0xFF);
-    EEPROM_WriteBuffer(0x0EE0, State, 8);
+    EEPROM_WriteBuffer(0x0F20, State, 8);
 #endif
     State[0] = gEeprom.DTMF_SIDE_TONE;
 #ifdef ENABLE_DTMF_CALLING
