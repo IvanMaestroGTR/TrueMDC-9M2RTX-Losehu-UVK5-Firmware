@@ -26,4 +26,11 @@ unsigned int FleetSync_encode_ani(void *data, uint16_t fleet, uint16_t unit,
  */
 bool FleetSync_decode_ani(const uint8_t *data, uint16_t *fleet, uint16_t *unit);
 
+/*
+ * Attempts a MDC-style byte-level correction pass on a FleetSync payload block.
+ * This is a compatibility helper for code paths that want the same greedy
+ * forward-error repair style as MDC1200 without changing the on-air payload.
+ */
+bool FleetSync_mdc_style_correct(uint8_t *block);
+
 #endif

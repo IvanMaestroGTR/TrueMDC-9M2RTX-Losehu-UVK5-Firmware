@@ -1,6 +1,7 @@
 #include "fleetsync.h"
 
 #include <stdint.h>
+#include <string.h>
 
 /* FleetSync II's 32-bit over-the-air sync. */
 static const uint8_t fleetsync_sync[] = {0xaa, 0xaa, 0x23, 0xeb};
@@ -42,7 +43,7 @@ static uint8_t FleetSync_even_parity(const uint8_t *data, unsigned int size)
     return parity;
 }
 
-static inline bool FleetSync_decode_block(const uint8_t *block, uint16_t *fleet, uint16_t *unit)
+static bool FleetSync_validate_block(const uint8_t *block, uint16_t *fleet, uint16_t *unit)
 {
     const uint16_t crc_calculated = FleetSync_crc15(block);
     const uint16_t crc_received = ((uint16_t)block[6] << 8) | block[7];
@@ -57,6 +58,98 @@ static inline bool FleetSync_decode_block(const uint8_t *block, uint16_t *fleet,
             FLEETSYNC_UNIT_MIN;
 
     return *fleet <= FLEETSYNC_FLEET_MAX && *unit <= FLEETSYNC_UNIT_MAX;
+}
+
+static bool FleetSync_mdc_style_correct_block(uint8_t *block, uint16_t *fleet, uint16_t *unit)
+{
+    uint8_t corrected[8];
+    memcpy(corrected, block, sizeof(corrected));
+
+    /*
+     * MDC1200 uses a K=7 convolutional-style correction loop.  FleetSync's
+     * payload is only 8 bytes, so apply the same syndrome pattern with a
+     * wrap-around pass across the block to recover single-bit errors while
+     * preserving the native packet format.
+     */
+    uint8_t shift_reg = 0;
+    uint8_t syn = 0;
+
+    for (unsigned int i = 0; i < 8u; i++) {
+        const uint8_t bi = corrected[i];
+
+        for (int bit_num = 7; bit_num >= 0; bit_num--) {
+            unsigned int k = 0;
+            shift_reg = (uint8_t)((shift_reg << 1) | ((bi >> bit_num) & 1u));
+            const uint8_t b = (uint8_t)(((shift_reg >> 6) ^ (shift_reg >> 5) ^
+                                         (shift_reg >> 2) ^ (shift_reg >> 0)) & 1u);
+            const uint8_t paired = corrected[(i + 1u) % 8u];
+            syn = (uint8_t)((syn << 1) | (((b ^ ((paired >> bit_num) & 1u)) & 1u) ? 1u : 0u));
+
+            if (syn & 0x80u) k++;
+            if (syn & 0x20u) k++;
+            if (syn & 0x04u) k++;
+            if (syn & 0x02u) k++;
+
+            if (k >= 3u) {
+                int ii = (int)i;
+                int bn = bit_num - 7;
+
+                if (bn < 0) {
+                    bn += 8;
+                    ii--;
+                }
+
+                if (ii >= 0)
+                    corrected[(unsigned int)ii] ^= (uint8_t)(1u << (bn & 7u));
+
+                syn ^= 0xA6u;
+            }
+        }
+    }
+
+    if (FleetSync_validate_block(corrected, fleet, unit)) {
+        memcpy(block, corrected, sizeof(corrected));
+        return true;
+    }
+
+    return false;
+}
+
+bool FleetSync_mdc_style_correct(uint8_t *block)
+{
+    uint16_t fleet = 0;
+    uint16_t unit = 0;
+
+    return FleetSync_mdc_style_correct_block(block, &fleet, &unit);
+}
+
+static inline bool FleetSync_decode_block(const uint8_t *block, uint16_t *fleet, uint16_t *unit)
+{
+    if (FleetSync_validate_block(block, fleet, unit))
+        return true;
+
+    /*
+     * FleetSync has CRC and parity redundancy, so one-bit errors can often be
+     * corrected without changing the over-the-air packet format.  Try a single
+     * bit flip across the 64-bit payload block and accept the first valid decode.
+     */
+    uint8_t corrected[8];
+    memcpy(corrected, block, sizeof(corrected));
+
+    for (unsigned int bit = 0; bit < (sizeof(corrected) * 8u); bit++) {
+        const unsigned int byte_index = bit / 8u;
+        const unsigned int bit_index = bit % 8u;
+
+        corrected[byte_index] ^= (uint8_t)(1u << bit_index);
+        if (FleetSync_validate_block(corrected, fleet, unit))
+            return true;
+        corrected[byte_index] ^= (uint8_t)(1u << bit_index);
+    }
+
+    if (FleetSync_mdc_style_correct_block(corrected, fleet, unit))
+        return true;
+
+    return false;
 }
 
 unsigned int FleetSync_encode_ani(void *data, uint16_t fleet, uint16_t unit,
