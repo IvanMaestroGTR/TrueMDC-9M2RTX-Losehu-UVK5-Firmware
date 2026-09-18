@@ -724,6 +724,8 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, 
         State._32[1] = pVFO->TX_OFFSET_FREQUENCY;
         EEPROM_WriteBuffer(OffsetVFO + 0, State._32,8);
 
+        const uint8_t reverseState = pVFO->FrequencyReverse % 3u;
+
         State._8[0] =  pVFO->freq_config_RX.Code;
         State._8[1] =  pVFO->freq_config_TX.Code;
         State._8[2] = (pVFO->freq_config_TX.CodeType << 4) | pVFO->freq_config_RX.CodeType;
@@ -732,9 +734,9 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, 
                       | (pVFO->BUSY_CHANNEL_LOCK << 4)
                       | (pVFO->OUTPUT_POWER      << 2)
                       | (pVFO->CHANNEL_BANDWIDTH << 1)
-                      | (pVFO->FrequencyReverse & 1u)
+                      | (reverseState & 1u)
                       | (1u << 5)
-                      | (pVFO->FrequencyReverse  << 6);
+                      | (reverseState << 6);
         State._8[5] = ((pVFO->DTMF_PTT_ID_TX_MODE & 7u) << 1)
 #ifdef ENABLE_DTMF_CALLING
             | ((pVFO->DTMF_DECODING_ENABLE & 1u) << 0)

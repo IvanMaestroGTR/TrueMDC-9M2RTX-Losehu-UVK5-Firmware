@@ -300,7 +300,7 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
             pVfo->BUSY_CHANNEL_LOCK = false;
         } else {
             const uint8_t d4 = data[4];
-            pVfo->FrequencyReverse = d4 >> 5 & 1u ? d4 >> 6 & 3u : d4 & 1u;
+            pVfo->FrequencyReverse = ((d4 >> 5 & 1u) ? (d4 >> 6 & 3u) : (d4 & 1u)) % 3u;
             pVfo->CHANNEL_BANDWIDTH = !!((d4 >> 1) & 1u);
             pVfo->OUTPUT_POWER = ((d4 >> 2) & 3u);
             pVfo->BUSY_CHANNEL_LOCK = !!((d4 >> 4) & 1u);

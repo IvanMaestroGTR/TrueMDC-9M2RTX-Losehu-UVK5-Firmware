@@ -898,16 +898,23 @@ void UI_DisplayMain(void) {
 
         // show the TX/RX reverse symbol
         if (vfoInfo->FrequencyReverse) {
-            char *flag = vfoInfo->FrequencyReverse == 1 ? "R" : "T";
+            const char *flag = "";
+            if (vfoInfo->FrequencyReverse == 1) {
+                flag = "R";
+            } else if (vfoInfo->FrequencyReverse == 2) {
+                flag = "T";
+            }
+            if (flag[0]) {
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
-            UI_PrintStringSmall(flag, LCD_WIDTH + 62, 0, line + 1);//中文信道1
+                UI_PrintStringSmall(flag, LCD_WIDTH + 62, 0, line + 1);//中文信道1
 #else
-            if (bFlagMr)
-                UI_PrintStringSmall(flag, LCD_WIDTH + 24, 0, line - 1); //中文信道1
-            else if (bFlagFreq)
-                UI_PrintStringSmall(flag, LCD_WIDTH + 62, 0, line + 1); //中文信道1
+                if (bFlagMr)
+                    UI_PrintStringSmall(flag, LCD_WIDTH + 24, 0, line - 1); //中文信道1
+                else if (bFlagFreq)
+                    UI_PrintStringSmall(flag, LCD_WIDTH + 62, 0, line + 1); //中文信道1
 
 #endif
+            }
         }
         {
             // show the narrow band symbol
