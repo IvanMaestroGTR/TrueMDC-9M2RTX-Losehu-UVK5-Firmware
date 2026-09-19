@@ -143,7 +143,6 @@ const t_menu_item MenuList[] =
 //                {/*"Tx 500",*/ VOICE_ID_INVALID,                       MENU_500TX         ,五百M发射}, // was "500TX"
 //                {/*"350 En",*/ VOICE_ID_INVALID,                       MENU_350EN         ,三百五十M接收}, // was "350EN"
                 {/*"TPT",*/    VOICE_ID_INVALID, MENU_TALK_PERMIT_TONE, "TPT"},
-                {/*"C.End",*/  VOICE_ID_INVALID, MENU_CALL_END_TONE, "C.End"},
                 {/*"Rx.Led",*/ VOICE_ID_INVALID, MENU_RX_LM, "Rx.Led"},
                 {/*"F Lock",*/ VOICE_ID_INVALID, MENU_F_LOCK, 频段解锁},
 #ifdef ENABLE_F_CAL_MENU//0
@@ -560,12 +559,6 @@ const char gSubMenu_TALK_PERMIT_TONE[][6] =
         "TRBO",
         "Kenw",
         "Auto"
-    };
-
-const char gSubMenu_CALL_END_TONE[][4] =
-    {
-        "OFF",
-        "ON"
     };
 
 const char gSubMenu_BATTYP[][8] =
@@ -1511,11 +1504,6 @@ void UI_DisplayMenu(void) {
 
         case MENU_TALK_PERMIT_TONE:
             strcpy(String, gSubMenu_TALK_PERMIT_TONE[gSubMenuSelection]);
-
-            break;
-
-        case MENU_CALL_END_TONE:
-            strcpy(String, gSubMenu_CALL_END_TONE[gSubMenuSelection]);
 
             break;
 

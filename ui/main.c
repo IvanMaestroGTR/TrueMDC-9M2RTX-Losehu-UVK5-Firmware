@@ -43,7 +43,7 @@
 #include "app/app.h"
 
 center_line_t center_line = CENTER_LINE_NONE;
-static talk_permit_toast_t gTalkPermitToast = TALK_PERMIT_TOAST_NONE;
+talk_permit_toast_t gTalkPermitToast = TALK_PERMIT_TOAST_NONE;
 static uint8_t gTalkPermitToastFrame;
 static uint8_t gTalkPermitToastTimer;
 uint16_t gToastTimerSingleLine = 0;
@@ -203,9 +203,11 @@ void UI_SetTalkPermitToast(talk_permit_toast_t toast, uint8_t frame) {
     const char *text;
     uint8_t length;
     uint8_t x1;
+    char idText[32];
 
-    if (toast != gTalkPermitToast)
-        gTalkPermitToastTimer = toast == TALK_PERMIT_TOAST_CALL_ENDED ? 2 : 0;
+    if (toast != gTalkPermitToast) {
+        gTalkPermitToastTimer = toast == TALK_PERMIT_TOAST_CALL_ENDED ? 255u : 0;
+    }
     gTalkPermitToast = toast;
     gTalkPermitToastFrame = frame;
     if (gScreenToDisplay != DISPLAY_MAIN)
@@ -215,9 +217,11 @@ void UI_SetTalkPermitToast(talk_permit_toast_t toast, uint8_t frame) {
         text = "[Wait]";
     else if (toast == TALK_PERMIT_TOAST_SEND)
         text = sendFrames[frame % ARRAY_SIZE(sendFrames)];
-    else if (toast == TALK_PERMIT_TOAST_CALL_ENDED)
-        text = "[Call Ended]";
-    else
+    else if (toast == TALK_PERMIT_TOAST_CALL_ENDED) {
+        // Keep the boot-up logo screen as the place for FleetSync/MDC IDs.
+        // No box overlay on main screen.
+        return;
+    } else
         return;
 
     length = strlen(text);
@@ -244,6 +248,9 @@ static void UI_DisplayTalkPermitToast(void) {
 
 void UI_MAIN_TimeSlice10ms(void) {
     static uint8_t animationCounter;
+
+    if (gTalkPermitToast == TALK_PERMIT_TOAST_CALL_ENDED)
+        return;
 
     if (gTalkPermitToast != TALK_PERMIT_TOAST_SEND)
         return;

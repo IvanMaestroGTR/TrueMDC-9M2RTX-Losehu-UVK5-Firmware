@@ -181,7 +181,7 @@ void Main(void) {
 #endif
 
 #if ENABLE_CHINESE_FULL == 0
-    gMenuListCount = 53; //menu size
+    gMenuListCount = 52; //menu size
 #else
     gMenuListCount = 53;
 #endif
@@ -220,6 +220,48 @@ void Main(void) {
     }
 #endif
     UI_DisplayWelcome();
+    SYSTEM_DelayMs(700);
+
+    bool first_boot_screen_skipped = false;
+    boot_counter_10ms = 250;
+    bool boot_beep_played = false;
+
+    while (boot_counter_10ms > 0 || (KEYBOARD_Poll() != KEY_INVALID)) {
+        const KEY_Code_t key = KEYBOARD_Poll();
+
+        if (key == KEY_EXIT
+#if ENABLE_CHINESE_FULL == 4
+            || gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_NONE
+#endif
+                ) {    // halt boot beeps
+            first_boot_screen_skipped = true;
+            boot_counter_10ms = 0;
+            break;
+        }
+#ifdef ENABLE_BOOT_BEEPS
+
+        if ((boot_counter_10ms % 25) == 0)
+                    AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
+#endif
+
+        // Play boot beep after 1 second (100 * 10ms = 1000ms)
+        if (boot_counter_10ms == 150 && !boot_beep_played) {
+            AUDIO_PlayBootBeep();
+            boot_beep_played = true;
+            UI_DisplayWelcomeIds();
+        }
+
+    }
+
+    if (!first_boot_screen_skipped) {
+        boot_counter_10ms = 100;
+        while (boot_counter_10ms > 0 || (KEYBOARD_Poll() != KEY_INVALID)) {
+            if (KEYBOARD_Poll() == KEY_EXIT) {
+                boot_counter_10ms = 0;
+                break;
+            }
+        }
+    }
 
 #ifdef ENABLE_BOOTLOADER
 
@@ -234,35 +276,6 @@ void Main(void) {
             JUMP_TO_FLASH(0x2000110a, 0x20003ff0);
 }
 #endif
-
-
-    boot_counter_10ms = 250;
-    bool boot_beep_played = false;
-
-    while (boot_counter_10ms > 0 || (KEYBOARD_Poll() != KEY_INVALID)) {
-
-        if (KEYBOARD_Poll() == KEY_EXIT
-#if ENABLE_CHINESE_FULL == 4
-            || gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_NONE
-#endif
-                ) {    // halt boot beeps
-            boot_counter_10ms = 0;
-            break;
-        }
-#ifdef ENABLE_BOOT_BEEPS
-
-        if ((boot_counter_10ms % 25) == 0)
-                    AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
-#endif
-
-        // Play boot beep after 1 second (100 * 10ms = 1000ms)
-        if (boot_counter_10ms == 150 && !boot_beep_played) {
-            AUDIO_PlayBootBeep();
-            boot_beep_played = true;
-        }
-
-    }
-
 
 #ifdef ENABLE_PWRON_PASSWORD
     if (gEeprom.POWER_ON_PASSWORD < 1000000)

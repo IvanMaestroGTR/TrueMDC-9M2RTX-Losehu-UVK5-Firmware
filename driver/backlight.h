@@ -34,6 +34,7 @@ typedef enum {
 void BACKLIGHT_InitHardware();
 void BACKLIGHT_TurnOn();
 void BACKLIGHT_TurnOff();
+void BACKLIGHT_TimeSlice10ms(void);
 bool BACKLIGHT_IsOn();
 void BACKLIGHT_SetBrightness(uint8_t brigtness);
 uint8_t BACKLIGHT_GetBrightness(void);

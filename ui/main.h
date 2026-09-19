@@ -45,6 +45,7 @@ typedef enum {
 void UI_MAIN_PrintAGC(bool force);
 #endif
 extern center_line_t center_line;
+extern talk_permit_toast_t gTalkPermitToast;
 
 void UI_DisplayAudioBar(void);
 void UI_SetTalkPermitToast(talk_permit_toast_t toast, uint8_t frame);

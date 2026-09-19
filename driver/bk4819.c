@@ -1084,55 +1084,7 @@ void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay,
 //}
 
 void BK4819_PlayRxEndTone(void) {
-    UI_SetTalkPermitToast(TALK_PERMIT_TOAST_CALL_ENDED, 0);
-    BK4819_EnterTxMute();
-    AUDIO_AudioPathOn();
-    BK4819_SetAF(BK4819_AF_BEEP);
-    BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-    BK4819_Enable_AfDac_DiscMode_TxDsp();
-    SYSTEM_DelayMs(50);
-
-    if ((gEeprom.field38_0x33 & 7) == TALK_PERMIT_TONE_TRBO) {
-        BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-        BK4819_WriteRegister(BK4819_REG_71, scale_freq(627));
-        BK4819_ExitTxMute();
-        SYSTEM_DelayMs(100);
-        BK4819_EnterTxMute();
-
-        BK4819_WriteRegister(BK4819_REG_71, scale_freq(959));
-        BK4819_ExitTxMute();
-        SYSTEM_DelayMs(40);
-        BK4819_EnterTxMute();
-
-        AUDIO_AudioPathOff();
-        BK4819_SetAF(BK4819_AF_MUTE);
-        BK4819_WriteRegister(BK4819_REG_70, 0x0000);
-        BK4819_TurnsOffTones_TurnsOnRX();
-        return;
-    }
-
-    // Auto mode should use the Hytera-style call end tone, not the TETRA one.
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(1480));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(100);
-    BK4819_EnterTxMute();
-    SYSTEM_DelayMs(50);
-
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(1480));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(50);
-    BK4819_EnterTxMute();
-    SYSTEM_DelayMs(30);
-
-    BK4819_WriteRegister(BK4819_REG_71, scale_freq(1397));
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(50);
-    BK4819_EnterTxMute();
-
-    AUDIO_AudioPathOff();
-    BK4819_SetAF(BK4819_AF_MUTE);
-    BK4819_WriteRegister(BK4819_REG_70, 0x0000);
-    BK4819_TurnsOffTones_TurnsOnRX();
+    /* Call-end toast intentionally disabled: keep only wait/send toasts. */
 }
 
 void BK4819_ResetTalkPermitToneState(void) {
@@ -1213,7 +1165,7 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
     BK4819_WriteRegister(BK4819_REG_70, 0);
     BK4819_TurnsOffTones_TurnsOnRX();
 
-    if (mode == TALK_PERMIT_TONE_KENW && gEeprom.field37_0x32)
+    if (mode == TALK_PERMIT_TONE_KENW)
         gKenwSecondaryTone = true;
 }
 

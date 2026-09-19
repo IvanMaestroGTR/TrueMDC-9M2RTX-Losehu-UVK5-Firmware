@@ -461,11 +461,6 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMax = TALK_PERMIT_TONE_AUTO;
             break;
 
-        case MENU_CALL_END_TONE:
-            *pMin = 0;
-            *pMax = 1;
-            break;
-
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
             case MENU_F1SHRT:
             case MENU_F2SHRT:
@@ -978,10 +973,6 @@ void MENU_AcceptSetting(void) {
             gEeprom.field38_0x33 = gSubMenuSelection;
             break;
 
-        case MENU_CALL_END_TONE:
-            gEeprom.field37_0x32 = gSubMenuSelection;
-            break;
-
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
             case MENU_F1SHRT:
             case MENU_F1LONG:
@@ -1381,10 +1372,6 @@ void MENU_ShowCurrentSetting(void) {
 
         case MENU_TALK_PERMIT_TONE:
             gSubMenuSelection = gEeprom.field38_0x33 & 7;
-            break;
-
-        case MENU_CALL_END_TONE:
-            gSubMenuSelection = gEeprom.field37_0x32;
             break;
 
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS

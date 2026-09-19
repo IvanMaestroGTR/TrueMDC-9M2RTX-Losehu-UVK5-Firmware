@@ -382,7 +382,7 @@ static void HandleReceive(void) {
         case END_OF_RX_MODE_END:
             RADIO_SetupRegisters(true);
 
-            if (gRxVfo->Modulation == MODULATION_FM && gEeprom.field37_0x32) {
+            if (gRxVfo->Modulation == MODULATION_FM) {
                 gRxEndTonePending = true;
                 gRxEndToneWaitForDualWatch =
                     gEeprom.DUAL_WATCH != DUAL_WATCH_OFF && gScanStateDir == SCAN_OFF;
@@ -722,8 +722,7 @@ static void CheckRadioInterrupts(void) {
 
 
 static void APP_ScheduleCallEndToneAfterTx(void) {
-    if (gRxVfo->Modulation == MODULATION_FM &&
-        gEeprom.field37_0x32) {
+    if (gRxVfo->Modulation == MODULATION_FM) {
         gRxEndTonePending = true;
         gRxEndToneCountdown_10ms = dual_watch_count_after_tx_10ms;
         gRxEndToneWaitForDualWatch = false;
@@ -1103,6 +1102,7 @@ static void CheckKeys(void) {
 
 void APP_TimeSlice10ms(void) {
     gNextTimeslice = false;
+    BACKLIGHT_TimeSlice10ms();
     UI_MAIN_TimeSlice10ms();
     gFlashLightBlinkCounter++;
     static uint16_t powerSaveLedCounter = 0;
@@ -1122,8 +1122,7 @@ void APP_TimeSlice10ms(void) {
             gRxEndToneCountdown_10ms--;
         } else {
             BK4819_ResetTalkPermitToneState();
-            if (gEeprom.field37_0x32 && gEeprom.BOOT_BEEP_CONTROL)
-                BK4819_PlayRxEndTone();
+            BK4819_PlayRxEndTone();
             gRxEndTonePending = false;
             gRxEndToneWaitForDualWatch = false;
             BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);

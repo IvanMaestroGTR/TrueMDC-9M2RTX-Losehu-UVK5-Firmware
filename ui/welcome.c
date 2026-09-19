@@ -49,9 +49,18 @@ void UI_DisplayWelcome(void) {
     char WelcomeString1[19] = {0};
 
     memset(gStatusLine, 0, sizeof(gStatusLine));
-    UI_DisplayClear();
-    ST7565_BlitStatusLine();  // blank status line
+    memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+    ST7565_BlitStatusLine();
     ST7565_BlitFullScreen();
+
+    if (gEeprom.BACKLIGHT_TIME > 0) {
+        BACKLIGHT_SetBrightness(0);
+        BACKLIGHT_TurnOn();
+        for (uint8_t i = 1; i <= 30; i++) {
+            BACKLIGHT_SetBrightness((gEeprom.BACKLIGHT_MAX * i) / 30);
+            SYSTEM_DelayMs(10);
+        }
+    }
 #if ENABLE_CHINESE_FULL == 4
 
     if (gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_MESSAGE) {
@@ -71,18 +80,15 @@ void UI_DisplayWelcome(void) {
 #endif
     UI_PrintStringSmall(WelcomeString0, 0, 127, 0);
     UI_PrintStringSmall(WelcomeString1, 0, 127, 2);
-    
-    // Firmware version text on line 4
+
     UI_PrintStringSmall(Version, 0, 127, 4);
-    
-// Invert box around firmware version (line 4 + 1px expansion upward)
+
     for (uint8_t i = 0; i < 128; i++)
     {
-        gFrameBuffer[3][i] ^= 0x80; // invert top-most pixel of row 3 (bottom edge of row above)
-        gFrameBuffer[4][i] ^= 0xFF; // invert full row 4
+        gFrameBuffer[3][i] ^= 0x80;
+        gFrameBuffer[4][i] ^= 0xFF;
     }
-    
-    // Voltage and battery level (line 6)
+
     sprintf(WelcomeString1, "%u.%02uV %u%%",
             gBatteryVoltageAverage / 100,
             gBatteryVoltageAverage % 100,
@@ -98,11 +104,26 @@ void UI_DisplayWelcome(void) {
 
 #endif
 
-
-    ST7565_BlitStatusLine();  // blank status line
+    ST7565_BlitStatusLine();
     ST7565_BlitFullScreen();
-    BACKLIGHT_TurnOn();
+}
 
+void UI_DisplayWelcomeIds(void) {
+    char WelcomeString0[24] = {0};
+    char WelcomeString1[24] = {0};
 
+    memset(gStatusLine, 0, sizeof(gStatusLine));
+    memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+
+    if (gEeprom.FLEETSYNC_FLEET == 0 && gEeprom.FLEETSYNC_UNIT == 0 && gEeprom.MDC1200_ID == 0)
+        return;
+
+    snprintf(WelcomeString0, sizeof(WelcomeString0), "FLEET %u/%u", gEeprom.FLEETSYNC_FLEET, gEeprom.FLEETSYNC_UNIT);
+    snprintf(WelcomeString1, sizeof(WelcomeString1), "MDC %04X", gEeprom.MDC1200_ID);
+
+    UI_PrintStringSmall(WelcomeString0, 0, 127, 1);
+    UI_PrintStringSmall(WelcomeString1, 0, 127, 3);
+    ST7565_BlitStatusLine();
+    ST7565_BlitFullScreen();
 }
 

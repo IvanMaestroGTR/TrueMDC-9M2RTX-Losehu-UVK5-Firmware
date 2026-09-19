@@ -45,6 +45,7 @@
 #include "radio.h"
 #include "settings.h"
 #include "ui/inputbox.h"
+#include "ui/main.h"
 #include "ui/ui.h"
 #include <stdlib.h>
 
@@ -491,6 +492,11 @@ static void MAIN_Key_EXIT(bool bKeyPressed, bool bKeyHeld) {
 
 
         gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+        if (gTalkPermitToast == TALK_PERMIT_TOAST_CALL_ENDED) {
+            gTalkPermitToast = TALK_PERMIT_TOAST_NONE;
+            gUpdateDisplay = true;
+            return;
+        }
 #ifdef ENABLE_DTMF_CALLING
         if (gDTMF_CallState != DTMF_CALL_STATE_NONE &&
             gCurrentFunction != FUNCTION_TRANSMIT) {    // clear CALL mode being displayed

@@ -25,6 +25,24 @@
 uint16_t gBacklightCountdown_500ms = 0;
 bool backlightOn;
 
+#define BACKLIGHT_FADE_TICKS 20u
+
+static uint8_t backlightTargetBrightness = 0;
+static uint8_t backlightFadeTick = 0;
+static uint8_t backlightFadeStart = 0;
+static bool backlightFading = false;
+static uint8_t currentBrightness;
+
+static void BACKLIGHT_ApplyBrightness(uint8_t brightness) {
+    currentBrightness = brightness;
+    backlightOn = brightness > 0;
+    if (brightness >= 10u) {
+        PWM_PLUS0_CH0_COMP = PWM_PLUS0_PERIOD;
+    } else {
+        PWM_PLUS0_CH0_COMP = (uint16_t)((uint32_t)brightness * PWM_PLUS0_PERIOD / 10u);
+    }
+}
+
 void BACKLIGHT_InitHardware() {
     // 48MHz / 94 / 1024 ~ 500Hz
     const uint32_t PWM_FREQUENCY_HZ = 25000;
@@ -58,36 +76,58 @@ void BACKLIGHT_TurnOn(void) {
     }
 
     backlightOn = true;
-    BACKLIGHT_SetBrightness(gEeprom.BACKLIGHT_MAX);
-    gBacklightCountdown_500ms = BACKLIGHT_MAP[gEeprom.BACKLIGHT_TIME-1];
-
+    backlightTargetBrightness = gEeprom.BACKLIGHT_MAX;
+    backlightFadeStart = gEeprom.BACKLIGHT_MAX;
+    backlightFadeTick = 0;
+    backlightFading = false;
+    BACKLIGHT_ApplyBrightness(gEeprom.BACKLIGHT_MAX);
+    gBacklightCountdown_500ms = BACKLIGHT_MAP[gEeprom.BACKLIGHT_TIME - 1];
 }
 
 void BACKLIGHT_TurnOff() {
-#ifdef ENABLE_BLMIN_TMP_OFF
-    register uint8_t tmp;
-
-
-        tmp = 0;
-
-    BACKLIGHT_SetBrightness(tmp);
-#else
-    BACKLIGHT_SetBrightness(0);
-#endif
+    backlightTargetBrightness = 0;
+    backlightFadeStart = currentBrightness;
+    backlightFadeTick = 0;
+    backlightFading = true;
     gBacklightCountdown_500ms = 0;
-    backlightOn = false;
+}
+
+void BACKLIGHT_TimeSlice10ms(void) {
+    if (!backlightFading)
+        return;
+
+    if (backlightTargetBrightness == backlightFadeStart) {
+        BACKLIGHT_ApplyBrightness(backlightTargetBrightness);
+        backlightFading = false;
+        return;
+    }
+
+    backlightFadeTick++;
+    if (backlightFadeTick >= BACKLIGHT_FADE_TICKS) {
+        BACKLIGHT_ApplyBrightness(backlightTargetBrightness);
+        backlightFading = false;
+        backlightFadeTick = 0;
+        backlightFadeStart = backlightTargetBrightness;
+        return;
+    }
+
+    const uint16_t startValue = backlightFadeStart;
+    const uint16_t endValue = backlightTargetBrightness;
+    const uint16_t blended = ((startValue * (BACKLIGHT_FADE_TICKS - backlightFadeTick)) +
+                              (endValue * backlightFadeTick)) / BACKLIGHT_FADE_TICKS;
+    BACKLIGHT_ApplyBrightness((uint8_t)blended);
 }
 
 bool BACKLIGHT_IsOn() {
     return backlightOn;
 }
 
-static uint8_t currentBrightness;
-
 void BACKLIGHT_SetBrightness(uint8_t brigtness) {
-    const uint8_t value[]= {0,3,6,9,15,24,38,62,100,159,255};
-    currentBrightness = brigtness;
-    PWM_PLUS0_CH0_COMP =  value[brigtness]<<2;
+    backlightFading = false;
+    backlightFadeTick = 0;
+    backlightTargetBrightness = brigtness;
+    BACKLIGHT_ApplyBrightness(brigtness);
+    backlightOn = brigtness > 0;
     //PWM_PLUS0_SWLOAD = 1;
 }
 
