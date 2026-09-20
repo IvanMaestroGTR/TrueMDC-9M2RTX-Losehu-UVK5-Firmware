@@ -11,6 +11,10 @@
         "/^python -m py_compile \"CHIRP Module\\\\uvk5_TrueMDC\\.py\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd \"c:/Users/ivanl/Downloads/UVK5/TrueMDC-9M2RTX-Losehu-UVK5-Firmware\" ; git tag --list ; echo \"---\" ; git branch --all --verbose --no-abbrev$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
