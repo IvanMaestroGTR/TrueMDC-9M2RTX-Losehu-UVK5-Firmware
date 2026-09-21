@@ -127,7 +127,6 @@ u8 vfo_open;
 #seekto 0xe90;
 u8 settings_unknown:2,
 talk_permit_tone:3,
-call_end_tone:1,
 boot_beep_control:1,
 beep_control:1;
 u8 mdc1200_id_low;
@@ -1328,9 +1327,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             if element.get_name() == "welcome_mode":
                 _mem.power_on_dispmode = WELCOME_LIST.index(str(element.value))
 
-            # C.End call-end tone
-            if element.get_name() == "call_end_tone":
-                _mem.call_end_tone = int(bool(element.value.get_value()))
+            ## C.End call-end tone
+            #if element.get_name() == "call_end_tone":
+            #    _mem.call_end_tone = int(bool(element.value.get_value()))
 
             # TPT talk-permit tone
             if element.get_name() == "talk_permit_tone":
@@ -2109,11 +2108,11 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 RadioSettingValueBoolean(bool(int(_mem.boot_beep_control))))
         basic.append(rs)
 
-        rs = RadioSetting(
-            "call_end_tone",
-            "C.End",
-            RadioSettingValueBoolean(bool(int(_mem.call_end_tone))))
-        basic.append(rs)
+        #rs = RadioSetting(
+        #    "call_end_tone",
+        #    "C.End",
+        #    RadioSettingValueBoolean(bool(int(_mem.call_end_tone))))
+        #basic.append(rs)
 
         tmptpt = int(_mem.talk_permit_tone)
         if tmptpt >= len(TALK_PERMIT_TONE_LIST):
