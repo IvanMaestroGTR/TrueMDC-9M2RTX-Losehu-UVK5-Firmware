@@ -12,7 +12,7 @@ Custom features and ongoing enhancements:
 - MDC1200 support with user-configurable ID and signaling timing options.
 - Talk Permit Tone (TPT) selection, including XTS, TRBO, Kenwood fleetsync with Auto behavior and Roger-family aware operation.
 - Roger mode selection for Off, Pre, Post and Both for both MDC and FleetSync signaling.
-- Call End Tone (C.End) and UI tones with EEPROM persistence; F + Down can mute UI tones without changing saved settings.
+- F + Down can mute UI tones without changing saved settings.
 - Power calibration entries and menu-level adjustments for easier field tuning.
 - CHIRP module support for import/export of the updated settings and limits.
 
