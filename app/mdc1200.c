@@ -5,6 +5,7 @@
 #include "misc.h"
 #include <string.h>
 #include "driver/eeprom.h"
+#include "settings.h"
 
 // Global variables required by the firmware and UI
 uint8_t      mdc1200_op;
