@@ -13,8 +13,6 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-#include "app/messenger.h"
-#include "app/messenger.h"
 #include "app/app.h"
 #include "ui/ui.h"
 #include "ui/main.h"
@@ -26,7 +24,6 @@
 #include "../bsp/dp32g030/portcon.h"
 #include "bk4819.h"
 #include "gpio.h"
-#include "app/messenger.h"
 #include "system.h"
 #include "systick.h"
 
@@ -48,6 +45,48 @@ BK4819_FilterBandwidth_t m_bandwidth = BK4819_FILTER_BW_NARROW;
 static const uint8_t DTMF_TONE1_GAIN = 65;
 static const uint8_t DTMF_TONE2_GAIN = 93;
 static const uint8_t MDC_FSK_TX_GAIN = 96;  // FSK gain for MDC1200 TX (configurable: 0-127, default 96)
+
+#ifdef ENABLE_MDC1200
+static bool BK4819_IsFleetSyncRogerMode(void)
+{
+    return gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+           gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+           gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH;
+}
+
+static bool BK4819_HasPostIDRoger(void)
+{
+    return gEeprom.ROGER == ROGER_MODE_MDC_POST ||
+           gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
+           (BK4819_IsFleetSyncRogerMode() &&
+            (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+             gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH));
+}
+
+static uint8_t BK4819_GetMDCPostPreamble(void)
+{
+    return gEeprom.MDC1200_PREAMBLE_WHEN == MDC_PREAMBLE_WHEN_PRE
+         ? 0
+         : gEeprom.MDC1200_PREAMBLE_DURATION;
+}
+
+static bool BK4819_SendPostID(void)
+{
+#ifdef ENABLE_FLEETSYNC
+    if (BK4819_IsFleetSyncRogerMode()) {
+        BK4819_send_FleetSync(gEeprom.FLEETSYNC_FLEET,
+                              gEeprom.FLEETSYNC_UNIT,
+                              true);
+        return true;
+    }
+#endif
+    BK4819_send_MDC1200(MDC1200_OP_CODE_POST_ID,
+                        0x00,
+                        gEeprom.MDC1200_ID,
+                        BK4819_GetMDCPostPreamble());
+    return false;
+}
+#endif
 
 static uint16_t gBK4819_GpioOutState;
 
@@ -328,40 +367,11 @@ void BK4819_InitAGC(bool amModulation) {
 
 
 void BK4819_PlayRoger(void) {
-#ifdef ENABLE_MESSENGER
-    if(stop_mdc_flag) return;
-#endif
 #ifdef ENABLE_MDC1200
-    const bool useFleetSyncRoger = (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
-    const bool hasPostIdRoger = (gEeprom.ROGER == ROGER_MODE_MDC_POST ||
-                                gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
-                                gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-                                gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
-
-    if (hasPostIdRoger) {
-
-        // Mute mic before POST-ID MDC delay
+    if (BK4819_HasPostIDRoger()) {
         BK4819_MuteMic();
-        
-        // small delay before sending the POST-ID MDC packet (≈100 ms)
         SYSTEM_DelayMs(50);
-
-        // Determine preamble duration based on MDC preamble settings
-        uint8_t preamble_duration = (gEeprom.MDC1200_PREAMBLE_WHEN == MDC_PREAMBLE_WHEN_PRE) ? 
-                                     0 : gEeprom.MDC1200_PREAMBLE_DURATION;
-#ifdef ENABLE_FLEETSYNC
-        if (useFleetSyncRoger)
-            BK4819_send_FleetSync(gEeprom.FLEETSYNC_FLEET, gEeprom.FLEETSYNC_UNIT, true);
-        else
-#endif
-            BK4819_send_MDC1200(MDC1200_OP_CODE_POST_ID, 0x00, gEeprom.MDC1200_ID, preamble_duration);
-        
-        // Keep FleetSync TX active slightly longer after the post packet.
-        // MDC keeps the original 20 ms hold.
-        SYSTEM_DelayMs(useFleetSyncRoger ? 40 : 20);
-
+        SYSTEM_DelayMs(BK4819_SendPostID() ? 40 : 20);
     }
 #endif
 }
@@ -2624,9 +2634,7 @@ void enable_msg_rx(const bool enable) {
     // set the packet size
 
     if (enable) {
-        const bool useFleetSyncRoger = (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-                                       gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-                                       gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
+        const bool useFleetSyncRoger = BK4819_IsFleetSyncRogerMode();
         const uint16_t fsk_reg59 =
                 (0u << 15) |   // 1 = clear TX FIFO
                 (0u << 14) |   // 1 = clear RX FIFO
@@ -2701,11 +2709,10 @@ void enable_msg_rx(const bool enable) {
         // < 7:0> sync byte 1
 //			BK4819_WriteRegister(0x5A, ((uint16_t)mdc1200_sync_suc_xor[0] << 8) | (mdc1200_sync_suc_xor[1] << 0));
 #ifdef ENABLE_FLEETSYNC
-    if (useFleetSyncRoger)
-        BK4819_WriteRegister(0x5A, 0xAAAA);
-    else
+        BK4819_WriteRegister(0x5A, useFleetSyncRoger ? 0xAAAA : 0x7240);
+#else
+        BK4819_WriteRegister(0x5A, 0x7240);
 #endif
-        BK4819_WriteRegister(0x5A, 0x7240); //0x7240
 
         // REG_5B .. bytes 2 & 3 sync pattern
         //
@@ -2713,11 +2720,10 @@ void enable_msg_rx(const bool enable) {
         // < 7:0> sync byte 3
 //			BK4819_WriteRegister(0x5B, ((uint16_t)mdc1200_sync_suc_xor[2] << 8) | (mdc1200_sync_suc_xor[3] << 0));
 #ifdef ENABLE_FLEETSYNC
-    if (useFleetSyncRoger)
-        BK4819_WriteRegister(0x5B, 0x23EB);
-    else
+        BK4819_WriteRegister(0x5B, useFleetSyncRoger ? 0x23EB : 0x99a7);
+#else
+        BK4819_WriteRegister(0x5B, 0x99a7);
 #endif
-        BK4819_WriteRegister(0x5B, 0x99a7);//0x99a7
 
         // disable CRC
         BK4819_WriteRegister(0x5C, 0x5625);   // 01010110 0 0 100101
@@ -2726,23 +2732,14 @@ void enable_msg_rx(const bool enable) {
         // set the almost full threshold
         BK4819_WriteRegister(0x5E, (64u << 3) | (1u << 0));  // 0 ~ 127, 0 ~ 7
 
-//			{	// packet size .. sync + 14 bytes - size of a single mdc1200 packet
-////				uint16_t size = 1 + (MDC1200_FEC_K * 2);
-//				uint16_t size = 0 + (MDC1200_FEC_K * 2);
-////				size -= (fsk_reg59 & (1u << 3)) ? 4 : 2;
-//				size = ((size + 1) / 2) * 2;             // round up to even, else FSK RX doesn't work
-//				BK4819_WriteRegister(0x5D, ((size - 1) << 8));
-//			}
         {
 #ifdef ENABLE_FLEETSYNC
-            if (useFleetSyncRoger)
-                BK4819_WriteRegister(0x5D, ((FLEETSYNC_PACKET_SIZE - 1u) << 8));
-            else
+            BK4819_WriteRegister(
+                0x5D,
+                ((useFleetSyncRoger ? FLEETSYNC_PACKET_SIZE : MDC1200_FEC_K * 2u) - 1u) << 8);
+#else
+            BK4819_WriteRegister(0x5D, (MDC1200_FEC_K * 2u - 1u) << 8);
 #endif
-            {
-                // MDC has 14 encoded payload bytes after the hardware sync.
-                BK4819_WriteRegister(0x5D, ((MDC1200_FEC_K * 2u - 1u) << 8));
-            }
         }
 
         // clear FIFO's then enable RX
@@ -2761,30 +2758,3 @@ void enable_msg_rx(const bool enable) {
         BK4819_WriteRegister(0x58, 0);
     }
 }
-
-//void BK4819_StatusLED_Indicate(bool bOn) {
-//    if (bOn) {
-//        // ON state:
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
-//        SYSTEM_DelayMs(240);
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-//        
-//    } else {
-//        // OFF state:
-//        // First blink
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
-//        SYSTEM_DelayMs(80);
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-//        SYSTEM_DelayMs(80);
-//        // Second blink
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
-//        SYSTEM_DelayMs(80);
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-//    }
-//}

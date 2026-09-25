@@ -33,10 +33,6 @@ typedef enum {
 extern ToastType_t gToastType;
 extern uint16_t gToastTimerSingleLine;
 
-#ifdef ENABLE_MESSENGER_NOTIFICATION
-extern bool gPlayMSGRing;
-#endif
-
 void APP_EndTransmission(bool inmediately);
 
 void APP_StartListening(FUNCTION_Type_t function);

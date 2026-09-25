@@ -42,7 +42,6 @@
 #include "ui/main.h"
 
 #ifdef ENABLE_MESSENGER
-#include "app/messenger.h"
 #endif
 #ifdef ENABLE_DOPPLER
 #include "app/doppler.h"

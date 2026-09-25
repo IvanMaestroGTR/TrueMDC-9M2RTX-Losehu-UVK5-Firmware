@@ -49,9 +49,6 @@
 #include "ui/ui.h"
 #include <stdlib.h>
 
-#ifdef ENABLE_MESSENGER
-#include "app/messenger.h"
-#endif
 #ifdef ENABLE_DOPPLER
 #include "app/doppler.h"
 #endif
@@ -585,13 +582,6 @@ static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
 
     if (!bKeyPressed && !gDTMF_InputMode) {    // menu key released
 
-#ifdef ENABLE_MESSENGER
-        if (gWasFKeyPressed) {
-            hasNewMessage = 0;
-            gRequestDisplayScreen = DISPLAY_MSG;
-            return;
-        }
-#else
         if (gWasFKeyPressed) {
             // F + MENU = toggle screen invert
             gWasFKeyPressed = false;
@@ -603,7 +593,6 @@ static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
             gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
             return;
         }
-#endif
 
         // Process pending channel input (1-3 digits) when M key is pressed
         if (gInputBoxIndex >= 1 && gInputBoxIndex <= 3 && gScreenToDisplay == DISPLAY_MAIN) {

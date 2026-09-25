@@ -324,38 +324,4 @@ const uint8_t BITMAP_SEND[13] =
         };
 
 
-#ifdef ENABLE_MESSENGER
-const uint8_t BITMAP_NEWMSG[7] =
-{	// message icon
-//	0b00000000,
-	0b01111110,
-	0b01000110,
-	0b01001010,
-	0b01010010,
-	0b01001010,
-	0b01000110,
-	0b01111110,
-};
-const uint8_t BITMAP_t[6] =
-        {	// "t"
-                0b00000000,
-                0b00000100,
-                0b00000100,
-                0b00111111,
-                0b01000100,
-                0b00100100,
-
-        };
-
-const uint8_t BITMAP_1[6] =
-        {	// "1"
-                0b00000000,
-                0b00000000,
-                0b01000010,
-                0b01111111,
-                0b01000000,
-                0b00000000,
-
-        };
-#endif
 #include "ui/helper.h"
