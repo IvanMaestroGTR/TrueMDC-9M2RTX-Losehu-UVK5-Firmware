@@ -2765,30 +2765,3 @@ void enable_msg_rx(const bool enable) {
         BK4819_WriteRegister(0x58, 0);
     }
 }
-
-//void BK4819_StatusLED_Indicate(bool bOn) {
-//    if (bOn) {
-//        // ON state:
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
-//        SYSTEM_DelayMs(240);
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-//        
-//    } else {
-//        // OFF state:
-//        // First blink
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
-//        SYSTEM_DelayMs(80);
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-//        SYSTEM_DelayMs(80);
-//        // Second blink
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
-//        SYSTEM_DelayMs(80);
-//        BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-//        BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-//    }
-//}
