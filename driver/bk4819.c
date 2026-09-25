@@ -2732,22 +2732,7 @@ void enable_msg_rx(const bool enable) {
         // set the almost full threshold
         BK4819_WriteRegister(0x5E, (64u << 3) | (1u << 0));  // 0 ~ 127, 0 ~ 7
 
-//			{	// packet size .. sync + 14 bytes - size of a single mdc1200 packet
-////				uint16_t size = 1 + (MDC1200_FEC_K * 2);
-//				uint16_t size = 0 + (MDC1200_FEC_K * 2);
-////				size -= (fsk_reg59 & (1u << 3)) ? 4 : 2;
-//				size = ((size + 1) / 2) * 2;             // round up to even, else FSK RX doesn't work
-//				BK4819_WriteRegister(0x5D, ((size - 1) << 8));
-//			}
-        {
-#ifdef ENABLE_FLEETSYNC
-            BK4819_WriteRegister(
-                0x5D,
-                ((useFleetSyncRoger ? FLEETSYNC_PACKET_SIZE : MDC1200_FEC_K * 2u) - 1u) << 8);
-#else
-            BK4819_WriteRegister(0x5D, (MDC1200_FEC_K * 2u - 1u) << 8);
-#endif
-        }
+        {PLACEHOLDER}
 
         // clear FIFO's then enable RX
         BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
