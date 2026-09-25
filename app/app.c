@@ -75,8 +75,6 @@
 #if defined(ENABLE_OVERLAY)
 #include "sram-overlay.h"
 #endif
-#ifdef ENABLE_MESSENGER
-#endif
 #ifdef ENABLE_DOPPLER
 #include "app/doppler.h"
 #endif
