@@ -194,6 +194,5 @@ void BK4819_send_FleetSync(const uint16_t fleet, const uint16_t unit, const bool
 void BK4819_stop_tones(const bool tx);
 void BK4819_start_tone(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_mute);
 void enable_msg_rx(const bool enable);
-//void BK4819_StatusLED_Indicate(bool bOn);
 
 #endif
