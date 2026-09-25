@@ -40,16 +40,11 @@ void set_bit(uint8_t *value, uint8_t bit_position) {
 }
 
 uint8_t is_chn(uint8_t num) {
-#if ENABLE_CHINESE_FULL != 0
-    if (num >= 0x80) return 1;
-    return 255;
-#else
     if (num >= 1 && num < 10)return num - 1;
     else if (num > 10 && num < 32)return num - 2;
     else if (num > 126 && num <= 233)return num - 97;
     else return 255;
 
-#endif
 }
 
 bool isChineseChar(char a, uint8_t now_index, uint8_t sum_index) {
@@ -124,7 +119,6 @@ void UI_GenerateChannelStringEx(char *pString, const bool bShowPrefix, const uin
 
 void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End, uint8_t Line) {
 
-#ifdef ENABLE_ENGLISH
     const size_t Length = strlen(pString);
 	size_t       i;
 
@@ -145,163 +139,6 @@ void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End, uint8_
 				memmove(pFb + (i * char_spacing) + 1, &gFontSmall[index], char_width);
 		}
 	}
-#else
-
-    bool flag_move = 0;
-
-    uint8_t Length = strlen(pString);
-
-    if (show_move_flag) {
-#if ENABLE_CHINESE_FULL == 0
-        Length = Length > 7 ? 7 : Length;
-//#else
-//        #ifdef ENABLE_PINYIN == 0
-////        if(PINYIN_NUM==0) //拼音判断
-//            #endif
-//        Length = Length > 14 ? 14 : Length;
-
-#endif
-        flag_move = 1;
-        show_move_flag = 0;
-
-    }
-    uint8_t sum_pixel = 0;
-    uint16_t true_char[Length];
-    uint8_t cn_flag[Length];
-    uint8_t char_num = 0;
-    for (size_t j = 0; j < Length; j++) {
-
-        uint8_t chn_judge = is_chn(pString[j]);
-        if (chn_judge == 255 && pString[j] != '\n' && pString[j] != '\0') {
-            true_char[char_num] = pString[j];
-            cn_flag[char_num] = 0;
-
-            char_num++;
-            sum_pixel += 7;
-        } else if (chn_judge != 255) {
-            cn_flag[char_num] = 1;
-
-#if ENABLE_CHINESE_FULL != 0
-
-            true_char[char_num] = (pString[j] << 8) | pString[j + 1];
-            j++;
-#else
-            true_char[char_num] = chn_judge;
-#endif
-
-            flag_move = 1;
-            char_num++;
-            sum_pixel += 13;
-        }
-    }
-    if (End > Start)
-        Start += (((End - Start) - (sum_pixel)) + 1) / 2;
-    uint8_t *pFb = gFrameBuffer[Line] + Start;
-    uint8_t *pFb1 = gFrameBuffer[Line + 1] + Start;
-    uint8_t now_pixel = 0;
-    for (unsigned short i = 0; i < char_num; i++) {
-        if (cn_flag[i] == 0) {
-            if (true_char[i] > ' ') {
-                const unsigned int index = (unsigned int) true_char[i] - ' ' - 1;
-#if ENABLE_CHINESE_FULL == 0
-
-                if (index < ARRAY_SIZE(gFontSmall)) {
-                    if (flag_move) {
-                        uint8_t gFontSmall_More[12] = {0};
-                        for (int j = 0; j < 12; ++j) {
-                            if (j < 6) gFontSmall_More[j] = (gFontSmall[index][j] & 0x1F) << 3;//00011111
-                            else gFontSmall_More[j] = (gFontSmall[index][j - 6] & 0XE0)
-                                        >> 5;//|(0xFB& *(pFb1+ now_pixel + 1+j-6));//11100000
-                        }
-                        memcpy(pFb + now_pixel + 1, &gFontSmall_More[0], 6);
-                        memcpy(pFb1 + now_pixel + 1, &gFontSmall_More[6], 6);
-                    } else
-                        memcpy(pFb + now_pixel + 1, &gFontSmall[index], 6);
-                }
-#else
-                if (index < 94) {
-                    uint8_t read_gFontSmall[6];
-                    EEPROM_ReadBuffer(0x0267C + index * 6, read_gFontSmall, 6);
-                    if (flag_move) {
-                        uint8_t gFontSmall_More[12] = {0};
-
-                        for (int j = 0; j < 12; ++j) {
-                            if (j < 6) gFontSmall_More[j] = (read_gFontSmall[j] & 0x1F) << 3;//00011111
-                            else gFontSmall_More[j] = (read_gFontSmall[j - 6] & 0XE0)
-                                        >> 5;//|(0xFB& *(pFb1+ now_pixel + 1+j-6));//11100000
-                        }
-                        memcpy(pFb + now_pixel + 1, &gFontSmall_More[0], 6);
-                        memcpy(pFb1 + now_pixel + 1, &gFontSmall_More[6], 6);
-                    } else
-                        memcpy(pFb + now_pixel + 1, &read_gFontSmall, 6);
-                }
-
-#endif
-                now_pixel += 7;
-            } else if (true_char[i] == ' ')
-                now_pixel += 7;
-        } else {
-//            uint8_t gFontChinese[22] = {0};
-
-#if ENABLE_CHINESE_FULL != 0
-            true_char[i] =
-                    true_char[i] < 0XD8A1 ? ((true_char[i] - 0xB0A0) >> 8) * 94 + ((true_char[i] - 0xB0A0) & 0xff) - 1 :
-                    ((true_char[i] - 0xB0A0) >> 8) * 94 + ((true_char[i] - 0xB0A0) & 0xFF) - 6;
-            uint8_t tmp[17] = {0};
-            unsigned int local = (CHN_FONT_HIGH * CHN_FONT_WIDTH * true_char[i]) >> 3;
-            unsigned int local_bit = (CHN_FONT_HIGH * CHN_FONT_WIDTH * true_char[i]) & 7;
-            EEPROM_ReadBuffer(local + 0x02E00, tmp, 17);
-            local = 0;
-            for (unsigned char k = 0; k < CHN_FONT_WIDTH * 2; ++k) {
-                unsigned char j_end = 8;
-                if (k >= CHN_FONT_WIDTH)
-                    j_end = CHN_FONT_HIGH - 8;
-                for (unsigned char j = 0; j < j_end; ++j) {
-                    if (IS_BIT_SET(tmp[local], local_bit))
-//                        set_bit(&gFontChinese[k], j, 1);
-                        if (k < CHN_FONT_WIDTH) set_bit(pFb + now_pixel + 1 + k, j);
-
-                        else set_bit(pFb1 + now_pixel + 1 + k - CHN_FONT_WIDTH, j);
-
-                    local_bit++;
-                    if (local_bit == 8) {
-                        local_bit = 0;
-                        local++;
-                    }
-                }
-            }
-
-#else
-            unsigned int local = (CHN_FONT_HIGH * CHN_FONT_WIDTH * true_char[i]) / 8;
-            unsigned int local_bit = (CHN_FONT_HIGH * CHN_FONT_WIDTH * true_char[i]) % 8;
-            for (unsigned char k = 0; k < CHN_FONT_WIDTH * 2; ++k) {
-                unsigned char j_end = 8;
-                if (k >= CHN_FONT_WIDTH)
-                    j_end = CHN_FONT_HIGH - 8;
-                for (unsigned char j = 0; j < j_end; ++j) {
-                    if (IS_BIT_SET(gFontChinese_out[local], local_bit))
-//                        set_bit(&gFontChinese[k], j, 1);
-
-                    //                        set_bit(&gFontChinese[k], j, 1);
-
-                        if(k<CHN_FONT_WIDTH)                         set_bit(pFb + now_pixel + 1+k, j);
-                        else set_bit(pFb1 + now_pixel + 1+k-CHN_FONT_WIDTH, j);
-
-                    local_bit++;
-                    if (local_bit == 8) {
-                        local_bit = 0;
-                        local++;
-                    }
-                }
-            }
-//            memcpy(pFb + now_pixel + 1, &gFontChinese[0], 11);
-//            memcpy(pFb1 + now_pixel + 1, &gFontChinese[11], 11);
-#endif
-
-            now_pixel += 13;
-        }
-    }
-#endif
 }
 
 
@@ -311,16 +148,8 @@ void UI_PrintStringSmallBuffer(const char *pString, uint8_t *buffer) {
     for (i = 0; i < strlen(pString); i++) {
         if (pString[i] > ' ') {
             const unsigned int index = (unsigned int) pString[i] - ' ' - 1;
-#if ENABLE_CHINESE_FULL == 4
-            if (index < 94) {
-                uint8_t read_gFontSmall[6];
-                EEPROM_ReadBuffer(0x267C + index * 6, read_gFontSmall, 6);
-                memcpy(buffer + (i * (char_width + 1)) + 1, &read_gFontSmall, char_width);
-            }
-#else
             if (index < ARRAY_SIZE(gFontSmall))
                 memcpy(buffer + (i * (char_width + 1)) + 1, &gFontSmall[index], char_width);
-#endif
 
         }
     }
@@ -339,16 +168,8 @@ void UI_DisplayFrequency(const char *string, uint8_t X, uint8_t Y, bool center) 
         if (bCanDisplay || c != ' ') {
             bCanDisplay = true;
             if (c >= '0' && c <= '9' + 1) {
-#if ENABLE_CHINESE_FULL == 4
-                uint8_t read_gFontBigDigits[20];
-                EEPROM_ReadBuffer(0x02480 + 20 * (c - '0'), read_gFontBigDigits, 20);
-
-                memcpy(pFb0 + 2, read_gFontBigDigits, char_width - 3);
-                memcpy(pFb1 + 2, read_gFontBigDigits + char_width - 3, char_width - 3);
-#else
                 memcpy(pFb0 + 2, gFontBigDigits[c - '0'], char_width - 3);
                 memcpy(pFb1 + 2, gFontBigDigits[c - '0'] + char_width - 3, char_width - 3);
-#endif
             } else if (c == '.') {
                 *pFb1 = 0x60;
                 pFb0++;
@@ -437,15 +258,8 @@ void GUI_DisplaySmallest(const char *pString, uint8_t x, uint8_t y,
 
     while ((c = *p++) && c != '\0') {
         c -= 0x20;
-#if ENABLE_CHINESE_FULL != 0
-        uint8_t read_gFont3x5[3];
-        EEPROM_ReadBuffer(0x0255C + c * 3, read_gFont3x5, 3);
-        for (int i = 0; i < 3; ++i) {
-            pixels = read_gFont3x5[i];
-#else
             for (int i = 0; i < 3; ++i) {
                 pixels = gFont3x5[c][i];
-#endif
             for (int j = 0; j < 6; ++j) {
                 if (pixels & 1) {
                     if (statusbar)
