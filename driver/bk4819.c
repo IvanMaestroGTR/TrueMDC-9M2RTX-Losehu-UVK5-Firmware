@@ -13,8 +13,6 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-#include "app/messenger.h"
-#include "app/messenger.h"
 #include "app/app.h"
 #include "ui/ui.h"
 #include "ui/main.h"
@@ -26,7 +24,6 @@
 #include "../bsp/dp32g030/portcon.h"
 #include "bk4819.h"
 #include "gpio.h"
-#include "app/messenger.h"
 #include "system.h"
 #include "systick.h"
 
@@ -370,9 +367,6 @@ void BK4819_InitAGC(bool amModulation) {
 
 
 void BK4819_PlayRoger(void) {
-#ifdef ENABLE_MESSENGER
-    if (stop_mdc_flag) return;
-#endif
 #ifdef ENABLE_MDC1200
     if (BK4819_HasPostIDRoger()) {
         BK4819_MuteMic();
