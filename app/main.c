@@ -593,7 +593,6 @@ static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
             gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
             return;
         }
-#endif
 
         // Process pending channel input (1-3 digits) when M key is pressed
         if (gInputBoxIndex >= 1 && gInputBoxIndex <= 3 && gScreenToDisplay == DISPLAY_MAIN) {
