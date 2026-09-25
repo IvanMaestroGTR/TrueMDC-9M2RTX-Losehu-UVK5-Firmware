@@ -399,7 +399,6 @@ void SETTINGS_FetchChannelName(char *s, const int channel)
     if (s == NULL)
         return;
     s[0] = 0;
-//#if ENABLE_CHINESE_FULL==4
 //    memset(s, 0, 16);  // 's' had better be large enough !
 //#else
 //    memset(s, 0, 10);  // 's' had better be large enough !
