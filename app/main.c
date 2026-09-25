@@ -746,12 +746,7 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction) 
         if (!DOPPLER_FLAG) {
             BACKLIGHT_TurnOn();
             UI_DisplayClear();
-#ifndef ENABLE_ENGLISH
-//��ȡ����
-            UI_PrintStringSmall("\xD0\xB4\xC8\xEB\xCA\xFD\xBE\xDD:", 0, 127, 2);
-#else
             UI_PrintStringSmall("GET DATA:", 0, 127, 2);
-#endif
             UI_PrintStringSmall("k5.vicicode.com", 0, 127, 4);
 
             ST7565_BlitFullScreen();
