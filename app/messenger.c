@@ -377,7 +377,7 @@ void MSG_Send(const char *txMessage, bool bServiceMessage) {
         //RADIO_SetTxParameters();
         FUNCTION_Select(FUNCTION_TRANSMIT);
         SYSTEM_DelayMs(250);
-        BK4819_send_MDC1200(1, 0x80, gEeprom.MDC1200_ID, 7);
+        BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, gEeprom.MDC1200_ID, 7);
         SYSTEM_DelayMs(100);
 
         MSG_FSKSendData();
