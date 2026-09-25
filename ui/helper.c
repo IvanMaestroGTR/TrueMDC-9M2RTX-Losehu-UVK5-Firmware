@@ -39,19 +39,6 @@ void set_bit(uint8_t *value, uint8_t bit_position) {
 //    }
 }
 
-uint8_t is_chn(uint8_t num) {
-    if (num >= 1 && num < 10)return num - 1;
-    else if (num > 10 && num < 32)return num - 2;
-    else if (num > 126 && num <= 233)return num - 97;
-    else return 255;
-
-}
-
-bool isChineseChar(char a, uint8_t now_index, uint8_t sum_index) {
-    if ((uint8_t) a >= 0x80 && now_index < sum_index) return 1;
-    return 0;
-}
-
 void UI_GenerateChannelString(char *pString, const uint8_t Channel) {
     unsigned int i;
 
