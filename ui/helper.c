@@ -23,7 +23,7 @@
 #include "ui/helper.h"
 #include "ui/inputbox.h"
 #include "misc.h"
-#include "chinese.h"
+#include "ui_strings.h"
 #include "driver/eeprom.h"
 
 #ifndef ARRAY_SIZE
@@ -402,8 +402,8 @@ void UI_DisplayPopup(const char *string) {
     // DrawRectangle(9,9, 118,38, true);
 
     UI_PrintStringSmall(string, 9, 118, 2);
-    //按EXIT键
-    UI_PrintStringSmall(按EXIT键, 9, 118, 5);
+    //STR_PRESS_EXIT
+    UI_PrintStringSmall(STR_PRESS_EXIT, 9, 118, 5);
 }
 
 void UI_DisplayClear() {
