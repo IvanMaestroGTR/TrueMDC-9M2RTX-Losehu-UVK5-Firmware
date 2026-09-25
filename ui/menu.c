@@ -923,8 +923,6 @@ void UI_DisplayMenu(void) {
                     UI_PrintStringSmall(edit, menu_item_x1 - 12, menu_item_x2, 3);
 
                     if (edit_index < MAX_EDIT_INDEX) {
-//#if ENABLE_CHINESE_FULL == 4
-//                        show_move_flag=1;
 //#endif
 
 
@@ -953,7 +951,6 @@ void UI_DisplayMenu(void) {
                 if (!gAskForConfirmation) {    // show the frequency so that the user knows the channels frequency
                     sprintf(String, "%u.%05u", frequency / 100000, frequency % 100000);
                     {
-//                        show_move_flag = 1;
                         UI_PrintStringSmall(String, menu_item_x1 - 12, menu_item_x2, 5);
                     }
                 }
