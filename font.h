@@ -19,11 +19,7 @@
 #include "stdbool.h"
 #include <stdint.h>
 
-extern const uint8_t gFontChinese_out[2261];
-#define CHN_FONT_WIDTH 11U
-#define CHN_FONT_HIGH 12U
 #define MAX_EDIT_INDEX 10
-extern bool show_move_flag;
 
 extern const uint8_t gFontBigDigits[11][20/*20*/];
 extern const uint8_t gFont3x5[96][3];
