@@ -34,7 +34,7 @@
 #include "ui/inputbox.h"
 #include "ui/menu.h"
 #include "ui/ui.h"
-#include "chinese.h"
+#include "ui_strings.h"
 
 void insertNewline(char a[], int index, int len) {
 
@@ -51,37 +51,37 @@ void insertNewline(char a[], int index, int len) {
 const t_menu_item MenuList[] =
         {
 //   text,     voice ID,                               menu ID
-                {/*"Step",*/   VOICE_ID_FREQUENCY_STEP, MENU_STEP, 步进频率},
-                {/*"RxDCS",*/  VOICE_ID_DCS, MENU_R_DCS, 接收数字亚音}, // was "R_DCS"
-                {/*"RxCTCS",*/ VOICE_ID_CTCSS, MENU_R_CTCS, 接收模拟亚音}, // was "R_CTCS"
-                {/*"TxDCS",*/  VOICE_ID_DCS, MENU_T_DCS, 发送数字亚音}, // was "T_DCS"
-                {/*"TxCTCS",*/ VOICE_ID_CTCSS, MENU_T_CTCS, 发送模拟亚音}, // was "T_CTCS"
-                {/*"TxODir",*/ VOICE_ID_TX_OFFSET_FREQUENCY_DIRECTION, MENU_SFT_D, 频差方向}, // was "SFT_D"
-                {/*"TxOffs",*/ VOICE_ID_TX_OFFSET_FREQUENCY, MENU_OFFSET, 频差频率}, // was "OFFSET"
+                {/*"Step",*/   VOICE_ID_FREQUENCY_STEP, MENU_STEP, STR_STEP},
+                {/*"RxDCS",*/  VOICE_ID_DCS, MENU_R_DCS, STR_RXDCS}, // was "R_DCS"
+                {/*"RxCTCS",*/ VOICE_ID_CTCSS, MENU_R_CTCS, STR_RXCTCS}, // was "R_CTCS"
+                {/*"TxDCS",*/  VOICE_ID_DCS, MENU_T_DCS, STR_TXDCS}, // was "T_DCS"
+                {/*"TxCTCS",*/ VOICE_ID_CTCSS, MENU_T_CTCS, STR_TXCTCS}, // was "T_CTCS"
+                {/*"TxODir",*/ VOICE_ID_TX_OFFSET_FREQUENCY_DIRECTION, MENU_SFT_D, STR_TXODIR}, // was "SFT_D"
+                {/*"TxOffs",*/ VOICE_ID_TX_OFFSET_FREQUENCY, MENU_OFFSET, STR_TXOFFS}, // was "OFFSET"
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
 
-                {/*"W/N",*/    VOICE_ID_CHANNEL_BANDWIDTH,             MENU_W_N           ,宽窄带},
+                {/*"W/N",*/    VOICE_ID_CHANNEL_BANDWIDTH,             MENU_W_N           ,STR_W_N},
 #endif
 
-                {/*"Scramb",*/ VOICE_ID_SCRAMBLER_ON, MENU_SCR, 加密}, // was "SCR"
-                {/*"BusyCL",*/ VOICE_ID_BUSY_LOCKOUT, MENU_BCL, 遇忙禁发}, // was "BCL"
-                {/*"Compnd",*/ VOICE_ID_INVALID, MENU_COMPAND, 压扩},
-                {/*"ChSave",*/ VOICE_ID_MEMORY_CHANNEL, MENU_MEM_CH, 存置信道}, // was "MEM-CH"
-                {/*"ChDele",*/ VOICE_ID_DELETE_CHANNEL, MENU_DEL_CH, 删除信道}, // was "DEL-CH"
-                {/*"ChName",*/ VOICE_ID_INVALID, MENU_MEM_NAME, 命名信道},
-                {/*"SList",*/  VOICE_ID_INVALID, MENU_S_LIST, 信道扫描列表},
-                {/*"SList1",*/ VOICE_ID_INVALID, MENU_SLIST1, 扫描列表1},
-                {/*"SList2",*/ VOICE_ID_INVALID, MENU_SLIST2, 扫描列表2},
-                {/*"ScnRev",*/ VOICE_ID_INVALID, MENU_SC_REV, 搜索恢复模式},
-                {/*"TxTOut",*/ VOICE_ID_TRANSMIT_OVER_TIME, MENU_TOT, 发送超时}, // was "TOT"
-                {/*"BatSav",*/ VOICE_ID_SAVE_MODE, MENU_SAVE, 省电模式}, // was "SAVE"
-                {/*"Mic",*/    VOICE_ID_INVALID, MENU_MIC, 麦克风增益},
-                {/*"ChDisp",*/ VOICE_ID_INVALID, MENU_MDF, 信道显示模式}, // was "MDF"
+                {/*"Scramb",*/ VOICE_ID_SCRAMBLER_ON, MENU_SCR, STR_SCRAMB}, // was "SCR"
+                {/*"BusyCL",*/ VOICE_ID_BUSY_LOCKOUT, MENU_BCL, STR_BUSYCL}, // was "BCL"
+                {/*"Compnd",*/ VOICE_ID_INVALID, MENU_COMPAND, STR_COMPND},
+                {/*"ChSave",*/ VOICE_ID_MEMORY_CHANNEL, MENU_MEM_CH, STR_CHSAVE}, // was "MEM-CH"
+                {/*"ChDele",*/ VOICE_ID_DELETE_CHANNEL, MENU_DEL_CH, STR_CHDELE}, // was "DEL-CH"
+                {/*"ChName",*/ VOICE_ID_INVALID, MENU_MEM_NAME, STR_CHNAME},
+                {/*"SList",*/  VOICE_ID_INVALID, MENU_S_LIST, STR_SLIST},
+                {/*"SList1",*/ VOICE_ID_INVALID, MENU_SLIST1, STR_SLIST1},
+                {/*"SList2",*/ VOICE_ID_INVALID, MENU_SLIST2, STR_SLIST2},
+                {/*"ScnRev",*/ VOICE_ID_INVALID, MENU_SC_REV, STR_SCNREV},
+                {/*"TxTOut",*/ VOICE_ID_TRANSMIT_OVER_TIME, MENU_TOT, STR_TXTOUT}, // was "TOT"
+                {/*"BatSav",*/ VOICE_ID_SAVE_MODE, MENU_SAVE, STR_BATSAV}, // was "SAVE"
+                {/*"Mic",*/    VOICE_ID_INVALID, MENU_MIC, STR_MIC},
+                {/*"ChDisp",*/ VOICE_ID_INVALID, MENU_MDF, STR_CHDISP}, // was "MDF"
 #if ENABLE_CHINESE_FULL == 4
-                {/*"POnMsg",*/ VOICE_ID_INVALID,                       MENU_PONMSG        ,开机显示},
+                {/*"POnMsg",*/ VOICE_ID_INVALID,                       MENU_PONMSG        ,STR_PONMSG},
 #endif
-                {/*"BackLt",*/ VOICE_ID_INVALID, MENU_ABR, 自动背光}, // was "ABR"
-                {/*"BLMax",*/  VOICE_ID_INVALID, MENU_ABR_MAX, 背光亮度},
+                {/*"BackLt",*/ VOICE_ID_INVALID, MENU_ABR, STR_BACKLT}, // was "ABR"
+                {/*"BLMax",*/  VOICE_ID_INVALID, MENU_ABR_MAX, STR_LIGHT},
 #ifdef ENABLE_MDC1200
                 {/*"MDCID",*/  VOICE_ID_INVALID, MENU_MDC_ID, MDC_ID},
  #ifdef ENABLE_FLEETSYNC
@@ -92,67 +92,67 @@ const t_menu_item MenuList[] =
                 {/*"MDCWhn",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_WHEN, "MDCWhn"},
 #endif
 
-                {/*"Roger",*/  VOICE_ID_INVALID, MENU_ROGER, 首尾音},
+                {/*"Roger",*/  VOICE_ID_INVALID, MENU_ROGER, STR_ROGER},
 
-                {/*"STE",*/    VOICE_ID_INVALID, MENU_STE, 尾音消除},
+                {/*"STE",*/    VOICE_ID_INVALID, MENU_STE, STR_STE},
                 // {/*"ECT",*/    VOICE_ID_INVALID, MENU_END_CALL_TONE, "ECT"},  // removed
-                {/*"1 Call",*/ VOICE_ID_INVALID, MENU_1_CALL, 按键即呼},
+                {/*"1 Call",*/ VOICE_ID_INVALID, MENU_1_CALL, STR_V_1_CALL},
 
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-                {/*"F1Shrt",*/ VOICE_ID_INVALID,                       MENU_F1SHRT        ,侧键1短按},
-                {/*"F1Long",*/ VOICE_ID_INVALID,                       MENU_F1LONG        ,侧键1长按},
-                {/*"F2Shrt",*/ VOICE_ID_INVALID,                       MENU_F2SHRT        ,侧键2短按},
-                {/*"F2Long",*/ VOICE_ID_INVALID,                       MENU_F2LONG        ,侧键2长按},
-                {/*"M Long",*/ VOICE_ID_INVALID,                       MENU_MLONG         ,M键长按},
+                {/*"F1Shrt",*/ VOICE_ID_INVALID,                       MENU_F1SHRT        ,STR_F1SHRT},
+                {/*"F1Long",*/ VOICE_ID_INVALID,                       MENU_F1LONG        ,STR_F1LONG},
+                {/*"F2Shrt",*/ VOICE_ID_INVALID,                       MENU_F2SHRT        ,STR_F2SHRT},
+                {/*"F2Long",*/ VOICE_ID_INVALID,                       MENU_F2LONG        ,STR_F2LONG},
+                {/*"M Long",*/ VOICE_ID_INVALID,                       MENU_MLONG         ,STR_M_LONG},
 #endif
 
 #ifdef ENABLE_DTMF_CALLING
 
                 {/*"ANI ID",*/ VOICE_ID_ANI_CODE,                      MENU_ANI_ID        ,DTMF_ID},
 #endif
-                {/*"UPCode",*/ VOICE_ID_INVALID, MENU_UPCODE, DTMF上线码},
-                {/*"DWCode",*/ VOICE_ID_INVALID, MENU_DWCODE, DTMF下线码},
-                {/*"PTT ID",*/ VOICE_ID_INVALID, MENU_PTT_ID, DTMF发送},
-                {/*"D ST",*/   VOICE_ID_INVALID, MENU_D_ST, DTMF侧音},
+                {/*"UPCode",*/ VOICE_ID_INVALID, MENU_UPCODE, STR_UPCODE},
+                {/*"DWCode",*/ VOICE_ID_INVALID, MENU_DWCODE, STR_DWCODE},
+                {/*"PTT ID",*/ VOICE_ID_INVALID, MENU_PTT_ID, STR_PTT_ID},
+                {/*"D ST",*/   VOICE_ID_INVALID, MENU_D_ST, STR_D_ST},
 #ifdef ENABLE_DTMF_CALLING
-                // {/*"D Resp",*/ VOICE_ID_INVALID,                       MENU_D_RSP         ,DTMF响应}, // disabled
-                // {/*"D Hold",*/ VOICE_ID_INVALID,                       MENU_D_HOLD        ,DTMF复位}, // disabled
+                // {/*"D Resp",*/ VOICE_ID_INVALID,                       MENU_D_RSP         ,STR_D_RESP}, // disabled
+                // {/*"D Hold",*/ VOICE_ID_INVALID,                       MENU_D_HOLD        ,STR_D_HOLD}, // disabled
 #endif
-                {/*"D Prel",*/ VOICE_ID_INVALID, MENU_D_PRE, DTMF预载波},
+                {/*"D Prel",*/ VOICE_ID_INVALID, MENU_D_PRE, STR_D_PREL},
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-                // {/*"D Decd",*/ VOICE_ID_INVALID,                       MENU_D_DCD         ,DTMF解码}, // disabled
+                // {/*"D Decd",*/ VOICE_ID_INVALID,                       MENU_D_DCD         ,STR_D_DECD}, // disabled
 #endif
-                // {/*"D List",*/ VOICE_ID_INVALID,                       MENU_D_LIST        ,DTMF联系人}, // disabled
+                // {/*"D List",*/ VOICE_ID_INVALID,                       MENU_D_LIST        ,STR_D_LIST}, // disabled
 #endif
-                // {/*"D Live",*/ VOICE_ID_INVALID, MENU_D_LIVE_DEC, DTMF显示}, // live DTMF decoder disabled
+                // {/*"D Live",*/ VOICE_ID_INVALID, MENU_D_LIVE_DEC, STR_D_LIVE}, // live DTMF decoder disabled
 #ifdef ENABLE_AM_FIX//1
-                {/*"AM Fix",*/ VOICE_ID_INVALID,                       MENU_AM_FIX        ,AM自动增益},
+                {/*"AM Fix",*/ VOICE_ID_INVALID,                       MENU_AM_FIX        ,STR_AM_FIX},
 #endif
 #ifdef ENABLE_AM_FIX_TEST1//0
                 {/*"AM FT1",*/ VOICE_ID_INVALID,                       MENU_AM_FIX_TEST1  ,""},
 #endif
 
-                {/*"RxMode",*/ VOICE_ID_DUAL_STANDBY, MENU_TDR, 收发模式},
-                {/*"Sql",*/    VOICE_ID_SQUELCH, MENU_SQL, 静噪等级},
+                {/*"RxMode",*/ VOICE_ID_DUAL_STANDBY, MENU_TDR, STR_RXMODE},
+                {/*"Sql",*/    VOICE_ID_SQUELCH, MENU_SQL, STR_SQL},
 
                 // hidden menu items from here on
                 // enabled if pressing both the PTT and upper side button at power-on
-//                {/*"Tx 200",*/ VOICE_ID_INVALID,                       MENU_200TX         ,两百M发射}, // was "200TX"
-//                {/*"Tx 350",*/ VOICE_ID_INVALID,                       MENU_350TX         ,三百五十M发射}, // was "350TX"
-//                {/*"Tx 500",*/ VOICE_ID_INVALID,                       MENU_500TX         ,五百M发射}, // was "500TX"
-//                {/*"350 En",*/ VOICE_ID_INVALID,                       MENU_350EN         ,三百五十M接收}, // was "350EN"
+//                {/*"Tx 200",*/ VOICE_ID_INVALID,                       MENU_200TX         ,STR_TX_200}, // was "200TX"
+//                {/*"Tx 350",*/ VOICE_ID_INVALID,                       MENU_350TX         ,STR_TX_350}, // was "350TX"
+//                {/*"Tx 500",*/ VOICE_ID_INVALID,                       MENU_500TX         ,STR_TX_500}, // was "500TX"
+//                {/*"350 En",*/ VOICE_ID_INVALID,                       MENU_350EN         ,STR_V_350_EN}, // was "350EN"
                 {/*"TPT",*/    VOICE_ID_INVALID, MENU_TALK_PERMIT_TONE, "TPT"},
                 {/*"Rx.Led",*/ VOICE_ID_INVALID, MENU_RX_LM, "Rx.Led"},
-                {/*"F Lock",*/ VOICE_ID_INVALID, MENU_F_LOCK, 频段解锁},
+                {/*"F Lock",*/ VOICE_ID_INVALID, MENU_F_LOCK, STR_F_LOCK},
 #ifdef ENABLE_F_CAL_MENU//0
                 {/*"FrCali",*/ VOICE_ID_INVALID,                       MENU_F_CALI        ,""}, // reference xtal calibration
 #endif
-                {/*"BatCal",*/ VOICE_ID_INVALID, MENU_BATCAL, 电池调压}, // battery voltage calibration
+                {/*"BatCal",*/ VOICE_ID_INVALID, MENU_BATCAL, STR_BATCAL}, // battery voltage calibration
                 {/*"PwrCal",*/ VOICE_ID_INVALID, MENU_TX_CAL, "PwrCal"},
                 {/*"BatVol",*/ VOICE_ID_INVALID, MENU_BATTYP, "BatVol"},
                 {/*"Reset",*/  VOICE_ID_INITIALISATION, MENU_RESET,
-                               参数复位}, // might be better to move this to the hidden menu items ?
+                               STR_RESET}, // might be better to move this to the hidden menu items ?
 
                 {/*"",*/       VOICE_ID_INVALID, 0xff, "\x00"}  // end of list - DO NOT delete or move this this
         };
@@ -172,15 +172,15 @@ const char gSubMenu_W_N[][3] =//7
         {
 //                "WIDE",
 //                "NARROW"
-                宽带,
-               窄带
+                STR_WIDE,
+               STR_NARROW
         };
 #endif
 #if ENABLE_CHINESE_FULL == 4
 const char gSubMenu_PONMSG[][5]={
-        关闭,
-        图片,
-        信息
+        STR_OFF,
+        STR_PIC,
+        STR_TXT
 };
 #endif
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
@@ -197,9 +197,9 @@ const char gSubMenu_SFT_D[][10] =//4
 //                "OFF",
 //                "+",
 //                "-"
-                发送等于接收,
-                发送等于接收加偏移,
-                发送等于接收减偏移
+                STR_OFF,
+                STR_TEXT,
+                STR_TEXT_2
 
         };
 
@@ -218,7 +218,7 @@ const char gSubMenu_OFF_ON[][4] =
 #else
 const char gSubMenu_STE[][8] =
 {
-    "关闭",
+    "STR_OFF",
     "55Hz",
     "180°"
 };
@@ -229,7 +229,7 @@ const char gSubMenu_OFF_ON[][3] =//4
 #else
         const char gSubMenu_STE[][8] =
 {
-    "关闭",       // OFF
+    "STR_OFF",       // OFF
     "55Hz",      // 55Hz
     "180°"       // 180°
 };
@@ -239,8 +239,8 @@ const char gSubMenu_OFF_ON[][3] =//4
         {
 //                "OFF",
 //                "ON"
-                关闭,
-                开启
+                STR_OFF,
+                STR_ON
         };
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
 
@@ -257,13 +257,13 @@ const char gSubMenu_SAVE[][4] =//4
 //                "1:5",
 //                "1:6"
 
-                关闭,
-                一级,
-                二级,
-                三级,
-                四级,
-                五级,
-                六级,
+                STR_OFF,
+                STR_V_1_1,
+                STR_V_1_2,
+                STR_V_1_3,
+                STR_V_1_4,
+                STR_V_1_5,
+                STR_V_1_6,
 
         };
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
@@ -284,17 +284,17 @@ const char gSubMenu_TOT[][7] = //7
 //                "9 min",
 //                "15 min"
 
-                三十秒,
-                一分,
-                两分,
-                三分,
-                四分,
-                五分,
-                六分,
-                七分,
-                八分,
-                九分,
-                十五分
+                STR_V_30_SEC,
+                STR_V_1_MIN,
+                STR_V_2_MIN,
+                STR_V_3_MIN,
+                STR_V_4_MIN,
+                STR_V_5_MIN,
+                STR_V_6_MIN,
+                STR_V_7_MIN,
+                STR_V_8_MIN,
+                STR_V_9_MIN,
+                STR_V_15_MIN
 
         };
 
@@ -305,10 +305,10 @@ const char *const gSubMenu_RXMode[] =
 //                "DUAL RX\nRESPOND", // Watch both and respond
 //                "CROSS\nBAND",        // TX on main, RX on secondary
 //                "MAIN TX\nDUAL RX"    // always TX on main, but RX on both
-                主信道接收发射,        // TX and RX on main only
-                双信道接收, // Watch both and respond
-                主信道发射副信道接收,        // TX on main, RX on secondary
-                主信道发射双信道接收    // always TX on main, but RX on both
+                STR_MAIN_ONLY,        // TX and RX on main only
+                STR_DUAL_RX_RESPOND, // Watch both and respond
+                STR_CROSS_BAND,        // TX on main, RX on secondary
+                STR_MAIN_TX_DUAL_RX    // always TX on main, but RX on both
 
         };
 
@@ -335,9 +335,9 @@ const char gSubMenu_SC_REV[][10] =//8
 //                "TIMEOUT",
 //                "CARRIER",
 //                "STOP"
-                遇信号5秒后搜索,
-                信号停止后搜索,
-                遇信号后停止搜索
+                STR_TIME,
+                STR_CARRIER,
+                STR_STOP
 
         };
 
@@ -347,10 +347,10 @@ const char *const gSubMenu_MDF[] =
 //                "CHANNEL\nNUMBER",
 //                "NAME",
 //                "NAME\n+\nFREQ"
-                频率,
-                信道号,
-                名称,
-                名称加频率
+                STR_FREQ,
+                STR_CHANNEL_NUMBER,
+                STR_NAME,
+                STR_NAME_FREQ
         };
 
 #ifdef ENABLE_ALARM
@@ -377,10 +377,10 @@ const char gSubMenu_AL_MOD[][5] =
 //                "RING",
 //                "REPLY",
 //                "BOTH"
-                不响应,
-                本地响铃,
-                回复响应,
-               本地响铃回复响应
+                STR_DO_NOTHING,
+                STR_RING,
+                STR_REPLY,
+               STR_BOTH
         }*/;
 #endif
 
@@ -391,11 +391,11 @@ const char *const gSubMenu_PTT_ID[] =
 //                "DOWN CODE",
 //                "UP+DOWN\nCODE",
 //                "APOLLO\nQUINDAR"
-                不发送,
-                上线码,
-                下线码,
-                上线加下线码,
-                Quindar码
+                STR_OFF,
+                STR_UP_CODE,
+                STR_DOWN_CODE,
+                STR_UP_DOWN_CODE,
+                STR_APOLLO_QUINDAR
         };
 
 
@@ -412,7 +412,7 @@ const char gSubMenu_ROGER[][13] =
         const char gSubMenu_ROGER[][15] =
 #endif
         {
-                关闭,
+                STR_OFF,
                 "Pre MDC",
                 "Post MDC",
                 "Both MDC",
@@ -465,8 +465,8 @@ const char gSubMenu_MDC_PREAMBLE_WHEN[][5] =
         {
 //                "VFO",
 //                "ALL"
-                除信道参数,
-                全部参数
+                STR_VFO,
+                STR_ALL
         };
 
 const char *const gSubMenu_F_LOCK[] =
@@ -478,8 +478,8 @@ const char *const gSubMenu_F_LOCK[] =
 
 //                "DISABLE\nALL",
 //                "UNLOCK\nALL",
-                禁用全部,
-                解锁全部,
+                STR_DISABLE_ALL,
+                STR_UNLOCK_ALL,
         };
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
 
@@ -501,14 +501,14 @@ const char gSubMenu_BACKLIGHT[][5] =//7
 //                "2 min",
 //                "4 min",
 //                "ON"
-                关闭,
-                五秒,
-                十秒,
-                二十秒,
-                一分,
-                两分,
-                四分,
-                开启
+                STR_OFF,
+                STR_V_5_SEC,
+                STR_V_10_SEC,
+                STR_V_20_SEC,
+                STR_V_1_MIN,
+                STR_V_2_MIN,
+                STR_V_4_MIN,
+                STR_ON
 
         };
 #if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
@@ -528,10 +528,10 @@ const char gSubMenu_RX_TX[][7] =//6
 //                "TX",
 //                "RX",
 //                "TX/RX"
-                关闭,
-                发送时,
-                接收时,
-                发送接收时
+                STR_OFF,
+                STR_TX,
+                STR_RX,
+                STR_TX_RX
         };
 
 #ifdef ENABLE_AM_FIX_TEST1
@@ -570,7 +570,7 @@ const char gSubMenu_BATTYP[][8] =
 const char gSubMenu_SCRAMBLER[][7] =
         {
 //                "OFF",
-                关闭,
+                STR_OFF,
 
                 "2600Hz",
                 "2700Hz",
@@ -587,34 +587,34 @@ const char gSubMenu_SCRAMBLER[][7] =
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
 const t_sidefunction SIDEFUNCTIONS[] =
         {
-               {关闭, ACTION_OPT_NONE},
+               {STR_OFF, ACTION_OPT_NONE},
 #ifdef ENABLE_FLASHLIGHT
-               {手电, ACTION_OPT_FLASHLIGHT},
+               {STR_LIGHT_2, ACTION_OPT_FLASHLIGHT},
 #endif
-               {切换发射功率, ACTION_OPT_POWER},
-               {监听, ACTION_OPT_MONITOR},
-               {扫描, ACTION_OPT_SCAN},
+               {STR_POWER, ACTION_OPT_POWER},
+               {STR_MONITOR, ACTION_OPT_MONITOR},
+               {STR_SCAN, ACTION_OPT_SCAN},
 #ifdef ENABLE_VOX
-               {声控发射,				ACTION_OPT_VOX},
+               {STR_VOX,				ACTION_OPT_VOX},
 #endif
 #ifdef ENABLE_ALARM
                 {"ALARM",			ACTION_OPT_ALARM},
 #endif
 #ifdef ENABLE_FMRADIO
-               {FM收音机,		ACTION_OPT_FM},
+               {STR_FM_RADIO,		ACTION_OPT_FM},
 #endif
 #ifdef ENABLE_TX1750
                 {"1750HZ",			ACTION_OPT_1750},
 #endif
-               {锁定按键, ACTION_OPT_KEYLOCK},
-               {切换信道, ACTION_OPT_A_B},
-               {切换信道模式, ACTION_OPT_VFO_MR},
-               {切换调制模式, ACTION_OPT_SWITCH_DEMODUL},
-               {DTMF解码, ACTION_OPT_D_DCD},
-               {切换宽窄带, ACTION_OPT_WIDTH},
+               {STR_LOCK_KEY, ACTION_OPT_KEYLOCK},
+               {STR_SWITCH_VFO, ACTION_OPT_A_B},
+               {STR_VFO_MR, ACTION_OPT_VFO_MR},
+               {STR_DEMODU, ACTION_OPT_SWITCH_DEMODUL},
+               {STR_D_DECD, ACTION_OPT_D_DCD},
+               {STR_W_N, ACTION_OPT_WIDTH},
 #ifdef ENABLE_SIDEFUNCTIONS_SEND
-               {主信道发射, ACTION_OPT_SEND_CURRENT},
-               {副信道发射, ACTION_OPT_SEND_OTHER},
+               {STR_MAIN_SEND, ACTION_OPT_SEND_CURRENT},
+               {STR_DUAL_SEND, ACTION_OPT_SEND_OTHER},
 #endif
 #ifdef ENABLE_BLMIN_TMP_OFF
                 {"BLMIN\nTMP OFF",  ACTION_OPT_BLMIN_TMP_OFF}, 		//BackLight Minimum Temporay OFF
@@ -811,7 +811,7 @@ void UI_DisplayMenu(void) {
                 strcpy(String, "OFF");
 
 #else
-                strcpy(String, 关闭);
+                strcpy(String, STR_OFF);
 
 #endif
 
@@ -849,8 +849,8 @@ void UI_DisplayMenu(void) {
                 strcpy(String, "OFF");
 
 #else
-                //关闭
-                strcpy(String, 关闭);
+                //STR_OFF
+                strcpy(String, STR_OFF);
 
 #endif
 
@@ -1330,8 +1330,8 @@ void UI_DisplayMenu(void) {
                 strcpy(String, "OFF");
 
 #else
-                //关闭
-                strcpy(String, 关闭);
+                //STR_OFF
+                strcpy(String, STR_OFF);
 
 #endif
 
@@ -1348,8 +1348,8 @@ void UI_DisplayMenu(void) {
 #ifdef test
                 sprintf(String, "list %u", 1 + gSubMenuSelection);
 
-#else  //！！列表
-                sprintf(String, 列表" %u", 1 + gSubMenuSelection);
+#else  //！！STR_LIST
+                sprintf(String, STR_LIST" %u", 1 + gSubMenuSelection);
 
 #endif
 
@@ -1359,8 +1359,8 @@ void UI_DisplayMenu(void) {
                 strcpy(String, "ALL");
 
 #else
-                //全部
-                strcpy(String, 全部);
+                //STR_ALL
+                strcpy(String, STR_ALL);
 
 #endif
             break;
@@ -1611,8 +1611,8 @@ void UI_DisplayMenu(void) {
 
 
     if ((UI_MENU_GetCurrentMenuId() == MENU_R_CTCS || UI_MENU_GetCurrentMenuId() == MENU_R_DCS) && gCssBackgroundScan)
-        //扫描
-        UI_PrintStringSmall(扫描, menu_item_x1, menu_item_x2, 5);
+        //STR_SCAN
+        UI_PrintStringSmall(STR_SCAN, menu_item_x1, menu_item_x2, 5);
 
 //
 //    if (UI_MENU_GetCurrentMenuId() == MENU_UPCODE)
