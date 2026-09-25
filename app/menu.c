@@ -1809,11 +1809,6 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction) 
         if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) {    // change the character
 
             if (bKeyPressed && edit_index < MAX_EDIT_INDEX) {
-                if (isChineseChar(edit[edit_index], edit_index, MAX_EDIT_INDEX)) {
-                    edit[edit_index + 1] = '_';
-                    edit[edit_index] = '_';
-
-                }
                 const char unwanted[] = "$%&!\"':;?^`|{}";
                 char c = edit[edit_index] + Direction;
                 unsigned int i = 0;
