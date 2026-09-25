@@ -566,9 +566,6 @@ void RADIO_SetupRegisters(bool switchToForeground) {
     BK4819_FilterBandwidth_t Bandwidth = gRxVfo->CHANNEL_BANDWIDTH;
     uint16_t InterruptMask;
     uint32_t Frequency;
-#if ENABLE_CHINESE_FULL==4 && !defined(ENABLE_ENGLISH)
-    uint8_t read_tmp[2];
-#endif
     AUDIO_AudioPathOff();
 
     gEnableSpeaker = false;
@@ -674,14 +671,7 @@ void RADIO_SetupRegisters(bool switchToForeground) {
 
                 case CODE_TYPE_CONTINUOUS_TONE:
 
-#if ENABLE_CHINESE_FULL == 0 ||defined(ENABLE_ENGLISH)
                     BK4819_SetCTCSSFrequency(CTCSS_Options[Code]);
-#else
-                    EEPROM_ReadBuffer(0x02C00+(Code)*2, read_tmp, 2);
-                    uint16_t CTCSS_Options_read=read_tmp[0]|(read_tmp[1]<<8);
-                                BK4819_SetCTCSSFrequency(CTCSS_Options_read);
-
-#endif
 
                     InterruptMask = 0
                                     | BK4819_REG_3F_CxCSS_TAIL
@@ -811,10 +801,6 @@ void RADIO_ConfigureNOAA(void)
 #endif
 
 void RADIO_SetTxParameters(void) {
-#if ENABLE_CHINESE_FULL==4 && !defined(ENABLE_ENGLISH)
-
-    uint8_t read_tmp[2];
-#endif
     BK4819_FilterBandwidth_t Bandwidth = gCurrentVfo->CHANNEL_BANDWIDTH;
     AUDIO_AudioPathOff();
 
@@ -875,15 +861,7 @@ void RADIO_SetTxParameters(void) {
             break;
 
         case CODE_TYPE_CONTINUOUS_TONE:
-#if ENABLE_CHINESE_FULL == 0||defined(ENABLE_ENGLISH)
             BK4819_SetCTCSSFrequency(CTCSS_Options[gCurrentVfo->pTX->Code]);
-#else
-
-            EEPROM_ReadBuffer(0x02C00+(gCurrentVfo->pTX->Code)*2, read_tmp, 2);
-            uint16_t CTCSS_Options_read=read_tmp[0]|(read_tmp[1]<<8);
-                BK4819_SetCTCSSFrequency(CTCSS_Options_read);
-
-#endif
 
             break;
 
