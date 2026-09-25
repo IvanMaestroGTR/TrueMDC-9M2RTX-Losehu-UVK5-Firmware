@@ -22,13 +22,7 @@
 extern const uint8_t gFontChinese_out[2261];
 #define CHN_FONT_WIDTH 11U
 #define CHN_FONT_HIGH 12U
-#if  ENABLE_CHINESE_FULL ==4 &&!defined(ENABLE_ENGLISH)
-extern bool audio_keep_flag;
-
-#define MAX_EDIT_INDEX 13
-#else
 #define MAX_EDIT_INDEX 10
-#endif
 extern bool show_move_flag;
 
 extern const uint8_t gFontBigDigits[11][20/*20*/];
