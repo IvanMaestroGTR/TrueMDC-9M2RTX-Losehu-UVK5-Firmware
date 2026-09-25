@@ -54,14 +54,6 @@ void UI_GenerateChannelString(char *pString, const uint8_t Channel) {
         pString[i + 3] = (gInputBox[i] == 10) ? '-' : gInputBox[i] + '0';
 }
 
-bool CHINESE_JUDGE(char *name, uint8_t len) {
-    for (int i = 0; i < len; i++)
-        if ((uint8_t) name[i] >= 0x80 && i != len - 1 && name[i + 1] != 0)return 1;
-
-    return 0;
-}
-
-
 void UI_GenerateChannelStringEx(char *pString, const bool bShowPrefix, const uint8_t ChannelNumber) {
     if (gInputBoxIndex > 0) {
         for (unsigned int i = 0; i < 3; i++) {
