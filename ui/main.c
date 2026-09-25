@@ -14,7 +14,7 @@
  *     limitations under the License.
  */
 #include "app/mdc1200.h"
-#include "chinese.h"
+#include "ui_strings.h"
 #include <string.h>
 #include <stdlib.h>  // abs()
 #include "driver/uart.h"
@@ -61,12 +61,12 @@ const int8_t dBmCorrTable[7] = {
 
 const char *VfoStateStr[] = {
         [VFO_STATE_NORMAL]="",
-        [VFO_STATE_BUSY]=遇忙,
-        [VFO_STATE_BAT_LOW]=低电压,
-        [VFO_STATE_TX_DISABLE]=禁止发射,
-        [VFO_STATE_TIMEOUT]=发送超时,
+        [VFO_STATE_BUSY]=STR_BUSY,
+        [VFO_STATE_BAT_LOW]=STR_LOW_VOL,
+        [VFO_STATE_TX_DISABLE]=STR_DISABLE,
+        [VFO_STATE_TIMEOUT]=STR_TXTOUT,
         [VFO_STATE_ALARM]="ALARM",
-        [VFO_STATE_VOLTAGE_HIGH]=高电压
+        [VFO_STATE_VOLTAGE_HIGH]=STR_HIGH_VOL
 };
 // ***************************************************************************
 
@@ -443,8 +443,8 @@ void UI_DisplayMain(void) {
     UI_DisplayClear();
 
     if (gLowBattery && !gLowBatteryConfirmed) {
-        //低电压
-        UI_DisplayPopup(低电压);
+        //STR_LOW_VOL
+        UI_DisplayPopup(STR_LOW_VOL);
         ST7565_BlitFullScreen();
         return;
     }
