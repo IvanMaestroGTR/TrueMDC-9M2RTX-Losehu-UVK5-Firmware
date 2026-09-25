@@ -27,7 +27,6 @@
 #include "dcs.h"
 #include "driver/backlight.h"
 #ifdef ENABLE_MESSENGER
-#include "app/messenger.h"
 #endif
 #ifdef ENABLE_DOPPLER
 #include "app/doppler.h"
@@ -202,9 +201,6 @@ void FUNCTION_Transmit() {
 
     DTMF_Reply();
 #ifdef ENABLE_MDC1200
-#ifdef ENABLE_MESSENGER
-    if(!stop_mdc_flag){
-#endif
     const bool useFleetSyncRoger = (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
                                    gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
                                    gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
