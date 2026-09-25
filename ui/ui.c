@@ -17,10 +17,6 @@
 #include <assert.h>
 #include <string.h>
 
-#ifdef ENABLE_MESSENGER
-#include "ui/messenger.h"
-#endif
-
 #include "app/chFrScanner.h"
 #include "app/dtmf.h"
 
@@ -60,10 +56,6 @@ void (*UI_DisplayFunctions[])(void) = {
 #ifdef ENABLE_FMRADIO
         [DISPLAY_FM] = &UI_DisplayFM,
 #endif
-#ifdef ENABLE_MESSENGER
-        [DISPLAY_MSG] = &UI_DisplayMSG,
-#endif
-
 #ifdef ENABLE_AIRCOPY
         [DISPLAY_AIRCOPY] = &UI_DisplayAircopy,
 #endif
