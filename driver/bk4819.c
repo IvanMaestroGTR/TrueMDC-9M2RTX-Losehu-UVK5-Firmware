@@ -2732,7 +2732,15 @@ void enable_msg_rx(const bool enable) {
         // set the almost full threshold
         BK4819_WriteRegister(0x5E, (64u << 3) | (1u << 0));  // 0 ~ 127, 0 ~ 7
 
-        {PLACEHOLDER}
+        {
+#ifdef ENABLE_FLEETSYNC
+            BK4819_WriteRegister(
+                0x5D,
+                ((useFleetSyncRoger ? FLEETSYNC_PACKET_SIZE : MDC1200_FEC_K * 2u) - 1u) << 8);
+#else
+            BK4819_WriteRegister(0x5D, (MDC1200_FEC_K * 2u - 1u) << 8);
+#endif
+        }
 
         // clear FIFO's then enable RX
         BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
