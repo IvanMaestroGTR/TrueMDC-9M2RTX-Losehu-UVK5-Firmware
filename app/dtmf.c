@@ -17,7 +17,6 @@
 #include "app/doppler.h"
 #endif
 
-#include "app/messenger.h"
 #include <string.h>
 #include <stdio.h>   // NULL
 
@@ -202,7 +201,6 @@ DTMF_CallMode_t DTMF_CheckGroupCall(const char *pMsg, const unsigned int size)
             break;
 
     return (i < size) ? DTMF_CALL_MODE_GROUP : DTMF_CALL_MODE_NOT_GROUP;
-}
 #endif
 
 void DTMF_clear_input_box(void) {
@@ -224,7 +222,8 @@ void DTMF_Append(const char code) {
 
 #ifdef ENABLE_DTMF_CALLING
 void DTMF_HandleRequest(void)
-{	// proccess the RX'ed DTMF characters
+{
+	// proccess the RX'ed DTMF characters
 
     char         String[21];
     unsigned int Offset;
@@ -488,10 +487,6 @@ gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_TX_DOWN) {
 }
 
 void DTMF_SendEndOfTransmission(void) {
-#ifdef  ENABLE_MESSENGER
-
-    if(!stop_mdc_flag) {
-#endif
     if (gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_APOLLO) {
         BK4819_PlaySingleTone(2475, 250, 28, gEeprom.DTMF_SIDE_TONE);
     } else if ((gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_TX_DOWN ||
@@ -519,10 +514,6 @@ void DTMF_SendEndOfTransmission(void) {
         AUDIO_AudioPathOff();
         gEnableSpeaker = false;
     }
-#ifdef  ENABLE_MESSENGER
-
-    }
-#endif
 
     BK4819_ExitDTMF_TX(true);
 }
