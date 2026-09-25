@@ -38,7 +38,6 @@
 #include "app/mdc1200.h"
 #include "app/uart.h"
 #include "string.h"
-#include "app/messenger.h"
 
 #ifdef ENABLE_DOPPLER
 
@@ -149,9 +148,6 @@ void Main(void) {
 
 
     SETTINGS_LoadCalibration();
-#ifdef ENABLE_MESSENGER
-    MSG_Init();
-#endif
 #ifdef ENABLE_MDC1200
     MDC1200_init();
 #endif
