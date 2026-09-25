@@ -2715,11 +2715,10 @@ void enable_msg_rx(const bool enable) {
         // < 7:0> sync byte 1
 //			BK4819_WriteRegister(0x5A, ((uint16_t)mdc1200_sync_suc_xor[0] << 8) | (mdc1200_sync_suc_xor[1] << 0));
 #ifdef ENABLE_FLEETSYNC
-    if (useFleetSyncRoger)
-        BK4819_WriteRegister(0x5A, 0xAAAA);
-    else
+        BK4819_WriteRegister(0x5A, useFleetSyncRoger ? 0xAAAA : 0x7240);
+#else
+        BK4819_WriteRegister(0x5A, 0x7240);
 #endif
-        BK4819_WriteRegister(0x5A, 0x7240); //0x7240
 
         // REG_5B .. bytes 2 & 3 sync pattern
         //
@@ -2727,11 +2726,10 @@ void enable_msg_rx(const bool enable) {
         // < 7:0> sync byte 3
 //			BK4819_WriteRegister(0x5B, ((uint16_t)mdc1200_sync_suc_xor[2] << 8) | (mdc1200_sync_suc_xor[3] << 0));
 #ifdef ENABLE_FLEETSYNC
-    if (useFleetSyncRoger)
-        BK4819_WriteRegister(0x5B, 0x23EB);
-    else
+        BK4819_WriteRegister(0x5B, useFleetSyncRoger ? 0x23EB : 0x99a7);
+#else
+        BK4819_WriteRegister(0x5B, 0x99a7);
 #endif
-        BK4819_WriteRegister(0x5B, 0x99a7);//0x99a7
 
         // disable CRC
         BK4819_WriteRegister(0x5C, 0x5625);   // 01010110 0 0 100101
@@ -2749,14 +2747,12 @@ void enable_msg_rx(const bool enable) {
 //			}
         {
 #ifdef ENABLE_FLEETSYNC
-            if (useFleetSyncRoger)
-                BK4819_WriteRegister(0x5D, ((FLEETSYNC_PACKET_SIZE - 1u) << 8));
-            else
+            BK4819_WriteRegister(
+                0x5D,
+                ((useFleetSyncRoger ? FLEETSYNC_PACKET_SIZE : MDC1200_FEC_K * 2u) - 1u) << 8);
+#else
+            BK4819_WriteRegister(0x5D, (MDC1200_FEC_K * 2u - 1u) << 8);
 #endif
-            {
-                // MDC has 14 encoded payload bytes after the hardware sync.
-                BK4819_WriteRegister(0x5D, ((MDC1200_FEC_K * 2u - 1u) << 8));
-            }
         }
 
         // clear FIFO's then enable RX
