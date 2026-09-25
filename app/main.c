@@ -20,7 +20,7 @@
 #include "app/app.h"
 #include "app/chFrScanner.h"
 #include "app/common.h"
-#include "chinese.h"
+#include "ui_strings.h"
 #ifdef ENABLE_4732
 #include "app/si.h"
 #endif
