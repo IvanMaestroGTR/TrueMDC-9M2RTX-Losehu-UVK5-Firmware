@@ -110,6 +110,7 @@ extern uint8_t mdc1200_rx_ready_tick_500ms;
 unsigned int MDC1200_encode_single_packet(void *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id);
 
 void MDC1200_reset_rx(void);
+void solve_sign(const uint16_t interrupt_bits);
 
 void MDC1200_init(void);
 
