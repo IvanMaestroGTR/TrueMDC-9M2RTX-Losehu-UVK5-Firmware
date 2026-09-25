@@ -198,8 +198,8 @@ const char gSubMenu_SFT_D[][10] =//4
 //                "+",
 //                "-"
                 STR_OFF,
-                STR_TEXT,
-                STR_TEXT_2
+                STR_TX_EQUALS_RX_PLUS,
+                STR_TX_EQUALS_RX_MINUS
 
         };
 
