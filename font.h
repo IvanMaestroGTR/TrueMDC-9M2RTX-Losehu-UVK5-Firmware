@@ -24,7 +24,6 @@
 extern const uint8_t gFontBigDigits[11][20/*20*/];
 extern const uint8_t gFont3x5[96][3];
 extern const uint8_t gFontSmall[95 - 1][6];
-extern const uint8_t font4[1814];
 
 
 
