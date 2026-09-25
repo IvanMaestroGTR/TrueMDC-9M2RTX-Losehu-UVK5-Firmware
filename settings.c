@@ -131,9 +131,6 @@ void SETTINGS_InitEEPROM(void)
 //    gEeprom.KEY_2_LONG_PRESS_ACTION      = (Data[4] < ACTION_OPT_LEN) ? Data[4] : ACTION_OPT_NONE;
     gEeprom.SCAN_RESUME_MODE             = (Data[5] < 3)              ? Data[5] : SCAN_RESUME_CO;
 //    gEeprom.AUTO_KEYPAD_LOCK             = (Data[6] < 2)              ? Data[6] : false;
-#if ENABLE_CHINESE_FULL==4
-    gEeprom.POWER_ON_DISPLAY_MODE        = (Data[7] < 4)              ? Data[7] : POWER_ON_DISPLAY_MODE_NONE;
-#endif
 
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
     // 1FF8..1FFF
@@ -402,7 +399,6 @@ void SETTINGS_FetchChannelName(char *s, const int channel)
     if (s == NULL)
         return;
     s[0] = 0;
-//#if ENABLE_CHINESE_FULL==4
 //    memset(s, 0, 16);  // 's' had better be large enough !
 //#else
 //    memset(s, 0, 10);  // 's' had better be large enough !
@@ -414,24 +410,12 @@ void SETTINGS_FetchChannelName(char *s, const int channel)
         return;
 //    EEPROM_ReadBuffer(0x0F50 + (channel * 16), s + 0, 8);
 
-#if ENABLE_CHINESE_FULL==4 && !defined(ENABLE_ENGLISH)
-
-    EEPROM_ReadBuffer(0x0F50 + (channel * 16), s, 16);
-    int i;
-    for (i = 0; i < 16; i++)
-        if (!((s[i] >= 32 && s[i] <= 127)||(
-        s[i]>=0xb0&&s[i]<=0xf7&&i!=15&&s[i+1]!=0)
-        ))break;                // invalid char
-            else if(s[i]>=0xb0&&s[i]<=0xf7&&i!=15&&s[i+1]!=0) i++;
-
-#else
     EEPROM_ReadBuffer(0x0F50 + (channel * 16), s, 10);
 //    EEPROM_ReadBuffer(0x0F58 + (channel * 16), s + 8, 2);
     int i;
     for (i = 0; i < 10; i++)
         if (s[i] < 32 || s[i] > 127)
             break;                // invalid char
-#endif
 
 
     s[i--] = 0;                   // null term
@@ -589,9 +573,6 @@ void SETTINGS_SaveSettings(void)
     State[4] = 0;
     State[5] = gEeprom.SCAN_RESUME_MODE;
     State[6] = 0;//gEeprom.AUTO_KEYPAD_LOCK;
-#if ENABLE_CHINESE_FULL==4
-    State[7] = gEeprom.POWER_ON_DISPLAY_MODE;
-#endif
     EEPROM_WriteBuffer(0x0E90, State,8);
 
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS

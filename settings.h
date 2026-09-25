@@ -24,16 +24,6 @@
 #include <helper/battery.h>
 #include "radio.h"
 #include <driver/backlight.h>
-#if ENABLE_CHINESE_FULL==4
-
-enum POWER_OnDisplayMode_t {
-    POWER_ON_DISPLAY_MODE_NONE,
-    POWER_ON_DISPLAY_MODE_PIC,
-    POWER_ON_DISPLAY_MODE_MESSAGE
-
-};
-typedef enum POWER_OnDisplayMode_t POWER_OnDisplayMode_t;
-#endif
 enum TxLockModes_t {
     F_LOCK_DEF, //all default frequencies + configurable
     F_LOCK_FCC,
@@ -225,9 +215,6 @@ typedef struct {
 //    bool                  AUTO_KEYPAD_LOCK;
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
     ALARM_Mode_t      ALARM_MODE;
-#endif
-#if ENABLE_CHINESE_FULL==4
-    POWER_OnDisplayMode_t POWER_ON_DISPLAY_MODE;
 #endif
     ROGER_Mode_t          ROGER;
     uint8_t               REPEATER_TAIL_TONE_ELIMINATION; // MDC PRE-ID delay: 2-10 = 200-1000 ms

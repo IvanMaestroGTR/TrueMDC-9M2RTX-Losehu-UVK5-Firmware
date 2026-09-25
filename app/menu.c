@@ -110,56 +110,6 @@ void MENU_StartCssScan(void) {
 
     gRequestDisplayScreen = DISPLAY_MENU;
 }
-#ifdef ENABLE_PINYIN
-void PINYIN_SOLVE(uint32_t tmp) {
-
-    if (INPUT_STAGE == 0) {
-        INPUT_STAGE = 1;
-    }
-    uint8_t tmp_PINYIN_SEARCH_INDEX = PINYIN_SEARCH_INDEX;
-    uint8_t tmp_PINYIN_SEARCH_NUM = PINYIN_SEARCH_NUM;
-    uint8_t tmp_PINYIN_SEARCH_FOUND = PINYIN_SEARCH_FOUND;
-
-    PINYIN_SEARCH_INDEX = sear_pinyin_code(PINYIN_CODE, &PINYIN_SEARCH_NUM, &PINYIN_SEARCH_FOUND);
-
-    if (PINYIN_SEARCH_INDEX == 255 && PINYIN_SEARCH_FOUND == 0) {
-        PINYIN_CODE = tmp;
-        PINYIN_CODE_INDEX *= 10;
-        PINYIN_SEARCH_INDEX = tmp_PINYIN_SEARCH_INDEX;
-        PINYIN_SEARCH_NUM = tmp_PINYIN_SEARCH_NUM;
-        PINYIN_SEARCH_FOUND = tmp_PINYIN_SEARCH_FOUND;
-        if (PINYIN_CODE_INDEX == 100000)INPUT_STAGE = 0;
-    }
-
-    if (INPUT_STAGE) {
-        //��Ҫѡƴ��
-        if (PINYIN_SEARCH_FOUND) {
-            if (PINYIN_SEARCH_INDEX != 255) {
-                //ȷʵ�������ƴ�����
-                PINYIN_NOW_INDEX = PINYIN_SEARCH_INDEX;
-                PINYIN_NOW_NUM = PINYIN_SEARCH_NUM;
-                PINYIN_SEARCH_MODE = 1;
-            }
-        } else {
-            //û�����ƴ����ϵ����б�ѡ
-//            PINYIN_SEARCH_MODE = 2;
-//            PINYIN_NOW_INDEX = PINYIN_SEARCH_INDEX;
-//            PINYIN_NOW_NUM = PINYIN_SEARCH_NUM;
-//            PINYIN_START_INDEX = PINYIN_NOW_INDEX;
-//
-//            for (int i = PINYIN_START_INDEX; i < 214; ++i) {
-//                uint8_t tmp[4];
-//                uint32_t tmp_code;
-//                EEPROM_ReadBuffer(128 * i + 0x20000, tmp, 4);
-//                tmp_code = tmp[0] | tmp[1] << 8 | tmp[2] << 16 | tmp[3] << 24;
-//                if (judge_belong(PINYIN_CODE, tmp_code)) {
-//                    PINYIN_END_INDEX = i;
-//                } else break;
-//            }
-        }
-    }
-}
-#endif
 void MENU_CssScanFound(void) {
     if (gScanCssResultType == CODE_TYPE_DIGITAL || gScanCssResultType == CODE_TYPE_REVERSE_DIGITAL) {
         gMenuCursor = UI_MENU_GetMenuIdx(MENU_R_DCS);
@@ -264,13 +214,6 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             break;
 #endif
 
-#if ENABLE_CHINESE_FULL == 4
-
-            case MENU_PONMSG:
-                *pMin = 0;
-                *pMax = ARRAY_SIZE(gSubMenu_PONMSG) - 1;
-                break;
-#endif
         case MENU_R_DCS:
         case MENU_T_DCS:
             *pMin = 0;
@@ -830,12 +773,6 @@ void MENU_AcceptSetting(void) {
             //     }
             //     return;
 #endif
-#if ENABLE_CHINESE_FULL == 4
-
-            case MENU_PONMSG:
-                gEeprom.POWER_ON_DISPLAY_MODE = gSubMenuSelection;
-                break;
-#endif
         case MENU_ROGER:
             {
                 static const ROGER_Mode_t roger_mode[] = {
@@ -1254,11 +1191,6 @@ void MENU_ShowCurrentSetting(void) {
         // case MENU_D_LIVE_DEC: // Live DTMF decoder disabled
         //     gSubMenuSelection = gSetting_live_DTMF_decoder;
         //     break;
-#if ENABLE_CHINESE_FULL == 4
-        case MENU_PONMSG:
-            gSubMenuSelection = gEeprom.POWER_ON_DISPLAY_MODE;
-            break;
-#endif
         case MENU_ROGER:
             switch (gEeprom.ROGER) {
                 case ROGER_MODE_MDC_PRE:           gSubMenuSelection = 1; break;
@@ -1436,90 +1368,11 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
         if (edit_index < end_index) {
             if (Key <= KEY_9) {
                 {
-#ifdef ENABLE_PINYIN
-
-#ifdef ENABLE_MDC1200
-#ifdef ENABLE_MDC1200_EDIT
-                    if (now_menu == MENU_MEM_NAME) {
-#endif
-#endif
-                        if (INPUT_MODE == 0) {
-                            //ƴ������
-                            if (Key >= 2 && PINYIN_CODE_INDEX && INPUT_STAGE <= 1) {
-                                uint32_t tmp = PINYIN_CODE;
-                                PINYIN_CODE += Key * PINYIN_CODE_INDEX;
-                                PINYIN_CODE_INDEX /= 10;
-                                PINYIN_SOLVE(tmp);
-
-                                //                            if(end_index>100)end_index=0;
-                            } else if (INPUT_STAGE == 2) {
-                                uint8_t SHOW_NUM =
-                                        CHN_NOW_NUM - CHN_NOW_PAGE * 6 > 6 ? 6 : CHN_NOW_NUM - CHN_NOW_PAGE * 6;
-                                if (Key > 0 && Key <= SHOW_NUM) {
-                                    if (edit_chn[edit_index + 1] == 1)edit[edit_index + 2] = '_';
-                                    EEPROM_ReadBuffer(CHN_NOW_ADD + CHN_NOW_PAGE * 6 * 2 + 2 * (Key - 1), &edit[edit_index], 2);
-                                    edit_index += 2;
-                                    PINYIN_NUM_SELECT = 0;
-                                    PINYIN_CODE = 0;
-                                    PINYIN_SEARCH_MODE = 0;
-                                    INPUT_STAGE = 0;
-
-                                    CHN_NOW_PAGE = 0;
-                                    PINYIN_CODE_INDEX = 100000;
-
-                                    if (edit_index >= end_index) {    // exit edit
-                                        //gFlagAcceptSetting = false;
-                                        gAskForConfirmation = 1;
-                                    }
-                                }
-                            }
-                        } else if (INPUT_MODE == 1) {
-                            if (INPUT_STAGE == 0) {
-                                if (Key >= KEY_2) { //ѡ����ĸ����
-                                    INPUT_STAGE = 1;
-                                    INPUT_SELECT = Key;
-                                }
-                            } else {
-                                if (Key >= 1 && Key <= 2 *num_size[INPUT_SELECT - 2]) {//ѡ����ĸ
-                                    if (edit_chn[edit_index] == 1) edit[edit_index+1] = '_';
-                                    if (Key > num_size[INPUT_SELECT - 2])
-                                        edit[edit_index] = num_excel[INPUT_SELECT - 2][Key - 1 - num_size[INPUT_SELECT - 2]] - 32;
-                                    else
-                                        edit[edit_index] = num_excel[INPUT_SELECT - 2][Key - 1];
-                                    if (++edit_index >= end_index) {    // exit edit
-                                        //gFlagAcceptSetting = false;
-                                        gAskForConfirmation = 1;
-                                    }
-                                    INPUT_STAGE = 0;
-                                }
-                            }
-                        } else if (INPUT_MODE == 2) {
-                            if (edit_chn[edit_index])edit[edit_index + 1] = '_';
-                            edit[edit_index] = '0' + Key;
-                            if (++edit_index >= end_index) {    // exit edit
-                                //gFlagAcceptSetting = false;
-                                gAskForConfirmation = 1;
-                            }
-                        }
-#ifdef ENABLE_MDC1200
-#ifdef ENABLE_MDC1200_EDIT
-                    } else {
-                        edit[edit_index] = '0' + Key ;
-                        if (++edit_index >= end_index) {    // exit edit
-                            //gFlagAcceptSetting = false;
-                            gAskForConfirmation = 1;
-                        }
-                    }
-#endif
-#endif
-
-#else
                     edit[edit_index] = '0' + Key ;
                     if (++edit_index >= end_index) {    // exit edit
                         //gFlagAcceptSetting = false;
                         gAskForConfirmation = 1;
                     }
-#endif
                 }
 
                 gRequestDisplayScreen = DISPLAY_MENU;
@@ -1683,52 +1536,9 @@ static void MENU_Key_EXIT(bool bKeyPressed, bool bKeyHeld) {
     }
 #endif
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && gIsInSubMenu == true && edit_index >= 0&&gAskForConfirmation == 0) {
-#ifdef ENABLE_PINYIN
-        if (INPUT_MODE == 0) {
-
-            if (INPUT_STAGE == 1 && PINYIN_CODE > 0) {
-
-                if (PINYIN_CODE_INDEX != 0) {
-                    PINYIN_CODE = PINYIN_CODE / (PINYIN_CODE_INDEX * 100) * (PINYIN_CODE_INDEX * 100);
-                    PINYIN_CODE_INDEX *= 10;
-                } else {
-                    PINYIN_CODE = PINYIN_CODE - PINYIN_CODE % 10;
-                    PINYIN_CODE_INDEX = 1;
-                }
-
-                uint32_t tmp = PINYIN_CODE;
-                PINYIN_SEARCH_MODE=0;
-                PINYIN_NUM_SELECT = 0;
-                PINYIN_SOLVE(tmp);
-
-                if (PINYIN_CODE == 0) {
-                    INPUT_STAGE = 0;
-                }
-
-            } else if (INPUT_STAGE == 2) {
-
-                INPUT_STAGE = 1;
-
-            } else edit_index = -1;
-
-        } else if (INPUT_MODE == 1) {
-            if (INPUT_STAGE == 1)INPUT_STAGE = 0;
-            else  edit_index = -1;
-        } else
-
-
-#endif
             edit_index = -1;
         return;
     }
-#ifdef  ENABLE_PINYIN
-
-//    if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && gAskForConfirmation == 0) { //���뷨exit
-//
-//
-//    }
-
-#endif
     gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
 
     if (!gCssBackgroundScan) {
@@ -1776,56 +1586,11 @@ static void MENU_Key_EXIT(bool bKeyPressed, bool bKeyHeld) {
 
     gPttWasReleased = true;
 }
-#ifdef ENABLE_PINYIN
-void UPDATE_CHN()
-{
-    uint8_t tmp[5];
-
-    EEPROM_ReadBuffer(PINYIN_NOW_INDEX * 128 + 0X20000 + 16 + PINYIN_NUM_SELECT * 16 + 6, tmp, 5);
-    CHN_NOW_ADD = tmp[1] | tmp[2] << 8 | tmp[3] << 16 | tmp[4] << 24;
-    CHN_NOW_NUM = tmp[0];
-    CHN_NOW_PAGE = 0;
-}
-#endif
 static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
     if (bKeyHeld || !bKeyPressed)
         return;
     gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
     gRequestDisplayScreen = DISPLAY_MENU;
-#ifdef ENABLE_PINYIN
-    if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) {
-        if (edit_index == -1) {
-            //���뷨������ʼ��menu
-            INPUT_MODE = 0;
-            INPUT_SELECT = 0;
-            INPUT_STAGE = 0;
-            INPUT_MODE_LAST = 0;
-            PINYIN_CODE = 0;
-            PINYIN_CODE_INDEX = 100000;
-        }
-        if (gIsInSubMenu) {
-            if (INPUT_MODE == 0) {
-                if (PINYIN_CODE && PINYIN_SEARCH_MODE == 0)return;
-                if (PINYIN_SEARCH_MODE == 1) {
-                    if (INPUT_STAGE == 1) {
-                        PINYIN_NUM_SELECT = 0;
-                        INPUT_STAGE = 2;
-                        UPDATE_CHN();
-                        return;
-                    } else if (INPUT_STAGE == 2) {
-                        if (PINYIN_NUM_SELECT < PINYIN_SEARCH_NUM - 1)PINYIN_NUM_SELECT++;
-                        else PINYIN_NUM_SELECT = 0;
-                        UPDATE_CHN();
-                        return;
-                    }
-                }
-            } else if (INPUT_MODE == 3) {
-                INPUT_MODE = INPUT_MODE_LAST;
-            }
-        }
-    }
-
-#endif
     if (!gIsInSubMenu) {
 #ifdef ENABLE_VOICE
         if (UI_MENU_GetCurrentMenuId() != MENU_SCR)
@@ -1924,19 +1689,8 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
             return;
         } else if (edit_index >= 0 && edit_index < MAX_EDIT_INDEX) {    // editing the channel name characters
 
-#ifdef ENABLE_PINYIN
-            if (edit_chn[edit_index] == 1)
-                    edit_index++;
-#endif
             edit_index++;
-#ifdef ENABLE_PINYIN
-            if (INPUT_MODE == 3)INPUT_MODE = INPUT_MODE_LAST;
-#endif
             if (edit_index < MAX_EDIT_INDEX) {
-#ifdef ENABLE_PINYIN
-                if (INPUT_MODE == 0 && edit_index + 1 >= MAX_EDIT_INDEX)
-                    INPUT_MODE = 1;
-#endif
 
                 return;
             }
@@ -1948,10 +1702,6 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld) {
             gAskForConfirmation = 0;
         }
     }
-#ifdef ENABLE_PINYIN //�˳�����ģʽ
-
-//    PINYIN_MODE=0;
-#endif
     // exiting the sub menu
 
     if (gIsInSubMenu) {
@@ -2023,24 +1773,12 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld) {
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && edit_index >= 0) {    // currently editing the channel name
 
         if (edit_index < MAX_EDIT_INDEX) {
-#ifndef ENABLE_PINYIN
             edit[edit_index] = '-';
             if (++edit_index >= MAX_EDIT_INDEX) {    // exit edit
                 //gFlagAcceptSetting = false;
                 gAskForConfirmation = 1;
             }
 
-#else //���뷨��ģʽ�л�
-            INPUT_MODE++;
-            if (INPUT_MODE >= 3)INPUT_MODE = 0;
-            if (INPUT_MODE == 0 && edit_index + 1 >= MAX_EDIT_INDEX)
-                INPUT_MODE = 1;
-            if (INPUT_MODE == 0) {
-                PINYIN_CODE = 0;
-                PINYIN_CODE_INDEX = 100000;
-            }
-            INPUT_STAGE = 0;
-#endif
 
             gRequestDisplayScreen = DISPLAY_MENU;
         }
@@ -2071,49 +1809,6 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction) 
         if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) {    // change the character
 
             if (bKeyPressed && edit_index < MAX_EDIT_INDEX) {
-#ifdef  ENABLE_PINYIN//ƴ������
-
-                if (INPUT_MODE == 0) {
-                    if (INPUT_STAGE == 2) {
-                        if (PINYIN_SEARCH_MODE == 1)//׼ȷ�����
-                        {
-                            if (Direction == 1) {
-                                if (CHN_NOW_PAGE) CHN_NOW_PAGE--;
-                            } else if (Direction == -1) {
-                                if ((CHN_NOW_PAGE + 1) * 6 < CHN_NOW_NUM)CHN_NOW_PAGE++;
-
-                            }
-                            return;
-                        }
-                    }
-                }
-
-                if (((INPUT_MODE == 0 || INPUT_MODE == 1) && INPUT_STAGE == 0) || INPUT_MODE == 2 || INPUT_MODE == 3) {
-                    INPUT_MODE_LAST = INPUT_MODE;
-                    INPUT_MODE = 3;
-
-                    if (edit_chn[edit_index]) {
-                        edit[edit_index + 1] = '_';
-                        edit[edit_index] = '_';
-
-                    }
-                    char c = edit[edit_index] + Direction;
-                    while (c >= 32 && c <= 126) {
-                        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z' )||
-                           ( c >= '0' && c <= '9')) {    // choose next character
-                            c += Direction;
-                        } else break;
-                    }
-                    edit[edit_index] = ((uint8_t) c < 32) ? 126 : ((uint8_t) c > 126) ? 32 : c;
-                }
-
-
-#else
-                if (isChineseChar(edit[edit_index], edit_index, MAX_EDIT_INDEX)) {
-                    edit[edit_index + 1] = '_';
-                    edit[edit_index] = '_';
-
-                }
                 const char unwanted[] = "$%&!\"':;?^`|{}";
                 char c = edit[edit_index] + Direction;
                 unsigned int i = 0;
@@ -2124,7 +1819,6 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction) 
                     }
                 }
                 edit[edit_index] = ((uint8_t) c < 32) ? 126 : ((uint8_t) c > 126) ? 32 : c;
-#endif
                 gRequestDisplayScreen = DISPLAY_MENU;
             }
             return;
@@ -2269,27 +1963,13 @@ void MENU_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
                 edit_index >= 0) {    // currently editing the channel name
                 if (!bKeyHeld && bKeyPressed) {
                     gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-#ifdef ENABLE_PINYIN
-
-                    bool flag_space = true;
-                    if ((INPUT_MODE == 0 && INPUT_STAGE > 0 )|| (INPUT_MODE == 1 && INPUT_STAGE > 0))flag_space = false;
-#endif
 
 
                     if (edit_index < MAX_EDIT_INDEX
-                        #ifdef ENABLE_PINYIN
-                        && flag_space
-#endif
 
 
                             ) {
 
-#ifdef ENABLE_PINYIN
-                        if (edit_chn[edit_index]) {
-                            edit[edit_index + 1] = '_';
-
-                        }
-#endif
 
                         edit[edit_index] = ' ';
 
