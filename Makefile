@@ -77,26 +77,6 @@ ifeq ($(ENABLE_DOPPLER),1)
 	ENABLE_SPECTRUM=1
 endif
 
-ifeq ($(ENABLE_CHINESE_FULL),0)
-    ifeq ($(ENABLE_ENGLISH),1)
-        $(info E)
-        PACKED_FILE_SUFFIX := $(PACKED_FILE_SUFFIX)
-    endif
-endif
-
-ifeq ($(ENABLE_CHINESE_FULL),4)
-
-    ifeq ($(ENABLE_ENGLISH),1)
-        $(info EK)
-        PACKED_FILE_SUFFIX := $(PACKED_FILE_SUFFIX)EK
-    else ifeq ($(ENABLE_PINYIN),1)
-        $(info H)
-        PACKED_FILE_SUFFIX := $(PACKED_FILE_SUFFIX)H
-    else
-        $(info K)
-        PACKED_FILE_SUFFIX := $(PACKED_FILE_SUFFIX)K
-    endif
-endif
 ifeq ($(ENABLE_4732),1)
 	ENABLE_FMRADIO=0
 	PACKED_FILE_SUFFIX := $(PACKED_FILE_SUFFIX)S
