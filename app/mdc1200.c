@@ -304,6 +304,112 @@ bool MDC1200_process_rx_data(
     return false;
 }
 
+#ifdef ENABLE_FLEETSYNC
+#include "app/fleetsync.h"
+static uint8_t fleetsync_rx_buffer[FLEETSYNC_PACKET_SIZE];
+static unsigned int fleetsync_rx_buffer_index;
+#endif
+
+void solve_sign(const uint16_t interrupt_bits)
+{
+    const bool rx_sync = (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC) != 0;
+    const bool rx_fifo_almost_full =
+        (interrupt_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL) != 0;
+    const bool rx_finished =
+        (interrupt_bits & BK4819_REG_02_FSK_RX_FINISHED) != 0;
+    const uint16_t rx_sync_flags = BK4819_ReadRegister(BK4819_REG_0B);
+    const bool rx_sync_neg = (rx_sync_flags & (1u << 7)) != 0;
+#ifdef ENABLE_FLEETSYNC
+    const bool useFleetSyncDecode =
+        gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
+        gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
+        gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH;
+#endif
+
+    if (rx_sync) {
+#ifdef ENABLE_FLEETSYNC
+        if (useFleetSyncDecode) {
+            fleetsync_rx_buffer_index = 0;
+            fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = 0xAA;
+            fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = 0xAA;
+            fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = 0x23;
+            fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = 0xEB;
+        } else
+#endif
+        {
+            mdc1200_rx_buffer_index = 0;
+            for (unsigned int i = 0; i < sizeof(mdc1200_sync_suc_xor); i++)
+                mdc1200_rx_buffer[mdc1200_rx_buffer_index++] =
+                    mdc1200_sync_suc_xor[i] ^ (rx_sync_neg ? 0xFF : 0x00);
+        }
+    }
+
+    if (rx_fifo_almost_full) {
+        const uint16_t count = BK4819_ReadRegister(BK4819_REG_5E) & 7u;
+        for (uint16_t i = 0; i < count; i++) {
+            const uint16_t word = BK4819_ReadRegister(BK4819_REG_5F);
+#ifdef ENABLE_FLEETSYNC
+            if (useFleetSyncDecode) {
+                if (fleetsync_rx_buffer_index < sizeof(fleetsync_rx_buffer))
+                    fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = word & 0xFF;
+                if (fleetsync_rx_buffer_index < sizeof(fleetsync_rx_buffer))
+                    fleetsync_rx_buffer[fleetsync_rx_buffer_index++] = word >> 8;
+                continue;
+            }
+#endif
+            {
+                const uint16_t data = word ^ (rx_sync_neg ? 0xFFFF : 0x0000);
+                if (mdc1200_rx_buffer_index < sizeof(mdc1200_rx_buffer))
+                    mdc1200_rx_buffer[mdc1200_rx_buffer_index++] = data & 0xFF;
+                if (mdc1200_rx_buffer_index < sizeof(mdc1200_rx_buffer))
+                    mdc1200_rx_buffer[mdc1200_rx_buffer_index++] = data >> 8;
+            }
+        }
+
+#ifdef ENABLE_FLEETSYNC
+        if (useFleetSyncDecode &&
+            fleetsync_rx_buffer_index >= sizeof(fleetsync_rx_buffer)) {
+            uint16_t fleet, unit;
+            if (FleetSync_decode_ani(fleetsync_rx_buffer, &fleet, &unit)) {
+                mdc1200_fleet_id = fleet;
+                mdc1200_unit_id = unit;
+                mdc1200_rx_ready_tick_500ms = 10;
+                gUpdateDisplay = true;
+            }
+            fleetsync_rx_buffer_index = 0;
+        }
+#endif
+
+        if (mdc1200_rx_buffer_index >= sizeof(mdc1200_rx_buffer)) {
+#ifdef ENABLE_FLEETSYNC
+            if (!useFleetSyncDecode)
+#endif
+            {
+                if (MDC1200_process_rx_data(mdc1200_rx_buffer,
+                                             mdc1200_rx_buffer_index,
+                                             &mdc1200_op, &mdc1200_arg,
+                                             &mdc1200_unit_id)) {
+                    mdc1200_rx_ready_tick_500ms = 10;
+                    gUpdateDisplay = true;
+                }
+            }
+            mdc1200_rx_buffer_index = 0;
+        }
+    }
+
+    if (rx_finished) {
+#ifdef ENABLE_FLEETSYNC
+        if (useFleetSyncDecode)
+            fleetsync_rx_buffer_index = 0;
+#endif
+        const uint16_t fsk_reg59 =
+            BK4819_ReadRegister(BK4819_REG_59) &
+            ~((1u << 15) | (1u << 14) | (1u << 12) | (1u << 11));
+        BK4819_WriteRegister(BK4819_REG_59, (1u << 15) | (1u << 14) | fsk_reg59);
+        BK4819_WriteRegister(BK4819_REG_59, (1u << 12) | fsk_reg59);
+    }
+}
+
 // *** UTILITY FUNCTIONS (KEEP VERBATIM)[cite: 3] ***
 
 void MDC1200_init(void) {
