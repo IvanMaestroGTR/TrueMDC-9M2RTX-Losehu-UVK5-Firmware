@@ -96,12 +96,6 @@ static bool gRxEndTonePending;
 static bool gRxEndToneWaitForDualWatch;
 static bool gRxTalkPermitPlayed;
 static uint16_t gRxEndToneCountdown_10ms;
-#include "messenger.h"
-
-#ifdef ENABLE_MESSENGER_NOTIFICATION
-bool gPlayMSGRing = false;
-uint8_t gPlayMSGRingCount = 0;
-#endif
 static bool flagSaveVfo;
 static bool flagSaveSettings;
 static bool flagSaveChannel;
