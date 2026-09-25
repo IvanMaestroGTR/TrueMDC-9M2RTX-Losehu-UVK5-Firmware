@@ -45,10 +45,4 @@ extern const uint8_t BITMAP_ScanList2[5];
 extern const uint8_t BITMAP_compand[5];
 extern const uint8_t BITMAP_RECV[13] ;
 extern const uint8_t BITMAP_SEND[13] ;
-#ifdef ENABLE_MESSENGER
-
-extern const uint8_t BITMAP_1[6] ;
-extern const uint8_t BITMAP_t[6] ;
-extern const uint8_t BITMAP_NEWMSG[7] ;
-#endif
 #endif
