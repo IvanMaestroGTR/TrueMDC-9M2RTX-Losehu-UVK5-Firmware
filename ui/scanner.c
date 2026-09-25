@@ -52,30 +52,14 @@ void UI_DisplayScanner(void) {
 
         sprintf(String, STR_CTCS":%u.%uHz", gScanCssResultCode_all/10, gScanCssResultCode_all% 10);
 #else
-#if ENABLE_CHINESE_FULL == 0 || defined(ENABLE_ENGLISH)
         sprintf(String, STR_CTCS":%u.%uHz", CTCSS_Options[gScanCssResultCode] / 10,
                 CTCSS_Options[gScanCssResultCode] % 10);
 
-#else
-        uint8_t read_tmp[2];
-    EEPROM_ReadBuffer(0x02C00+gScanCssResultCode*2, read_tmp, 2);
-    uint16_t CTCSS_Options_read=read_tmp[0]|(read_tmp[1]<<8);
-          sprintf(String, STR_CTCS":%u.%uHz", CTCSS_Options_read/ 10,CTCSS_Options_read % 10);
-
-
-#endif
 #endif
         pPrintStr = String;
     } else {
 //STR_DCS
-#if ENABLE_CHINESE_FULL == 0 || defined(ENABLE_ENGLISH)
         sprintf(String, STR_DCS":D%03oN", DCS_Options[gScanCssResultCode]);
-#else
-        uint8_t read_tmp[2];
-        EEPROM_ReadBuffer(0x02C64+(gScanCssResultCode)*2, read_tmp, 2);
-        uint16_t DCS_Options_read=read_tmp[0]|(read_tmp[1]<<8);
-        sprintf(String, STR_DCS":D%03oN",DCS_Options_read);
-#endif
 
         pPrintStr = String;
     }
@@ -93,26 +77,16 @@ void UI_DisplayScanner(void) {
 
 //存置
             strcpy(String, STR_SAVED);
-#if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
 
             UI_GenerateChannelStringEx(String + 3, gShowChPrefix, gScanChannel);
-#else
-            UI_GenerateChannelStringEx(String + 5, gShowChPrefix, gScanChannel);
-
-#endif
 
             pPrintStr = String;
         } else if (gScanCssState < SCAN_CSS_STATE_FOUND) {
 
             //STR_SCAN
             strcpy(String, STR_SCAN);
-#if ENABLE_CHINESE_FULL != 4 || defined(ENABLE_ENGLISH)
             memset(String + 2, '.', (gScanProgressIndicator & 7) + 1);
 
-#else
-            memset(String + 4, '.', (gScanProgressIndicator & 7) + 1);
-
-#endif
             pPrintStr = String;
         } else if (gScanCssState == SCAN_CSS_STATE_FOUND) {
             pPrintStr = STR_SCAN" OK.";
