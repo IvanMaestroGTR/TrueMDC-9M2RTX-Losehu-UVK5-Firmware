@@ -180,11 +180,7 @@ void Main(void) {
     AM_fix_init();
 #endif
 
-#if ENABLE_CHINESE_FULL == 0
     gMenuListCount = 52; //menu size
-#else
-    gMenuListCount = 53;
-#endif
     gKeyReading0 = KEY_INVALID;
     gKeyReading1 = KEY_INVALID;
     gDebounceCounter = 0;
@@ -230,9 +226,6 @@ void Main(void) {
         const KEY_Code_t key = KEYBOARD_Poll();
 
         if (key == KEY_EXIT
-#if ENABLE_CHINESE_FULL == 4
-            || gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_NONE
-#endif
                 ) {    // halt boot beeps
             first_boot_screen_skipped = true;
             boot_counter_10ms = 0;
