@@ -488,9 +488,9 @@ gEeprom.PTT_ID == PTT_ID_MODE_OFF) {
             SYSTEM_DelayMs(firstTone - muteTime);
 
             BK4819_EnterTxMute();
+            SYSTEM_DelayMs(gEeprom.DTMF_CODE_INTERVAL_TIME);
 
             if (pString[1]) {
-                SYSTEM_DelayMs(gEeprom.DTMF_CODE_INTERVAL_TIME);
                 BK4819_PlayDTMFString(
                         pString + 1,
                         0,
