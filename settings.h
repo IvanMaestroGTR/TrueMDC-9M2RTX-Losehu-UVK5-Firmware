@@ -220,7 +220,7 @@ typedef struct {
     ALARM_Mode_t      ALARM_MODE;
 #endif
     PTT_ID_Mode_t        PTT_ID;
-    uint8_t               REPEATER_TAIL_TONE_ELIMINATION; // MDC PRE-ID delay: 2-10 = 200-1000 ms
+    uint8_t               REPEATER_TAIL_TONE_ELIMINATION; // MDC PTT ID delay: 2-10 = 200-1000 ms
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
     uint8_t               KEY_1_SHORT_PRESS_ACTION;
     uint8_t               KEY_1_LONG_PRESS_ACTION;
@@ -298,6 +298,7 @@ typedef struct {
 #ifdef ENABLE_FLEETSYNC
     uint16_t                 FLEETSYNC_FLEET;
     uint16_t                 FLEETSYNC_UNIT;
+    uint8_t                  FLEETSYNC_PTT_ID_DELAY; // FleetSync PTT ID delay: 2-10 = 200-1000 ms
 #endif
 #endif
     RX_LIGHT_MODE_t          RX_LIGHT_MODE;
