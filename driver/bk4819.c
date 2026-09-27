@@ -1179,7 +1179,7 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
         gKenwSecondaryTone = true;
 }
 
-void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
+void BK4819_PlayTalkPermitToneTx(uint8_t mode, bool delay_speaker_open) {
     static const uint16_t xtsFrequencies[] = {910, 0, 910, 0, 910};
     static const uint16_t xtsDurations[] = {100, 20, 30, 20, 60};
     static const uint16_t trboFrequencies[] = {1570, 1050, 1570, 1317};
@@ -1231,7 +1231,10 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     GPIO_ClearBit(&GPIOC->DATA, 4);
     SYSTEM_DelayMs(1);
     BK4819_EnterTxMute();
-    AUDIO_AudioPathOn();
+    if (delay_speaker_open)
+        AUDIO_AudioPathOff();
+    else
+        AUDIO_AudioPathOn();
     BK4819_SetAF(2);
     BK4819_EnableTXLink();
     GPIO_SetBit(&GPIOC->DATA, 4);
@@ -1245,7 +1248,13 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
             BK4819_WriteRegister(BK4819_REG_70, 0);
         }
 
-        SYSTEM_DelayMs(durations[i]);
+        if (delay_speaker_open && i == 0 && durations[i] > 60) {
+            SYSTEM_DelayMs(60);
+            AUDIO_AudioPathOn();
+            SYSTEM_DelayMs(durations[i] - 60);
+        } else {
+            SYSTEM_DelayMs(durations[i]);
+        }
         BK4819_WriteRegister(BK4819_REG_70, 0);
     }
 
