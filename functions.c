@@ -205,8 +205,8 @@ void FUNCTION_Transmit() {
                                gDTMF_ReplyState == DTMF_REPLY_NONE;
 
     if (sendDtmfPTTID) {
-        // The automatic DTMF PTT ID is always silent locally, even when D ST is on.
-        if (DTMF_Reply(true))
+        // Automatic DTMF PTT ID follows the normal D ST setting.
+        if (DTMF_Reply(false))
             // Leave a small gap between the DTMF ID and the talk-permit tone.
             SYSTEM_DelayMs(10);
     } else {
