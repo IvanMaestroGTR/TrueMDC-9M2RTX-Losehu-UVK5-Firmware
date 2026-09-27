@@ -311,16 +311,16 @@ const char gSubMenu_AL_MOD[][5] =
 
 const char *const gSubMenu_PTT_ID[] =
 {
-    STR_OFF,
-    "Pre MDC",
-    "Post MDC",
-    "Both MDC",
-    "Pre FSync",
-    "Post FSync",
-    "Both FSync",
-    "Pre DTMF",
+    "Both DTMF",
     "Post DTMF",
-    "Both DTMF"
+    "Pre DTMF",
+    "Both FSync",
+    "Post FSync",
+    "Pre FSync",
+    "Both MDC",
+    "Post MDC",
+    "Pre MDC",
+    STR_OFF
 };
 
 #ifdef ENABLE_MDC1200
