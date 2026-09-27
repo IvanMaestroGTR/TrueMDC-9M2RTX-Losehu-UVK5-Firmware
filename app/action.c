@@ -106,7 +106,6 @@ void (*action_opt_table[])(void) = {
         [ACTION_OPT_BLMIN_TMP_OFF] = &FUNCTION_NOP,
 #endif
 
-//        [ACTION_OPT_D_DCD] = &ACTION_D_DCD,
         [ACTION_OPT_WIDTH] = &ACTION_WIDTH,
 #ifdef ENABLE_SIDEFUNCTIONS_SEND
         [ACTION_OPT_SEND_CURRENT] = &ACTION_SEND_CURRENT,
