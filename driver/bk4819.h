@@ -111,7 +111,7 @@ void     BK4819_PlayRxEndTone(void);
 void     BK4819_ResetTalkPermitToneState(void);
 void     BK4819_MarkTalkPermitToneRx(void);
 void     BK4819_PlayTalkPermitTone(uint8_t mode);
-void     BK4819_PlayTalkPermitToneTx(uint8_t mode);
+void     BK4819_PlayTalkPermitToneTx(uint8_t mode, bool delay_speaker_open);
 void     BK4819_EnterTxMute(void);
 void     BK4819_ExitTxMute(void);
 void     BK4819_Sleep(void);
