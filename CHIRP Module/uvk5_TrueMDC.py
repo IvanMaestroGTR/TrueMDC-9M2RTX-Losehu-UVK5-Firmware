@@ -1352,17 +1352,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 except (TypeError, ValueError):
                     pass
 
-            # FleetSync PTT ID delay
-        tmpfsdly = _mem.fleetsync_ptt_id_delay
-        if tmpfsdly < 2 or tmpfsdly > 10:
-            tmpfsdly = 2
-        tmpfsdly -= 2
-        rs = RadioSetting(
-                "fleetsync_ptt_id_delay",
-                "FleetSyncDly",
-                RadioSettingValueList(RTE_LIST, RTE_LIST[tmpfsdly]))
-        signalling_fleetsync.append(rs)
-
         # Combined FleetSync ID: FFFUUUU
             # Fleet = 100..349, Unit = 1000..4999.
             if element.get_name() == "fleetsync_id":
@@ -1404,43 +1393,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 if 0 <= index < len(_mem.dtmfcontact):
                     _mem.dtmfcontact[index].number = str(element.value).ljust(7)[:7]
 
-            # MDC Preamble When
-        tmpmdc_pre_whn = _mem.mdc1200_preamble_when
-        if tmpmdc_pre_whn >= len(MDC_PREAMBLE_WHEN_LIST):
-            tmpmdc_pre_whn = 2
-        rs = RadioSetting(
-                "mdc1200_preamble_when",
-                "MDC Preamble When",
-                RadioSettingValueList(
-                    MDC_PREAMBLE_WHEN_LIST,
-                    MDC_PREAMBLE_WHEN_LIST[tmpmdc_pre_whn]))
-        signalling_mdc.append(rs)
-
-        # MDC Preamble Duration
-        tmpmdc_pre_dur = _mem.mdc1200_preamble_duration
-        if tmpmdc_pre_dur < 1 or tmpmdc_pre_dur > 10:
-            tmpmdc_pre_dur = 1
-        rs = RadioSetting(
-                "mdc1200_preamble_duration",
-                "MDC Preamble Duration",
-                RadioSettingValueList(
-                    MDC_PREAMBLE_DURATION_LIST,
-                    MDC_PREAMBLE_DURATION_LIST[tmpmdc_pre_dur]))
-        signalling_mdc.append(rs)
-
-        # MDC ID
-        mdc_id = (int(_mem.mdc1200_id_high) << 8) | int(_mem.mdc1200_id_low)
-
-        rs = RadioSetting(
-            "mdc1200_id",
-            "MDC1200 ID (Hex)",
-            RadioSettingValueString(4, 4, "{:04X}".format(mdc_id),
-                                    autopad=False,
-                                    charset="0123456789ABCDEFabcdef")
-        )
-        signalling_mdc.append(rs)
-
-        # Alarm mode
+            # Alarm mode
             if element.get_name() == "alarm_mode":
                 _mem.alarm_mode = ALARMMODE_LIST.index(str(element.value))
 
@@ -2109,6 +2062,80 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         if unit_id < FLEETSYNC_UNIT_MIN or unit_id > FLEETSYNC_UNIT_MAX:
             unit_id = FLEETSYNC_UNIT_MIN
 
+        fleetsync_value = "{:03d}{:04d}".format(fleet_id, unit_id)
+        rs = RadioSetting(
+                "fleetsync_id",
+                "FleetSync ID (FFFUUUU)",
+                RadioSettingValueString(7, 7, fleetsync_value,
+                                        autopad=False,
+                                        charset="0123456789"))
+        signalling_fleetsync.append(rs)
+
+        # MDC PTT ID delay
+        tmprte = _mem.repeater_tail_elimination
+        if tmprte < 2 or tmprte > 10:
+            tmprte = 2
+        tmprte -= 2
+        rs = RadioSetting(
+                "repeater_tail_elimination",
+                "MDCDly",
+                RadioSettingValueList(RTE_LIST, RTE_LIST[tmprte]))
+        signalling_mdc.append(rs)
+
+        # MDC Preamble When
+        tmpmdc_pre_whn = _mem.mdc1200_preamble_when
+        if tmpmdc_pre_whn >= len(MDC_PREAMBLE_WHEN_LIST):
+            tmpmdc_pre_whn = 2
+        rs = RadioSetting(
+                "mdc1200_preamble_when",
+                "MDC Preamble When",
+                RadioSettingValueList(
+                    MDC_PREAMBLE_WHEN_LIST,
+                    MDC_PREAMBLE_WHEN_LIST[tmpmdc_pre_whn]))
+        signalling_mdc.append(rs)
+
+        # MDC Preamble Duration
+        tmpmdc_pre_dur = _mem.mdc1200_preamble_duration
+        if tmpmdc_pre_dur < 1 or tmpmdc_pre_dur > 10:
+            tmpmdc_pre_dur = 1
+        rs = RadioSetting(
+                "mdc1200_preamble_duration",
+                "MDC Preamble Duration",
+                RadioSettingValueList(
+                    MDC_PREAMBLE_DURATION_LIST,
+                    MDC_PREAMBLE_DURATION_LIST[tmpmdc_pre_dur]))
+        signalling_mdc.append(rs)
+
+        # MDC ID
+        mdc_id = (int(_mem.mdc1200_id_high) << 8) | int(_mem.mdc1200_id_low)
+        rs = RadioSetting(
+            "mdc1200_id",
+            "MDC1200 ID (Hex)",
+            RadioSettingValueString(4, 4, "{:04X}".format(mdc_id),
+                                    autopad=False,
+                                    charset="0123456789ABCDEFabcdef")
+        )
+        signalling_mdc.append(rs)
+
+        # FleetSync PTT ID delay
+        tmpfsdly = _mem.fleetsync_ptt_id_delay
+        if tmpfsdly < 2 or tmpfsdly > 10:
+            tmpfsdly = 2
+        tmpfsdly -= 2
+        rs = RadioSetting(
+                "fleetsync_ptt_id_delay",
+                "FleetSyncDly",
+                RadioSettingValueList(RTE_LIST, RTE_LIST[tmpfsdly]))
+        signalling_fleetsync.append(rs)
+
+        # Combined FleetSync ID: FFFUUUU
+        fleet_id = FLEETSYNC_FLEET_MIN + int(getattr(_mem, 'fleetsync_fleet', 0))
+        if fleet_id < FLEETSYNC_FLEET_MIN or fleet_id > FLEETSYNC_FLEET_MAX:
+            fleet_id = FLEETSYNC_FLEET_MIN
+        unit_id = ((getattr(_mem, 'fleetsync_unit_high', 0) << 8) |
+                   getattr(_mem, 'fleetsync_unit_low', 0))
+        if unit_id < FLEETSYNC_UNIT_MIN or unit_id > FLEETSYNC_UNIT_MAX:
+            unit_id = FLEETSYNC_UNIT_MIN
         fleetsync_value = "{:03d}{:04d}".format(fleet_id, unit_id)
         rs = RadioSetting(
                 "fleetsync_id",
