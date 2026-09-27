@@ -2137,7 +2137,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 "repeater_tail_elimination",
                 "MDCDly",
                 RadioSettingValueList(RTE_LIST, RTE_LIST[tmprte]))
-        signalling_fleetsync.append(rs)
+        signalling_mdc.append(rs)
 
         # FleetSync PTT ID delay
         tmpfsdly = _mem.fleetsync_ptt_id_delay
