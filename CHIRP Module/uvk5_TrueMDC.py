@@ -1396,9 +1396,10 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             if element.get_name() == "alarm_mode":
                 _mem.alarm_mode = ALARMMODE_LIST.index(str(element.value))
 
-            # Reminding of end of talk
-            if element.get_name() == "reminding_of_end_talk":
-                _mem.roger = REMENDOFTALK_LIST.index(str(element.value))
+            # PTT ID is managed by the radio menu; legacy CHIRP
+            # Roger/PTT ID editing is disabled temporarily.
+            # if element.get_name() == "reminding_of_end_talk":
+            #     _mem.roger = REMENDOFTALK_LIST.index(str(element.value))
 
             # MDC PRE-ID delay is stored as 2..10 (200..1000 ms).
             if element.get_name() == "repeater_tail_elimination":
@@ -2234,17 +2235,18 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             ALARMMODE_LIST, ALARMMODE_LIST[tmpalarmmode]))
         basic.append(rs)
 
-        # Reminding of end of talk
-        tmpalarmmode = _mem.roger
-        if tmpalarmmode >= len(REMENDOFTALK_LIST):
-            tmpalarmmode = 0
-        rs = RadioSetting(
-                "reminding_of_end_talk",
-                "RogerBleeps",
-                RadioSettingValueList(
-                    REMENDOFTALK_LIST,
-                    REMENDOFTALK_LIST[tmpalarmmode]))
-        basic.append(rs)
+        # PTT ID is currently configured in the radio menu; keep the
+        # legacy CHIRP Roger setting disabled temporarily.
+        # tmpalarmmode = _mem.roger
+        # if tmpalarmmode >= len(REMENDOFTALK_LIST):
+        #     tmpalarmmode = 0
+        # rs = RadioSetting(
+        #         "reminding_of_end_talk",
+        #         "RogerBleeps",
+        #         RadioSettingValueList(
+        #             REMENDOFTALK_LIST,
+        #             REMENDOFTALK_LIST[tmpalarmmode]))
+        # basic.append(rs)
 
         # MDC PRE-ID delay
         tmprte = _mem.repeater_tail_elimination
