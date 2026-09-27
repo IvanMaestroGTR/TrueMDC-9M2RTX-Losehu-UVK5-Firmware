@@ -107,16 +107,19 @@ enum ALARM_Mode_t {
 };
 typedef enum ALARM_Mode_t ALARM_Mode_t;
 
-enum ROGER_Mode_t {
-    ROGER_MODE_OFF = 0,
-    ROGER_MODE_MDC_PRE,
-    ROGER_MODE_MDC_POST,
-    ROGER_MODE_MDC_BOTH,
-    ROGER_MODE_FLEETSYNC_PRE,
-    ROGER_MODE_FLEETSYNC_POST,
-    ROGER_MODE_FLEETSYNC_BOTH
+enum PTT_ID_Mode_t {
+    PTT_ID_MODE_OFF = 0,
+    PTT_ID_MODE_MDC_PRE,
+    PTT_ID_MODE_MDC_POST,
+    PTT_ID_MODE_MDC_BOTH,
+    PTT_ID_MODE_FLEETSYNC_PRE,
+    PTT_ID_MODE_FLEETSYNC_POST,
+    PTT_ID_MODE_FLEETSYNC_BOTH,
+    PTT_ID_MODE_DTMF_PRE,
+    PTT_ID_MODE_DTMF_POST,
+    PTT_ID_MODE_DTMF_BOTH
 };
-typedef enum ROGER_Mode_t ROGER_Mode_t;
+typedef enum PTT_ID_Mode_t PTT_ID_Mode_t;
 
 #ifdef ENABLE_MDC1200 //how many preample cycles for mdc1200
 
@@ -216,7 +219,7 @@ typedef struct {
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
     ALARM_Mode_t      ALARM_MODE;
 #endif
-    ROGER_Mode_t          ROGER;
+    PTT_ID_Mode_t        PTT_ID;
     uint8_t               REPEATER_TAIL_TONE_ELIMINATION; // MDC PRE-ID delay: 2-10 = 200-1000 ms
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
     uint8_t               KEY_1_SHORT_PRESS_ACTION;
