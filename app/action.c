@@ -375,14 +375,6 @@ void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 //            ACTION_AlarmOr1750(true);
 //			break;
 //#endif
-//#ifdef ENABLE_DTMF_CALLING
-//           	case ACTION_OPT_D_DCD:
-//			gTxVfo->DTMF_DECODING_ENABLE = !gTxVfo->DTMF_DECODING_ENABLE;
-//			DTMF_clear_RX();
-//			gRequestSaveChannel = 1;
-//			break;
-//
-//#endif
 //#ifdef ENABLE_BLMIN_TMP_OFF
 //		case ACTION_OPT_BLMIN_TMP_OFF:
 //			ACTION_BlminTmpOff();
@@ -525,13 +517,6 @@ void ACTION_WIDTH(void) {
 
     gTxVfo->CHANNEL_BANDWIDTH = !gTxVfo->CHANNEL_BANDWIDTH;
 }
-
-//void ACTION_D_DCD(void) {
-//    gRequestSaveChannel = 1;
-//
-//    gTxVfo->DTMF_DECODING_ENABLE = !gTxVfo->DTMF_DECODING_ENABLE;
-//    DTMF_clear_RX();
-//}
 
 #ifdef ENABLE_SIDEFUNCTIONS_SEND
 void ACTION_SEND_CURRENT(void){return;}
