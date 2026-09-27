@@ -45,8 +45,6 @@ void ACTION_SwitchDTMFDecode(void);
 void ACTION_BlminTmpOff(void);
 #endif
 
-//void ACTION_D_DCD(void);
-
 void ACTION_WIDTH(void);
 
 void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
