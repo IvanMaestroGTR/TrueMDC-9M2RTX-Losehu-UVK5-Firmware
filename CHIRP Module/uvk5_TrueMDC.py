@@ -1109,7 +1109,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             mem.extra.append(rs)
             rs = RadioSetting(
                 "pttid", "PTTID",
-                RadioSettingValueList(PTTID_LIST, PTTID_LIST[0]))
+                RadioSettingValueList(PTTID_LIST, current_index=0))
             mem.extra.append(rs)
             rs = RadioSetting(
                 "dtmfdecode", "DTMF Decode",
@@ -1117,12 +1117,12 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             mem.extra.append(rs)
             rs = RadioSetting(
                 "scrambler", "Scrambler",
-                RadioSettingValueList(SCRAMBLER_LIST, SCRAMBLER_LIST[0]))
+                RadioSettingValueList(SCRAMBLER_LIST, current_index=0))
             mem.extra.append(rs)
 
             rs = RadioSetting(
                 "scanlists", "Scanlist",
-                RadioSettingValueList(SCANLIST_LIST, SCANLIST_LIST[0]))
+                RadioSettingValueList(SCANLIST_LIST, current_index=0))
             mem.extra.append(rs)
 
             return mem
@@ -1615,7 +1615,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             tmpval = 0
         rs = RadioSetting("key1_shortpress_action", "SideKey 1 Short Press",
                           RadioSettingValueList(
-                              KEYACTIONS_SHORT_LIST, KEYACTIONS_SHORT_LIST[tmpval]))
+                              KEYACTIONS_SHORT_LIST, current_index=tmpval))
         keya.append(rs)
 
         tmpval = int(_mem.key1_longpress_action)
@@ -1625,7 +1625,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             tmpval = 0
         rs = RadioSetting("key1_longpress_action", "SideKey 1 Hold",
                           RadioSettingValueList(
-                              KEYACTIONS_LONG_LIST, KEYACTIONS_LONG_LIST[tmpval]))
+                              KEYACTIONS_LONG_LIST, current_index=tmpval))
         keya.append(rs)
 
         tmpval = int(_mem.key2_shortpress_action)
@@ -1635,7 +1635,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             tmpval = 0
         rs = RadioSetting("key2_shortpress_action", "SideKey 2 Short Press",
                           RadioSettingValueList(
-                              KEYACTIONS_SHORT_LIST, KEYACTIONS_SHORT_LIST[tmpval]))
+                              KEYACTIONS_SHORT_LIST, current_index=tmpval))
         keya.append(rs)
 
         tmpval = int(_mem.key2_longpress_action)
@@ -1645,7 +1645,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             tmpval = 0
         rs = RadioSetting("key2_longpress_action", "SideKey 2 Hold",
                           RadioSettingValueList(
-                              KEYACTIONS_LONG_LIST, KEYACTIONS_LONG_LIST[tmpval]))
+                              KEYACTIONS_LONG_LIST, current_index=tmpval))
         keya.append(rs)
 
         tmpval = int(_mem.mkey_longpress_action)
@@ -1655,7 +1655,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             tmpval = 0
         rs = RadioSetting("mkey_longpress_action", "M Key Hold",
                           RadioSettingValueList(
-                              KEYACTIONS_LONG_LIST, KEYACTIONS_LONG_LIST[tmpval]))
+                              KEYACTIONS_LONG_LIST, current_index=tmpval))
         keya.append(rs)
 
         # DTMF settings
@@ -2125,7 +2125,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         if tmpalarmmode >= len(ALARMMODE_LIST):
             tmpalarmmode = 0
         rs = RadioSetting("alarm_mode", "Alarm mode", RadioSettingValueList(
-            ALARMMODE_LIST, ALARMMODE_LIST[tmpalarmmode]))
+            ALARMMODE_LIST, current_index=tmpalarmmode))
         basic.append(rs)
 
         # PTT ID is currently configured in the radio menu; keep the
