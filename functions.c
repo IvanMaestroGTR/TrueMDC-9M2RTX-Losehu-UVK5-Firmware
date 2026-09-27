@@ -201,13 +201,13 @@ void FUNCTION_Transmit() {
 
     DTMF_Reply();
 #ifdef ENABLE_MDC1200
-    const bool useFleetSyncRoger = (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
-    const bool hasPreIdRoger = (gEeprom.ROGER == ROGER_MODE_MDC_PRE ||
-                               gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
-                               gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-                               gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
+    const bool useFleetSyncRoger = (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH);
+    const bool hasPreIdRoger = (gEeprom.PTT_ID == PTT_ID_MODE_MDC_PRE ||
+                               gEeprom.PTT_ID == PTT_ID_MODE_MDC_BOTH ||
+                               gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                               gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH);
 
     if (hasPreIdRoger) {
 //        BK4819_start_tone(740, 60, true, true);
