@@ -197,11 +197,6 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMax = ARRAY_SIZE(gSubMenu_SC_REV) - 1;
             break;
 
-        case MENU_ROGER:
-            *pMin = 0;
-            *pMax = ARRAY_SIZE(gSubMenu_ROGER) - 1;
-            break;
-
 #ifdef ENABLE_MDC1200
         case MENU_MDC_PREAMBLE_DURATION:
             *pMin = 0;
@@ -735,9 +730,11 @@ void MENU_AcceptSetting(void) {
             break;
 
         case MENU_PTT_ID:
-            gTxVfo->DTMF_PTT_ID_TX_MODE = gSubMenuSelection;
-            gRequestSaveChannel = 1;
-            return;
+            gEeprom.PTT_ID = (gSubMenuSelection < ARRAY_SIZE(gSubMenu_PTT_ID))
+                           ? (PTT_ID_Mode_t)gSubMenuSelection
+                           : PTT_ID_MODE_OFF;
+            gRequestSaveSettings = true;
+            break;
 
 //		case MENU_BAT_TXT:
 //			gSetting_battery_text = gSubMenuSelection;
@@ -773,21 +770,6 @@ void MENU_AcceptSetting(void) {
             //     }
             //     return;
 #endif
-        case MENU_ROGER:
-            {
-                static const ROGER_Mode_t roger_mode[] = {
-                    ROGER_MODE_OFF,
-                    ROGER_MODE_MDC_PRE,
-                    ROGER_MODE_MDC_POST,
-                    ROGER_MODE_MDC_BOTH,
-                    ROGER_MODE_FLEETSYNC_PRE,
-                    ROGER_MODE_FLEETSYNC_POST,
-                    ROGER_MODE_FLEETSYNC_BOTH
-                };
-                gEeprom.ROGER = roger_mode[gSubMenuSelection];
-            }
-            break;
-
 #ifdef ENABLE_MDC1200
         case MENU_MDC_PREAMBLE_DURATION:
             // Menu index to preamble value mapping (skip 1 and 9)
@@ -1172,7 +1154,9 @@ void MENU_ShowCurrentSetting(void) {
             break;
 
         case MENU_PTT_ID:
-            gSubMenuSelection = gTxVfo->DTMF_PTT_ID_TX_MODE;
+            gSubMenuSelection = (gEeprom.PTT_ID < ARRAY_SIZE(gSubMenu_PTT_ID))
+                              ? gEeprom.PTT_ID
+                              : PTT_ID_MODE_OFF;
             break;
 
 //		case MENU_BAT_TXT:
@@ -1191,18 +1175,6 @@ void MENU_ShowCurrentSetting(void) {
         // case MENU_D_LIVE_DEC: // Live DTMF decoder disabled
         //     gSubMenuSelection = gSetting_live_DTMF_decoder;
         //     break;
-        case MENU_ROGER:
-            switch (gEeprom.ROGER) {
-                case ROGER_MODE_MDC_PRE:           gSubMenuSelection = 1; break;
-                case ROGER_MODE_MDC_POST:          gSubMenuSelection = 2; break;
-                case ROGER_MODE_MDC_BOTH:          gSubMenuSelection = 3; break;
-                case ROGER_MODE_FLEETSYNC_PRE:     gSubMenuSelection = 4; break;
-                case ROGER_MODE_FLEETSYNC_POST:    gSubMenuSelection = 5; break;
-                case ROGER_MODE_FLEETSYNC_BOTH:    gSubMenuSelection = 6; break;
-                default:                           gSubMenuSelection = 0; break;
-            }
-            break;
-
 #ifdef ENABLE_MDC1200
         case MENU_MDC_PREAMBLE_DURATION: {
             // Preamble value to menu index mapping (skip 1 and 9)

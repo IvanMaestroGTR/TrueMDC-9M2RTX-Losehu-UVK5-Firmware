@@ -88,8 +88,8 @@ const t_menu_item MenuList[] =
                 {/*"MDCPre",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_DURATION, "MDCPre"},
                 {/*"MDCWhn",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_WHEN, "MDCWhn"},
 #endif
+                {/*"PTT ID",*/ VOICE_ID_INVALID, MENU_PTT_ID, STR_PTT_ID},
 
-                {/*"Roger",*/  VOICE_ID_INVALID, MENU_ROGER, STR_ROGER},
 
                 {/*"STE",*/    VOICE_ID_INVALID, MENU_STE, STR_STE},
                 // {/*"ECT",*/    VOICE_ID_INVALID, MENU_END_CALL_TONE, "ECT"},  // removed
@@ -109,7 +109,6 @@ const t_menu_item MenuList[] =
 #endif
                 {/*"UPCode",*/ VOICE_ID_INVALID, MENU_UPCODE, STR_UPCODE},
                 {/*"DWCode",*/ VOICE_ID_INVALID, MENU_DWCODE, STR_DWCODE},
-                {/*"PTT ID",*/ VOICE_ID_INVALID, MENU_PTT_ID, STR_PTT_ID},
                 {/*"D ST",*/   VOICE_ID_INVALID, MENU_D_ST, STR_D_ST},
 #ifdef ENABLE_DTMF_CALLING
                 // {/*"D Resp",*/ VOICE_ID_INVALID,                       MENU_D_RSP         ,STR_D_RESP}, // disabled
@@ -118,7 +117,6 @@ const t_menu_item MenuList[] =
                 {/*"D Prel",*/ VOICE_ID_INVALID, MENU_D_PRE, STR_D_PREL},
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-                // {/*"D Decd",*/ VOICE_ID_INVALID,                       MENU_D_DCD         ,STR_D_DECD}, // disabled
 #endif
                 // {/*"D List",*/ VOICE_ID_INVALID,                       MENU_D_LIST        ,STR_D_LIST}, // disabled
 #endif
@@ -312,33 +310,18 @@ const char gSubMenu_AL_MOD[][5] =
 #endif
 
 const char *const gSubMenu_PTT_ID[] =
-        {
-//                "OFF",
-//                "UP CODE",
-//                "DOWN CODE",
-//                "UP+DOWN\nCODE",
-//                "APOLLO\nQUINDAR"
-                STR_OFF,
-                STR_UP_CODE,
-                STR_DOWN_CODE,
-                STR_UP_DOWN_CODE,
-                STR_APOLLO_QUINDAR
-        };
-
-
-
-
-const char gSubMenu_ROGER[][15] =
-
-        {
-                STR_OFF,
-                "Pre MDC",
-                "Post MDC",
-                "Both MDC",
-                "Pre FSync",
-                "Post FSync",
-                "Both FSync"
-        };
+{
+    STR_OFF,
+    "Pre MDC",
+    "Post MDC",
+    "Both MDC",
+    "Pre FSync",
+    "Post FSync",
+    "Both FSync",
+    "Pre DTMF",
+    "Post DTMF",
+    "Both DTMF"
+};
 
 #ifdef ENABLE_MDC1200
 const char gSubMenu_MDC_PREAMBLE_DURATION[][4] =
@@ -490,7 +473,6 @@ const t_sidefunction SIDEFUNCTIONS[] =
                {STR_SWITCH_VFO, ACTION_OPT_A_B},
                {STR_VFO_MR, ACTION_OPT_VFO_MR},
                {STR_DEMODU, ACTION_OPT_SWITCH_DEMODUL},
-               {STR_D_DECD, ACTION_OPT_D_DCD},
                {STR_W_N, ACTION_OPT_WIDTH},
 #ifdef ENABLE_SIDEFUNCTIONS_SEND
                {STR_MAIN_SEND, ACTION_OPT_SEND_CURRENT},
@@ -797,7 +779,6 @@ void UI_DisplayMenu(void) {
         case MENU_D_ST:
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-            // case MENU_D_DCD: // DTMF DCD disabled
 #endif
 #endif
         // case MENU_D_LIVE_DEC: // Live DTMF decoder disabled
@@ -1096,12 +1077,6 @@ void UI_DisplayMenu(void) {
             //         memcpy(String, Contact, 8);
             //     break;
 #endif
-        case MENU_ROGER:
-            strcpy(String, gSubMenu_ROGER[gSubMenuSelection]);
-
-
-            break;
-
 #ifdef ENABLE_MDC1200
         case MENU_MDC_PREAMBLE_DURATION:
             strcpy(String, gSubMenu_MDC_PREAMBLE_DURATION[gSubMenuSelection]);

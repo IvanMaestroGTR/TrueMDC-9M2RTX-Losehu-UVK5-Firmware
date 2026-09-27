@@ -322,9 +322,9 @@ void solve_sign(const uint16_t interrupt_bits)
     const bool rx_sync_neg = (rx_sync_flags & (1u << 7)) != 0;
 #ifdef ENABLE_FLEETSYNC
     const bool useFleetSyncDecode =
-        gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-        gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-        gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH;
+        gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+        gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+        gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH;
 #endif
 
     if (rx_sync) {

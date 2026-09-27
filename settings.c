@@ -137,8 +137,19 @@ void SETTINGS_InitEEPROM(void)
     EEPROM_ReadBuffer(0x1FF8, Data, 8);
     gEeprom.KEY_M_LONG_PRESS_ACTION       = (Data[0] < ACTION_OPT_LEN) ? Data[0] : ACTION_OPT_SWITCH_DEMODUL;
     gEeprom.KEY_1_SHORT_PRESS_ACTION      = (Data[1] < ACTION_OPT_LEN-2) ? Data[1] : ACTION_OPT_MONITOR;
-    gEeprom.KEY_1_LONG_PRESS_ACTION       = (Data[2] < ACTION_OPT_LEN) ? Data[2] : ACTION_OPT_D_DCD;
+    gEeprom.KEY_1_LONG_PRESS_ACTION       = (Data[2] < ACTION_OPT_LEN) ? Data[2] : ACTION_OPT_NONE;
     gEeprom.KEY_2_SHORT_PRESS_ACTION      = (Data[3] < ACTION_OPT_LEN-2) ? Data[3] : ACTION_OPT_WIDTH;
+
+    if (gEeprom.KEY_M_LONG_PRESS_ACTION == ACTION_OPT_RESERVED_14)
+        gEeprom.KEY_M_LONG_PRESS_ACTION = ACTION_OPT_NONE;
+    if (gEeprom.KEY_1_SHORT_PRESS_ACTION == ACTION_OPT_RESERVED_14)
+        gEeprom.KEY_1_SHORT_PRESS_ACTION = ACTION_OPT_NONE;
+    if (gEeprom.KEY_1_LONG_PRESS_ACTION == ACTION_OPT_RESERVED_14)
+        gEeprom.KEY_1_LONG_PRESS_ACTION = ACTION_OPT_NONE;
+    if (gEeprom.KEY_2_SHORT_PRESS_ACTION == ACTION_OPT_RESERVED_14)
+        gEeprom.KEY_2_SHORT_PRESS_ACTION = ACTION_OPT_NONE;
+    if (gEeprom.KEY_2_LONG_PRESS_ACTION == ACTION_OPT_RESERVED_14)
+        gEeprom.KEY_2_LONG_PRESS_ACTION = ACTION_OPT_NONE;
     gEeprom.KEY_2_LONG_PRESS_ACTION       = (Data[4] < ACTION_OPT_LEN) ? Data[4] : ACTION_OPT_FLASHLIGHT;
 #endif
 
@@ -168,10 +179,10 @@ void SETTINGS_InitEEPROM(void)
 #ifdef ENABLE_ALARM
     gEeprom.ALARM_MODE                 = (Data[0] <  2) ? Data[0] : true;
 #endif
-    /* Supported Roger values: Off, Pre/Post/Both for MDC and FleetSync. */
-    gEeprom.ROGER                          = (Data[1] >= ROGER_MODE_OFF &&
-                                               Data[1] <= ROGER_MODE_FLEETSYNC_BOTH) ?
-                                              Data[1] : ROGER_MODE_OFF;
+    /* Supported PTT ID values: Off, Pre/Post/Both for MDC, FleetSync and DTMF. */
+    gEeprom.PTT_ID                          = (Data[1] >= PTT_ID_MODE_OFF &&
+                                               Data[1] <= PTT_ID_MODE_FLEETSYNC_BOTH) ?
+                                              Data[1] : PTT_ID_MODE_OFF;
     gEeprom.REPEATER_TAIL_TONE_ELIMINATION = (Data[2] >= 2 && Data[2] <= 10) ? Data[2] : 2;
     gEeprom.TX_VFO                         = (Data[3] <  2) ? Data[3] : 0;
     gEeprom.BATTERY_TYPE                   = (Data[4] < BATTERY_TYPE_UNKNOWN) ? Data[4] : BATTERY_TYPE_1600_MAH;
@@ -607,7 +618,7 @@ void SETTINGS_SaveSettings(void)
 #else
     State[0] = false;
 #endif
-    State[1] = gEeprom.ROGER;
+    State[1] = gEeprom.PTT_ID;
     State[2] = gEeprom.REPEATER_TAIL_TONE_ELIMINATION;
     State[3] = gEeprom.TX_VFO;
     State[4] = gEeprom.BATTERY_TYPE;
@@ -718,7 +729,7 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, 
                       | (reverseState & 1u)
                       | (1u << 5)
                       | (reverseState << 6);
-        State._8[5] = ((pVFO->DTMF_PTT_ID_TX_MODE & 7u) << 1)
+        State._8[5] = 0
 #ifdef ENABLE_DTMF_CALLING
             | ((pVFO->DTMF_DECODING_ENABLE & 1u) << 0)
 #endif

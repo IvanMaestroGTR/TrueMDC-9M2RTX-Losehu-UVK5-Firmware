@@ -106,7 +106,6 @@ void (*action_opt_table[])(void) = {
         [ACTION_OPT_BLMIN_TMP_OFF] = &FUNCTION_NOP,
 #endif
 
-//        [ACTION_OPT_D_DCD] = &ACTION_D_DCD,
         [ACTION_OPT_WIDTH] = &ACTION_WIDTH,
 #ifdef ENABLE_SIDEFUNCTIONS_SEND
         [ACTION_OPT_SEND_CURRENT] = &ACTION_SEND_CURRENT,
@@ -274,7 +273,7 @@ void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     switch (Key) {
         case KEY_SIDE1:
             funcShort = ACTION_OPT_MONITOR;//gEeprom.KEY_1_SHORT_PRESS_ACTION;
-            funcLong = ACTION_OPT_D_DCD;//gEeprom.KEY_1_LONG_PRESS_ACTION;
+            funcLong = ACTION_OPT_NONE;//gEeprom.KEY_1_LONG_PRESS_ACTION;
             break;
         case KEY_SIDE2:
             funcShort = ACTION_OPT_WIDTH;// gEeprom.KEY_2_SHORT_PRESS_ACTION;
@@ -374,14 +373,6 @@ void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 //#if defined(ENABLE_TX1750)
 //            ACTION_AlarmOr1750(true);
 //			break;
-//#endif
-//#ifdef ENABLE_DTMF_CALLING
-//           	case ACTION_OPT_D_DCD:
-//			gTxVfo->DTMF_DECODING_ENABLE = !gTxVfo->DTMF_DECODING_ENABLE;
-//			DTMF_clear_RX();
-//			gRequestSaveChannel = 1;
-//			break;
-//
 //#endif
 //#ifdef ENABLE_BLMIN_TMP_OFF
 //		case ACTION_OPT_BLMIN_TMP_OFF:
@@ -525,13 +516,6 @@ void ACTION_WIDTH(void) {
 
     gTxVfo->CHANNEL_BANDWIDTH = !gTxVfo->CHANNEL_BANDWIDTH;
 }
-
-//void ACTION_D_DCD(void) {
-//    gRequestSaveChannel = 1;
-//
-//    gTxVfo->DTMF_DECODING_ENABLE = !gTxVfo->DTMF_DECODING_ENABLE;
-//    DTMF_clear_RX();
-//}
 
 #ifdef ENABLE_SIDEFUNCTIONS_SEND
 void ACTION_SEND_CURRENT(void){return;}

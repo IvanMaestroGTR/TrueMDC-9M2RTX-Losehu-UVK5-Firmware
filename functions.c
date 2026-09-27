@@ -201,22 +201,22 @@ void FUNCTION_Transmit() {
 
     DTMF_Reply();
 #ifdef ENABLE_MDC1200
-    const bool useFleetSyncRoger = (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
-    const bool hasPreIdRoger = (gEeprom.ROGER == ROGER_MODE_MDC_PRE ||
-                               gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
-                               gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-                               gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
+    const bool useFleetSyncPTTID = (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH);
+    const bool hasPreIdPTTID = (gEeprom.PTT_ID == PTT_ID_MODE_MDC_PRE ||
+                               gEeprom.PTT_ID == PTT_ID_MODE_MDC_BOTH ||
+                               gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                               gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH);
 
-    if (hasPreIdRoger) {
+    if (hasPreIdPTTID) {
 //        BK4819_start_tone(740, 60, true, true);
 //                            SYSTEM_DelayMs(120);
 //                            BK4819_stop_tones(true);    //off as they get quite annoying sometimes...
-        // Mute mic before PRE-ID MDC transmission
+        // Mute mic before PRE-ID transmission
         BK4819_MuteMic();
         
-        // Delay before sending the PRE-ID MDC packet (200-1000 ms).
+        // Delay before sending the PRE-ID packet (200-1000 ms).
         SYSTEM_DelayMs(gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 100);
         
         // Determine preamble duration based on MDC preamble settings
@@ -227,7 +227,7 @@ void FUNCTION_Transmit() {
             preamble_duration = 0;  // Remove 1 preamble entirely
         }
 #ifdef ENABLE_FLEETSYNC
-        if (useFleetSyncRoger)
+        if (useFleetSyncPTTID)
             BK4819_send_FleetSync(gEeprom.FLEETSYNC_FLEET, gEeprom.FLEETSYNC_UNIT, false);
         else
 #endif
@@ -246,8 +246,6 @@ void FUNCTION_Transmit() {
 #endif
     }
 #endif
-    if (gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_APOLLO)
-        BK4819_PlaySingleTone(2525, 250, 0, gEeprom.DTMF_SIDE_TONE);
 
     if ((gEeprom.field38_0x33 & 7) != TALK_PERMIT_TONE_OFF && gEeprom.BOOT_BEEP_CONTROL)
         BK4819_PlayTalkPermitToneTx(gEeprom.field38_0x33 & 7);
