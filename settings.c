@@ -181,7 +181,7 @@ void SETTINGS_InitEEPROM(void)
 #endif
     /* Supported PTT ID values: Off, Pre/Post/Both for MDC, FleetSync and DTMF. */
     gEeprom.PTT_ID                          = (Data[1] >= PTT_ID_MODE_OFF &&
-                                               Data[1] <= PTT_ID_MODE_FLEETSYNC_BOTH) ?
+                                               Data[1] <= PTT_ID_MODE_DTMF_BOTH) ?
                                               Data[1] : PTT_ID_MODE_OFF;
     gEeprom.REPEATER_TAIL_TONE_ELIMINATION = (Data[2] >= 2 && Data[2] <= 10) ? Data[2] : 2;
     gEeprom.TX_VFO                         = (Data[3] <  2) ? Data[3] : 0;
@@ -200,6 +200,7 @@ void SETTINGS_InitEEPROM(void)
     gEeprom.FLEETSYNC_UNIT = ((uint16_t)Data[1] << 8) | Data[0];
     if (gEeprom.FLEETSYNC_UNIT < FLEETSYNC_UNIT_MIN || gEeprom.FLEETSYNC_UNIT > FLEETSYNC_UNIT_MAX)
         gEeprom.FLEETSYNC_UNIT = FLEETSYNC_UNIT_MIN;
+    gEeprom.FLEETSYNC_PTT_ID_DELAY = (Data[2] >= 2 && Data[2] <= 10) ? Data[2] : 2;
 #endif
 
     // 0ED0..0ED7
@@ -638,6 +639,7 @@ void SETTINGS_SaveSettings(void)
     memset(State, 0xFF, sizeof(State));
     State[0] = (uint8_t)(gEeprom.FLEETSYNC_UNIT & 0xFF);
     State[1] = (uint8_t)((gEeprom.FLEETSYNC_UNIT >> 8) & 0xFF);
+    State[2] = gEeprom.FLEETSYNC_PTT_ID_DELAY;
     EEPROM_WriteBuffer(0x0F20, State, 8);
 #endif
     State[0] = gEeprom.DTMF_SIDE_TONE;
