@@ -441,9 +441,14 @@ bool DTMF_Reply() {
 #ifdef ENABLE_DTMF_CALLING
 gDTMF_CallState != DTMF_CALL_STATE_NONE           ||
 #endif
-gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_APOLLO ||
-gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_OFF ||
-gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_TX_DOWN) {
+gEeprom.PTT_ID == PTT_ID_MODE_MDC_PRE ||
+gEeprom.PTT_ID == PTT_ID_MODE_MDC_POST ||
+gEeprom.PTT_ID == PTT_ID_MODE_MDC_BOTH ||
+gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH ||
+gEeprom.PTT_ID == PTT_ID_MODE_DTMF_POST ||
+gEeprom.PTT_ID == PTT_ID_MODE_OFF) {
                 gDTMF_ReplyState = DTMF_REPLY_NONE;
                 return false;
             }
@@ -487,10 +492,8 @@ gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_TX_DOWN) {
 }
 
 void DTMF_SendEndOfTransmission(void) {
-    if (gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_APOLLO) {
-        BK4819_PlaySingleTone(2475, 250, 28, gEeprom.DTMF_SIDE_TONE);
-    } else if ((gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_TX_DOWN ||
-                gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_BOTH)
+    if ((gEeprom.PTT_ID == PTT_ID_MODE_DTMF_POST ||
+         gEeprom.PTT_ID == PTT_ID_MODE_DTMF_BOTH)
 #ifdef ENABLE_DTMF_CALLING
         && gDTMF_CallState == DTMF_CALL_STATE_NONE
 #endif
