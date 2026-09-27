@@ -676,7 +676,14 @@ void MENU_AcceptSetting(void) {
             break;
 
         case MENU_RP_STE:
-            gEeprom.REPEATER_TAIL_TONE_ELIMINATION = gSubMenuSelection;
+#ifdef ENABLE_FLEETSYNC
+            if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH)
+                gEeprom.FLEETSYNC_PTT_ID_DELAY = gSubMenuSelection;
+            else
+#endif
+                gEeprom.REPEATER_TAIL_TONE_ELIMINATION = gSubMenuSelection;
             break;
 
         case MENU_MIC:
@@ -1098,7 +1105,14 @@ void MENU_ShowCurrentSetting(void) {
             break;
 
         case MENU_RP_STE:
-            gSubMenuSelection = gEeprom.REPEATER_TAIL_TONE_ELIMINATION;
+#ifdef ENABLE_FLEETSYNC
+            if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH)
+                gSubMenuSelection = gEeprom.FLEETSYNC_PTT_ID_DELAY;
+            else
+#endif
+                gSubMenuSelection = gEeprom.REPEATER_TAIL_TONE_ELIMINATION;
             break;
 
         case MENU_MIC:
