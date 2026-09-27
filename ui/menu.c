@@ -87,6 +87,7 @@ const t_menu_item MenuList[] =
                 {/*"IDDly",*/ VOICE_ID_INVALID, MENU_RP_STE, "ID Dly"},
                 {/*"MDCPre",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_DURATION, "MDCPre"},
                 {/*"MDCWhn",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_WHEN, "MDCWhn"},
+                {/*"PTT ID",*/ VOICE_ID_INVALID, MENU_PTT_ID, STR_PTT_ID},
 #endif
 
 
@@ -108,7 +109,6 @@ const t_menu_item MenuList[] =
 #endif
                 {/*"UPCode",*/ VOICE_ID_INVALID, MENU_UPCODE, STR_UPCODE},
                 {/*"DWCode",*/ VOICE_ID_INVALID, MENU_DWCODE, STR_DWCODE},
-                {/*"PTT ID",*/ VOICE_ID_INVALID, MENU_PTT_ID, STR_PTT_ID},
                 {/*"D ST",*/   VOICE_ID_INVALID, MENU_D_ST, STR_D_ST},
 #ifdef ENABLE_DTMF_CALLING
                 // {/*"D Resp",*/ VOICE_ID_INVALID,                       MENU_D_RSP         ,STR_D_RESP}, // disabled
@@ -1088,6 +1088,9 @@ void UI_DisplayMenu(void) {
             break;
         }
 #endif
+        case MENU_PTT_ID:
+            strcpy(String, gSubMenu_PTT_ID[gSubMenuSelection]);
+            break;
 
 //        case MENU_VOL:
 //            sprintf(String, "%u.%02uV\n%u%%",
