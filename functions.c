@@ -217,7 +217,12 @@ void FUNCTION_Transmit() {
         BK4819_MuteMic();
         
         // Delay before sending the PRE-ID packet (200-1000 ms).
-        SYSTEM_DelayMs(gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 100);
+#ifdef ENABLE_FLEETSYNC
+        if (useFleetSyncPTTID)
+            SYSTEM_DelayMs(gEeprom.FLEETSYNC_PTT_ID_DELAY * 100);
+        else
+#endif
+            SYSTEM_DelayMs(gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 100);
         
         // Determine preamble duration based on MDC preamble settings
         // Skip 1 and 9 - if value is 1, treat as 0 (OFF)
