@@ -89,7 +89,6 @@ const t_menu_item MenuList[] =
                 {/*"MDCWhn",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_WHEN, "MDCWhn"},
 #endif
 
-                {/*"Roger",*/  VOICE_ID_INVALID, MENU_ROGER, STR_ROGER},
 
                 {/*"STE",*/    VOICE_ID_INVALID, MENU_STE, STR_STE},
                 // {/*"ECT",*/    VOICE_ID_INVALID, MENU_END_CALL_TONE, "ECT"},  // removed
@@ -311,33 +310,18 @@ const char gSubMenu_AL_MOD[][5] =
 #endif
 
 const char *const gSubMenu_PTT_ID[] =
-        {
-//                "OFF",
-//                "UP CODE",
-//                "DOWN CODE",
-//                "UP+DOWN\nCODE",
-//                "APOLLO\nQUINDAR"
-                STR_OFF,
-                STR_UP_CODE,
-                STR_DOWN_CODE,
-                STR_UP_DOWN_CODE,
-                STR_APOLLO_QUINDAR
-        };
-
-
-
-
-const char gSubMenu_ROGER[][15] =
-
-        {
-                STR_OFF,
-                "Pre MDC",
-                "Post MDC",
-                "Both MDC",
-                "Pre FSync",
-                "Post FSync",
-                "Both FSync"
-        };
+{
+    STR_OFF,
+    "Pre MDC",
+    "Post MDC",
+    "Both MDC",
+    "Pre FSync",
+    "Post FSync",
+    "Both FSync",
+    "Pre DTMF",
+    "Post DTMF",
+    "Both DTMF"
+};
 
 #ifdef ENABLE_MDC1200
 const char gSubMenu_MDC_PREAMBLE_DURATION[][4] =
@@ -1093,12 +1077,6 @@ void UI_DisplayMenu(void) {
             //         memcpy(String, Contact, 8);
             //     break;
 #endif
-        case MENU_ROGER:
-            strcpy(String, gSubMenu_ROGER[gSubMenuSelection]);
-
-
-            break;
-
 #ifdef ENABLE_MDC1200
         case MENU_MDC_PREAMBLE_DURATION:
             strcpy(String, gSubMenu_MDC_PREAMBLE_DURATION[gSubMenuSelection]);
