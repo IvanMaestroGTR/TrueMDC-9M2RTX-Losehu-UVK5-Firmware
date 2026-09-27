@@ -729,14 +729,12 @@ void MENU_AcceptSetting(void) {
             gEeprom.DTMF_PRELOAD_TIME = gSubMenuSelection * 10;
             break;
 
-        case MENU_PTT_ID: {
-            const uint8_t mode = ARRAY_SIZE(gSubMenu_PTT_ID) - 1 - gSubMenuSelection;
-            gEeprom.PTT_ID = (mode < ARRAY_SIZE(gSubMenu_PTT_ID))
-                           ? (PTT_ID_Mode_t)mode
+        case MENU_PTT_ID:
+            gEeprom.PTT_ID = (gSubMenuSelection < ARRAY_SIZE(gSubMenu_PTT_ID))
+                           ? (PTT_ID_Mode_t)gSubMenuSelection
                            : PTT_ID_MODE_OFF;
             gRequestSaveSettings = true;
             break;
-        }
 
 //		case MENU_BAT_TXT:
 //			gSetting_battery_text = gSubMenuSelection;
@@ -1157,8 +1155,8 @@ void MENU_ShowCurrentSetting(void) {
 
         case MENU_PTT_ID:
             gSubMenuSelection = (gEeprom.PTT_ID < ARRAY_SIZE(gSubMenu_PTT_ID))
-                              ? ARRAY_SIZE(gSubMenu_PTT_ID) - 1 - gEeprom.PTT_ID
-                              : ARRAY_SIZE(gSubMenu_PTT_ID) - 1;
+                              ? gEeprom.PTT_ID
+                              : PTT_ID_MODE_OFF;
             break;
 
 //		case MENU_BAT_TXT:
