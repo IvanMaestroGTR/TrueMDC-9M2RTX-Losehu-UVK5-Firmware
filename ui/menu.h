@@ -104,10 +104,7 @@ enum {
 #endif
 
     MENU_D_PRE,
-#ifdef ENABLE_DTMF_CALLING
-#endif
     MENU_D_LIST,
-#endif
 
     MENU_D_LIVE_DEC,
 
