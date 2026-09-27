@@ -106,9 +106,6 @@ enum {
 
     MENU_D_PRE,
 #ifdef ENABLE_DTMF_CALLING
-#ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-
-    MENU_D_DCD,
 #endif
     MENU_D_LIST,
 #endif
