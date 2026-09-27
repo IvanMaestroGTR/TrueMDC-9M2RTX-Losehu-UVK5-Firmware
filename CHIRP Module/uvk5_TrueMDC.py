@@ -1352,7 +1352,18 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 except (TypeError, ValueError):
                     pass
 
-            # Combined FleetSync ID: FFFUUUU
+            # FleetSync PTT ID delay
+        tmpfsdly = _mem.fleetsync_ptt_id_delay
+        if tmpfsdly < 2 or tmpfsdly > 10:
+            tmpfsdly = 2
+        tmpfsdly -= 2
+        rs = RadioSetting(
+                "fleetsync_ptt_id_delay",
+                "FleetSyncDly",
+                RadioSettingValueList(RTE_LIST, RTE_LIST[tmpfsdly]))
+        signalling_fleetsync.append(rs)
+
+        # Combined FleetSync ID: FFFUUUU
             # Fleet = 100..349, Unit = 1000..4999.
             if element.get_name() == "fleetsync_id":
                 try:
@@ -1739,17 +1750,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                           "Downcode (1-16 digits, 0-9 ABCD*#)", val)
         signalling_dtmf.append(rs)
 
-        # Keep the signalling sections in the requested order.
-        mdc_order = {"repeater_tail_elimination": 0,
-                     "mdc1200_preamble_when": 1,
-                     "mdc1200_preamble_duration": 2,
-                     "mdc1200_id": 3}
-        signalling_mdc.sort(key=lambda item: mdc_order.get(item.get_name(), 99))
-
-        fleetsync_order = {"fleetsync_ptt_id_delay": 0,
-                           "fleetsync_id": 1}
-        signalling_fleetsync.sort(key=lambda item: fleetsync_order.get(item.get_name(), 99))
-
         # MDC Alias
         val = RadioSettingValueString(0, 80,
                                       "MDC ID (4x Hexadecimal Characters)", charset=VALID_CHARACTERS)
@@ -2052,6 +2052,17 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 RadioSettingValueBoolean(tmpkey))
         basic.append(rs)
 
+        # MDC PTT ID delay
+        tmprte = _mem.repeater_tail_elimination
+        if tmprte < 2 or tmprte > 10:
+            tmprte = 2
+        tmprte -= 2
+        rs = RadioSetting(
+                "repeater_tail_elimination",
+                "MDCDly",
+                RadioSettingValueList(RTE_LIST, RTE_LIST[tmprte]))
+        signalling_mdc.append(rs)
+
         # MDC ID
         mdc_id = (int(_mem.mdc1200_id_high) << 8) | int(_mem.mdc1200_id_low)
 
@@ -2127,28 +2138,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         #             REMENDOFTALK_LIST,
         #             REMENDOFTALK_LIST[tmpalarmmode]))
         # basic.append(rs)
-
-        # MDC PTT ID delay
-        tmprte = _mem.repeater_tail_elimination
-        if tmprte < 2 or tmprte > 10:
-            tmprte = 2
-        tmprte -= 2
-        rs = RadioSetting(
-                "repeater_tail_elimination",
-                "MDCDly",
-                RadioSettingValueList(RTE_LIST, RTE_LIST[tmprte]))
-        signalling_mdc.append(rs)
-
-        # FleetSync PTT ID delay
-        tmpfsdly = _mem.fleetsync_ptt_id_delay
-        if tmpfsdly < 2 or tmpfsdly > 10:
-            tmpfsdly = 2
-        tmpfsdly -= 2
-        rs = RadioSetting(
-                "fleetsync_ptt_id_delay",
-                "FleetSyncDly",
-                RadioSettingValueList(RTE_LIST, RTE_LIST[tmpfsdly]))
-        signalling_fleetsync.append(rs)
 
         # Logo string 1
         logo1 = str(_mem.logo_line1).strip("\x20\x00\xff") + "\x00"
