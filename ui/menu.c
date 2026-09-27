@@ -111,10 +111,8 @@ const t_menu_item MenuList[] =
                 {/*"DWCode",*/ VOICE_ID_INVALID, MENU_DWCODE, STR_DWCODE},
                 {/*"D ST",*/   VOICE_ID_INVALID, MENU_D_ST, STR_D_ST},
 #ifdef ENABLE_DTMF_CALLING
-                // {/*"D Resp",*/ VOICE_ID_INVALID,                       MENU_D_RSP         ,STR_D_RESP}, // disabled
-                // {/*"D Hold",*/ VOICE_ID_INVALID,                       MENU_D_HOLD        ,STR_D_HOLD}, // disabled
+                // DTMF response/hold menus disabled
 #endif
-                {/*"D Prel",*/ VOICE_ID_INVALID, MENU_D_PRE, STR_D_PREL},
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
 #endif
