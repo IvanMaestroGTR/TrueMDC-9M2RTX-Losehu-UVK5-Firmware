@@ -97,7 +97,6 @@ enum {
 
     MENU_UPCODE,
     MENU_DWCODE,
-    MENU_PTT_ID,
     MENU_D_ST,
 #ifdef ENABLE_DTMF_CALLING
     MENU_D_RSP,
@@ -112,7 +111,7 @@ enum {
 
     MENU_D_LIVE_DEC,
 
-    MENU_ROGER,
+    MENU_PTT_ID,
     // MENU_VOL,
     //MENU_BAT_TXT,
     //MENU_AM,
@@ -180,9 +179,8 @@ extern const char    gSubMenu_AL_MOD[2][5];
 extern const char        gSubMenu_D_RSP[4][11];//11
 #endif
 
-extern const char *const gSubMenu_PTT_ID[5];
+extern const char *const gSubMenu_PTT_ID[10];
 
-extern const char        gSubMenu_ROGER[7][15];
 
 
 #ifdef ENABLE_MDC1200
