@@ -118,7 +118,6 @@ const t_menu_item MenuList[] =
                 {/*"D Prel",*/ VOICE_ID_INVALID, MENU_D_PRE, STR_D_PREL},
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-                // {/*"D Decd",*/ VOICE_ID_INVALID,                       MENU_D_DCD         ,STR_D_DECD}, // disabled
 #endif
                 // {/*"D List",*/ VOICE_ID_INVALID,                       MENU_D_LIST        ,STR_D_LIST}, // disabled
 #endif
@@ -490,7 +489,6 @@ const t_sidefunction SIDEFUNCTIONS[] =
                {STR_SWITCH_VFO, ACTION_OPT_A_B},
                {STR_VFO_MR, ACTION_OPT_VFO_MR},
                {STR_DEMODU, ACTION_OPT_SWITCH_DEMODUL},
-               {STR_D_DECD, ACTION_OPT_D_DCD},
                {STR_W_N, ACTION_OPT_WIDTH},
 #ifdef ENABLE_SIDEFUNCTIONS_SEND
                {STR_MAIN_SEND, ACTION_OPT_SEND_CURRENT},
@@ -797,7 +795,6 @@ void UI_DisplayMenu(void) {
         case MENU_D_ST:
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-            // case MENU_D_DCD: // DTMF DCD disabled
 #endif
 #endif
         // case MENU_D_LIVE_DEC: // Live DTMF decoder disabled
