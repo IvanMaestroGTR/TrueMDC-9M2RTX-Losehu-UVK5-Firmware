@@ -274,7 +274,7 @@ void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     switch (Key) {
         case KEY_SIDE1:
             funcShort = ACTION_OPT_MONITOR;//gEeprom.KEY_1_SHORT_PRESS_ACTION;
-            funcLong = ACTION_OPT_D_DCD;//gEeprom.KEY_1_LONG_PRESS_ACTION;
+            funcLong = ACTION_OPT_NONE;//gEeprom.KEY_1_LONG_PRESS_ACTION;
             break;
         case KEY_SIDE2:
             funcShort = ACTION_OPT_WIDTH;// gEeprom.KEY_2_SHORT_PRESS_ACTION;
