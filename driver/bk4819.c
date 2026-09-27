@@ -49,18 +49,18 @@ static const uint8_t MDC_FSK_TX_GAIN = 96;  // FSK gain for MDC1200 TX (configur
 #ifdef ENABLE_MDC1200
 static bool BK4819_IsFleetSyncRogerMode(void)
 {
-    return gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-           gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-           gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH;
+    return gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+           gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+           gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH;
 }
 
 static bool BK4819_HasPostIDRoger(void)
 {
-    return gEeprom.ROGER == ROGER_MODE_MDC_POST ||
-           gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
+    return gEeprom.PTT_ID == PTT_ID_MODE_MDC_POST ||
+           gEeprom.PTT_ID == PTT_ID_MODE_MDC_BOTH ||
            (BK4819_IsFleetSyncRogerMode() &&
-            (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-             gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH));
+            (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+             gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH));
 }
 
 static uint8_t BK4819_GetMDCPostPreamble(void)
@@ -1118,18 +1118,18 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
     uint8_t selectedMode = mode;
 
     if (selectedMode == TALK_PERMIT_TONE_AUTO) {
-        const bool hasSignalling = (gEeprom.ROGER == ROGER_MODE_MDC_PRE ||
-                                   gEeprom.ROGER == ROGER_MODE_MDC_POST ||
-                                   gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
+        const bool hasSignalling = (gEeprom.PTT_ID == PTT_ID_MODE_MDC_PRE ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_MDC_POST ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_MDC_BOTH ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH);
 
         if (!hasSignalling) {
             selectedMode = TALK_PERMIT_TONE_XTS;
-        } else if (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH) {
+        } else if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH) {
             selectedMode = TALK_PERMIT_TONE_KENW;
         } else {
             selectedMode = TALK_PERMIT_TONE_TRBO;
@@ -1193,18 +1193,18 @@ void BK4819_PlayTalkPermitToneTx(uint8_t mode) {
     uint8_t selectedMode = mode;
 
     if (selectedMode == TALK_PERMIT_TONE_AUTO) {
-        const bool hasSignalling = (gEeprom.ROGER == ROGER_MODE_MDC_PRE ||
-                                   gEeprom.ROGER == ROGER_MODE_MDC_POST ||
-                                   gEeprom.ROGER == ROGER_MODE_MDC_BOTH ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-                                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH);
+        const bool hasSignalling = (gEeprom.PTT_ID == PTT_ID_MODE_MDC_PRE ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_MDC_POST ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_MDC_BOTH ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH);
 
         if (!hasSignalling) {
             selectedMode = TALK_PERMIT_TONE_XTS;
-        } else if (gEeprom.ROGER == ROGER_MODE_FLEETSYNC_PRE ||
-                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_POST ||
-                   gEeprom.ROGER == ROGER_MODE_FLEETSYNC_BOTH) {
+        } else if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                   gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH) {
             selectedMode = TALK_PERMIT_TONE_KENW;
         } else {
             selectedMode = TALK_PERMIT_TONE_TRBO;
