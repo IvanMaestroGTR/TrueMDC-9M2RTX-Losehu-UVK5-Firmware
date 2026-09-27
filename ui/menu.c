@@ -1088,9 +1088,6 @@ void UI_DisplayMenu(void) {
             break;
         }
 #endif
-        case MENU_PTT_ID:
-            strcpy(String, gSubMenu_PTT_ID[gSubMenuSelection]);
-            break;
 
 //        case MENU_VOL:
 //            sprintf(String, "%u.%02uV\n%u%%",
