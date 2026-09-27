@@ -2521,10 +2521,6 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
         BK4819_WriteRegister(0x3F, BK4819_REG_3F_FSK_TX_FINISHED);
         BK4819_WriteRegister(0x59, (1u << 11) | fsk_reg59);
 
-        // Kenwood FleetSync timing: add a small fixed gap before the ID payload starts.
-        // This makes the configured pre-ID delay effectively become +75 ms.
-        SYSTEM_DelayMs(75);
-
         for (unsigned int timeout = 125; timeout-- > 0;) {
             SYSTEM_DelayMs(4);
             if (BK4819_ReadRegister(0x0C) & 1u) {
