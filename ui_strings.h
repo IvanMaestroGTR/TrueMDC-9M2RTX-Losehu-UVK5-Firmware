@@ -132,7 +132,6 @@
 #define STR_SWITCH_VFO "SWITCH VFO"
 #define STR_VFO_MR "VFO/MR"
 #define STR_DEMODU "Demodu"
-#define STR_D_DECD "D Decd"
 #define STR_W_N "W/N"
 #define STR_WIDE "WIDE"
 #define STR_NARROW "NARROW"
