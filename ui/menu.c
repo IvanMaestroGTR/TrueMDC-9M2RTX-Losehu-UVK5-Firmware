@@ -87,8 +87,8 @@ const t_menu_item MenuList[] =
                 {/*"IDDly",*/ VOICE_ID_INVALID, MENU_RP_STE, "ID Dly"},
                 {/*"MDCPre",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_DURATION, "MDCPre"},
                 {/*"MDCWhn",*/ VOICE_ID_INVALID, MENU_MDC_PREAMBLE_WHEN, "MDCWhn"},
-                {/*"PTT ID",*/ VOICE_ID_INVALID, MENU_PTT_ID, STR_PTT_ID},
 #endif
+                {/*"PTT ID",*/ VOICE_ID_INVALID, MENU_PTT_ID, STR_PTT_ID},
 
 
                 {/*"STE",*/    VOICE_ID_INVALID, MENU_STE, STR_STE},
