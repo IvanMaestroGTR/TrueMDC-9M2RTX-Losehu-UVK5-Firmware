@@ -265,8 +265,10 @@ void FUNCTION_Transmit() {
     }
 #endif
 
-    if ((gEeprom.field38_0x33 & 7) != TALK_PERMIT_TONE_OFF && gEeprom.BOOT_BEEP_CONTROL)
-        BK4819_PlayTalkPermitToneTx(gEeprom.field38_0x33 & 7);
+    if ((gEeprom.field38_0x33 & 7) != TALK_PERMIT_TONE_OFF && gEeprom.BOOT_BEEP_CONTROL) {
+        const bool delayTptSpeaker = sendDtmfPTTID && gEeprom.DTMF_SIDE_TONE;
+        BK4819_PlayTalkPermitToneTx(gEeprom.field38_0x33 & 7, delayTptSpeaker);
+    }
 
 #ifdef ENABLE_MESSENGER
     #ifdef ENABLE_MDC1200
