@@ -204,13 +204,16 @@ void FUNCTION_Transmit() {
     const bool sendDtmfPTTID = hasPreDtmfPTTID &&
                                gDTMF_ReplyState == DTMF_REPLY_NONE;
 
-    if (sendDtmfPTTID)
+    if (sendDtmfPTTID) {
         BK4819_MuteMic();
 
-    if (DTMF_Reply() && sendDtmfPTTID) {
-        // Leave a small gap between the DTMF ID and the talk-permit tone.
-        SYSTEM_DelayMs(10);
+        if (DTMF_Reply())
+            // Leave a small gap between the DTMF ID and the talk-permit tone.
+            SYSTEM_DelayMs(10);
+
         BK4819_UnmuteMic();
+    } else {
+        DTMF_Reply();
     }
 #ifdef ENABLE_MDC1200
     const bool useFleetSyncPTTID = (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
