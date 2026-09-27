@@ -176,7 +176,7 @@ void Main(void) {
     AM_fix_init();
 #endif
 
-    gMenuListCount = 51; //menu size
+    gMenuListCount = 50; //menu size
     gKeyReading0 = KEY_INVALID;
     gKeyReading1 = KEY_INVALID;
     gDebounceCounter = 0;

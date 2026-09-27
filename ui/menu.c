@@ -563,11 +563,11 @@ void UI_DisplayMenu(void) {
         if (gEeprom.PTT_ID == PTT_ID_MODE_DTMF_PRE ||
             gEeprom.PTT_ID == PTT_ID_MODE_DTMF_POST ||
             gEeprom.PTT_ID == PTT_ID_MODE_DTMF_BOTH)
-            menu_name = "DTMF Dly";
+            menu_name = "DTM Dly";
         else if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
                  gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
                  gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH)
-            menu_name = "FS Dly";
+            menu_name = "FSc Dly";
         else
             menu_name = "MDC Dly";
     }
