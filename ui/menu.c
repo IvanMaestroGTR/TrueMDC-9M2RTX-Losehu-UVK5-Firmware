@@ -559,8 +559,19 @@ void UI_DisplayMenu(void) {
 
 
     {
-    uint8_t size_menu = strlen(MenuList[gMenuCursor].name)*7;
-    UI_PrintStringSmall(MenuList[gMenuCursor].name, size_menu < 48 ? (48 - size_menu) / 2 : 0, 0, 0);
+    const char *menu_name = MenuList[gMenuCursor].name;
+#ifdef ENABLE_FLEETSYNC
+    if (MenuList[gMenuCursor].menu_id == MENU_RP_STE) {
+        if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+            gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+            gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH)
+            menu_name = "FS Dly";
+        else
+            menu_name = "MDC Dly";
+    }
+#endif
+    uint8_t size_menu = strlen(menu_name)*7;
+    UI_PrintStringSmall(menu_name, size_menu < 48 ? (48 - size_menu) / 2 : 0, 0, 0);
     }
 
 #else
