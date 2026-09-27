@@ -108,7 +108,7 @@ void DTMF_clear_input_box(void);
 
 void DTMF_Append(const char vode);
 
-bool DTMF_Reply();
+bool DTMF_Reply(const bool force_no_sidetone);
 
 void DTMF_SendEndOfTransmission(void);
 
