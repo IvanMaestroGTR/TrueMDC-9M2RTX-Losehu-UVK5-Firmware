@@ -33,14 +33,6 @@ enum {
     BANDWIDTH_NARROW
 };
 
-enum PTT_ID_t {
-    PTT_ID_OFF = 0,    // OFF
-    PTT_ID_TX_UP,      // BEGIN OF TX
-    PTT_ID_TX_DOWN,    // END OF TX
-    PTT_ID_BOTH,       // BOTH
-    PTT_ID_APOLLO      // Apolo quindar tones
-};
-typedef enum PTT_ID_t PTT_ID_t;
 
 enum VfoState_t
 {
