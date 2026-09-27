@@ -246,8 +246,6 @@ void FUNCTION_Transmit() {
 #endif
     }
 #endif
-    if (gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_APOLLO)
-        BK4819_PlaySingleTone(2525, 250, 0, gEeprom.DTMF_SIDE_TONE);
 
     if ((gEeprom.field38_0x33 & 7) != TALK_PERMIT_TONE_OFF && gEeprom.BOOT_BEEP_CONTROL)
         BK4819_PlayTalkPermitToneTx(gEeprom.field38_0x33 & 7);
