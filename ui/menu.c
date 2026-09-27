@@ -560,9 +560,13 @@ void UI_DisplayMenu(void) {
     const char *menu_name = MenuList[gMenuCursor].name;
 #ifdef ENABLE_FLEETSYNC
     if (MenuList[gMenuCursor].menu_id == MENU_RP_STE) {
-        if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
-            gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
-            gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH)
+        if (gEeprom.PTT_ID == PTT_ID_MODE_DTMF_PRE ||
+            gEeprom.PTT_ID == PTT_ID_MODE_DTMF_POST ||
+            gEeprom.PTT_ID == PTT_ID_MODE_DTMF_BOTH)
+            menu_name = "DTMF Dly";
+        else if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                 gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                 gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH)
             menu_name = "FS Dly";
         else
             menu_name = "MDC Dly";
@@ -992,20 +996,13 @@ void UI_DisplayMenu(void) {
             break;
 
         case MENU_RP_STE:
-            if (gSubMenuSelection == 0)
-//translate
-#ifdef test
-                strcpy(String, "OFF");
-
-#else
-                //STR_OFF
-                strcpy(String, STR_OFF);
-
-#endif
-
-
-            else
+            if (gEeprom.PTT_ID == PTT_ID_MODE_DTMF_PRE ||
+                gEeprom.PTT_ID == PTT_ID_MODE_DTMF_POST ||
+                gEeprom.PTT_ID == PTT_ID_MODE_DTMF_BOTH) {
+                sprintf(String, "%d0ms", gSubMenuSelection);
+            } else {
                 sprintf(String, "%d00ms", gSubMenuSelection);
+            }
             break;
 
         case MENU_S_LIST:
@@ -1062,10 +1059,6 @@ void UI_DisplayMenu(void) {
             //     sprintf(String, "%ds", gSubMenuSelection);
             //     break;
 #endif
-        case MENU_D_PRE:
-            sprintf(String, "%d*10ms", gSubMenuSelection);
-            break;
-
         case MENU_PTT_ID:
             strcpy(String, gSubMenu_PTT_ID[gSubMenuSelection]);
 
