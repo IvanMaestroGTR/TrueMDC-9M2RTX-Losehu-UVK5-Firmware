@@ -403,7 +403,7 @@ char *pPrintStr = "AB";
 }
 #endif
 
-bool DTMF_Reply(const bool force_no_sidetone) {
+bool DTMF_Reply(const bool delayed_sidetone) {
     uint16_t Delay;
 #ifdef ENABLE_DTMF_CALLING
     char        String[23];
@@ -465,7 +465,7 @@ gEeprom.PTT_ID == PTT_ID_MODE_OFF) {
 
     Delay = (gEeprom.DTMF_PRELOAD_TIME < 200) ? 200 : gEeprom.DTMF_PRELOAD_TIME;
 
-    if (gEeprom.DTMF_SIDE_TONE && !force_no_sidetone) {    // the user will also hear the transmitted tones
+    if (gEeprom.DTMF_SIDE_TONE && !delayed_sidetone) {
         AUDIO_AudioPathOn();
         gEnableSpeaker = true;
     }
@@ -474,16 +474,47 @@ gEeprom.PTT_ID == PTT_ID_MODE_OFF) {
 
     BK4819_EnterDTMF_TX(gEeprom.DTMF_SIDE_TONE);
 
-    BK4819_PlayDTMFString(
-            pString,
-            1,
-            gEeprom.DTMF_FIRST_CODE_PERSIST_TIME,
-            gEeprom.DTMF_HASH_CODE_PERSIST_TIME,
-            gEeprom.DTMF_CODE_PERSIST_TIME,
-            gEeprom.DTMF_CODE_INTERVAL_TIME);
+    if (delayed_sidetone && gEeprom.DTMF_SIDE_TONE) {
+        const uint16_t firstTone = gEeprom.DTMF_FIRST_CODE_PERSIST_TIME;
+        const uint16_t muteTime = (firstTone > 60) ? 60 : firstTone;
+
+        if (pString[0]) {
+            BK4819_PlayDTMF(pString[0]);
+            BK4819_ExitTxMute();
+
+            SYSTEM_DelayMs(muteTime);
+            AUDIO_AudioPathOn();
+            gEnableSpeaker = true;
+            SYSTEM_DelayMs(firstTone - muteTime);
+
+            BK4819_EnterTxMute();
+
+            if (pString[1]) {
+                SYSTEM_DelayMs(gEeprom.DTMF_CODE_INTERVAL_TIME);
+                BK4819_PlayDTMFString(
+                        pString + 1,
+                        0,
+                        gEeprom.DTMF_FIRST_CODE_PERSIST_TIME,
+                        gEeprom.DTMF_HASH_CODE_PERSIST_TIME,
+                        gEeprom.DTMF_CODE_PERSIST_TIME,
+                        gEeprom.DTMF_CODE_INTERVAL_TIME);
+            }
+        }
+    } else {
+        BK4819_PlayDTMFString(
+                pString,
+                1,
+                gEeprom.DTMF_FIRST_CODE_PERSIST_TIME,
+                gEeprom.DTMF_HASH_CODE_PERSIST_TIME,
+                gEeprom.DTMF_CODE_PERSIST_TIME,
+                gEeprom.DTMF_CODE_INTERVAL_TIME);
+    }
 
     AUDIO_AudioPathOff();
 
+    gEnableSpeaker = false;
+
+    AUDIO_AudioPathOff();
     gEnableSpeaker = false;
 
     BK4819_ExitDTMF_TX(false);
