@@ -1404,7 +1404,43 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 if 0 <= index < len(_mem.dtmfcontact):
                     _mem.dtmfcontact[index].number = str(element.value).ljust(7)[:7]
 
-            # Alarm mode
+            # MDC Preamble When
+        tmpmdc_pre_whn = _mem.mdc1200_preamble_when
+        if tmpmdc_pre_whn >= len(MDC_PREAMBLE_WHEN_LIST):
+            tmpmdc_pre_whn = 2
+        rs = RadioSetting(
+                "mdc1200_preamble_when",
+                "MDC Preamble When",
+                RadioSettingValueList(
+                    MDC_PREAMBLE_WHEN_LIST,
+                    MDC_PREAMBLE_WHEN_LIST[tmpmdc_pre_whn]))
+        signalling_mdc.append(rs)
+
+        # MDC Preamble Duration
+        tmpmdc_pre_dur = _mem.mdc1200_preamble_duration
+        if tmpmdc_pre_dur < 1 or tmpmdc_pre_dur > 10:
+            tmpmdc_pre_dur = 1
+        rs = RadioSetting(
+                "mdc1200_preamble_duration",
+                "MDC Preamble Duration",
+                RadioSettingValueList(
+                    MDC_PREAMBLE_DURATION_LIST,
+                    MDC_PREAMBLE_DURATION_LIST[tmpmdc_pre_dur]))
+        signalling_mdc.append(rs)
+
+        # MDC ID
+        mdc_id = (int(_mem.mdc1200_id_high) << 8) | int(_mem.mdc1200_id_low)
+
+        rs = RadioSetting(
+            "mdc1200_id",
+            "MDC1200 ID (Hex)",
+            RadioSettingValueString(4, 4, "{:04X}".format(mdc_id),
+                                    autopad=False,
+                                    charset="0123456789ABCDEFabcdef")
+        )
+        signalling_mdc.append(rs)
+
+        # Alarm mode
             if element.get_name() == "alarm_mode":
                 _mem.alarm_mode = ALARMMODE_LIST.index(str(element.value))
 
@@ -2063,18 +2099,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 RadioSettingValueList(RTE_LIST, RTE_LIST[tmprte]))
         signalling_mdc.append(rs)
 
-        # MDC ID
-        mdc_id = (int(_mem.mdc1200_id_high) << 8) | int(_mem.mdc1200_id_low)
-
-        rs = RadioSetting(
-            "mdc1200_id",
-            "MDC1200 ID (Hex)",
-            RadioSettingValueString(4, 4, "{:04X}".format(mdc_id),
-                                    autopad=False,
-                                    charset="0123456789ABCDEFabcdef")
-        )
-        signalling_mdc.append(rs)
-
         # Combined FleetSync ID: FFFUUUU
         fleet_id = FLEETSYNC_FLEET_MIN + int(getattr(_mem, 'fleetsync_fleet', 0))
         if fleet_id < FLEETSYNC_FLEET_MIN or fleet_id > FLEETSYNC_FLEET_MAX:
@@ -2093,30 +2117,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                                         autopad=False,
                                         charset="0123456789"))
         signalling_fleetsync.append(rs)
-
-        # MDC Preamble Duration
-        tmpmdc_pre_dur = _mem.mdc1200_preamble_duration
-        if tmpmdc_pre_dur < 1 or tmpmdc_pre_dur > 10:
-            tmpmdc_pre_dur = 1
-        rs = RadioSetting(
-                "mdc1200_preamble_duration",
-                "MDC Preamble Duration",
-                RadioSettingValueList(
-                    MDC_PREAMBLE_DURATION_LIST,
-                    MDC_PREAMBLE_DURATION_LIST[tmpmdc_pre_dur]))
-        signalling_mdc.append(rs)
-
-        # MDC Preamble When
-        tmpmdc_pre_whn = _mem.mdc1200_preamble_when
-        if tmpmdc_pre_whn >= len(MDC_PREAMBLE_WHEN_LIST):
-            tmpmdc_pre_whn = 2
-        rs = RadioSetting(
-                "mdc1200_preamble_when",
-                "MDC Preamble When",
-                RadioSettingValueList(
-                    MDC_PREAMBLE_WHEN_LIST,
-                    MDC_PREAMBLE_WHEN_LIST[tmpmdc_pre_whn]))
-        signalling_mdc.append(rs)
 
         # Alarm mode
         tmpalarmmode = _mem.alarm_mode
