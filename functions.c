@@ -205,15 +205,13 @@ void FUNCTION_Transmit() {
                                gDTMF_ReplyState == DTMF_REPLY_NONE;
 
     if (sendDtmfPTTID) {
-        BK4819_MuteMic();
-
-        if (DTMF_Reply())
+        // The automatic DTMF PTT ID is always silent locally, even when D ST is on.
+        if (DTMF_Reply(true))
             // Leave a small gap between the DTMF ID and the talk-permit tone.
             SYSTEM_DelayMs(10);
-
-        BK4819_UnmuteMic();
     } else {
-        DTMF_Reply();
+        // Manual/other DTMF transmission keeps the normal D ST setting.
+        DTMF_Reply(false);
     }
 #ifdef ENABLE_MDC1200
     const bool useFleetSyncPTTID = (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
