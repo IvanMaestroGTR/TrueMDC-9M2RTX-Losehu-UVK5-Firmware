@@ -1206,12 +1206,13 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         mem.extra.append(rs)
         tmpcomment += "FreqReverse:" + ("ON" if is_frev else "off") + " "
 
-        # PTTID
-        pttid = _mem.dtmf_pttid
-        rs = RadioSetting("pttid", "PTTID", RadioSettingValueList(
-            PTTID_LIST, PTTID_LIST[pttid]))
-        mem.extra.append(rs)
-        tmpcomment += "PTTid:" + PTTID_LIST[pttid] + " "
+        # PTT ID is managed by the firmware menu; keep the legacy
+        # per-channel CHIRP PTTID control disabled temporarily.
+        # pttid = _mem.dtmf_pttid
+        # rs = RadioSetting("pttid", "PTTID", RadioSettingValueList(
+        #     PTTID_LIST, PTTID_LIST[pttid]))
+        # mem.extra.append(rs)
+        # tmpcomment += "PTTid:" + PTTID_LIST[pttid] + " "
 
         # DTMF DECODE
         is_dtmf = bool(_mem.dtmf_decode > 0)
@@ -2467,8 +2468,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             if sname == "bclo":
                 _mem.bclo = 1 if svalue else 0
 
-            if sname == "pttid":
-                _mem.dtmf_pttid = PTTID_LIST.index(svalue)
+            # Legacy per-channel PTTID control is disabled temporarily.
+            # if sname == "pttid":
+            #     _mem.dtmf_pttid = PTTID_LIST.index(svalue)
 
             if sname == "frev":
                 _mem.freq_reverse = 1 if svalue else 0
