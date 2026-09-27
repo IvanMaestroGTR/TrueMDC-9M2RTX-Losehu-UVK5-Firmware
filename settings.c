@@ -179,7 +179,7 @@ void SETTINGS_InitEEPROM(void)
 #ifdef ENABLE_ALARM
     gEeprom.ALARM_MODE                 = (Data[0] <  2) ? Data[0] : true;
 #endif
-    /* Supported Roger values: Off, Pre/Post/Both for MDC and FleetSync. */
+    /* Supported PTT ID values: Off, Pre/Post/Both for MDC, FleetSync and DTMF. */
     gEeprom.PTT_ID                          = (Data[1] >= PTT_ID_MODE_OFF &&
                                                Data[1] <= PTT_ID_MODE_FLEETSYNC_BOTH) ?
                                               Data[1] : PTT_ID_MODE_OFF;
