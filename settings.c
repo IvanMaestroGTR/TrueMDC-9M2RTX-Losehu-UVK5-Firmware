@@ -729,7 +729,7 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, 
                       | (reverseState & 1u)
                       | (1u << 5)
                       | (reverseState << 6);
-        State._8[5] = ((pVFO->DTMF_PTT_ID_TX_MODE & 7u) << 1)
+        State._8[5] = 0
 #ifdef ENABLE_DTMF_CALLING
             | ((pVFO->DTMF_DECODING_ENABLE & 1u) << 0)
 #endif
