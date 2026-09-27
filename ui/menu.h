@@ -103,7 +103,6 @@ enum {
     MENU_D_HOLD,
 #endif
 
-    MENU_D_PRE,
     MENU_D_LIST,
 
     MENU_D_LIVE_DEC,
