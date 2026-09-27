@@ -127,6 +127,7 @@ u8 vfo_open;
 #seekto 0xe90;
 u8 settings_unknown:2,
 talk_permit_tone:3,
+field37_0x32:1,
 boot_beep_control:1,
 beep_control:1;
 u8 mdc1200_id_low;
@@ -2119,6 +2120,34 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                     autopad=False,
                     charset="0123456789"))
         signalling_fleetsync.append(rs)
+
+        # FleetSync Alias List
+        # These aliases use the radio's existing 16 contact records.
+        # The firmware stores a FleetSync ID as a 7-digit FFFUUUU string.
+        for i in range(1, 17):
+            alias_name = "DTMF_" + str(i)
+            alias_id = "DTMFNUM_" + str(i)
+
+            alias_obj = _mem.dtmfcontact[i - 1]
+            alias_name_value = str(alias_obj.name).strip("\x00\xff\x20")
+            alias_id_value = str(alias_obj.number).strip("\x00\xff\x20")
+
+            rs = RadioSetting(
+                    alias_name,
+                    "Alias" + str(i) + " | Name",
+                    RadioSettingValueString(0, 8, alias_name_value))
+            signalling_fleetsync.append(rs)
+
+            rs = RadioSetting(
+                    alias_id,
+                    "Alias" + str(i) + " | FleetSync ID",
+                    RadioSettingValueString(
+                        0,
+                        7,
+                        alias_id_value,
+                        autopad=False,
+                        charset="0123456789"))
+            signalling_fleetsync.append(rs)
 
         # Alarm mode
         tmpalarmmode = _mem.alarm_mode
