@@ -265,9 +265,15 @@ void FUNCTION_Transmit() {
     }
 #endif
 
-    if ((gEeprom.field38_0x33 & 7) != TALK_PERMIT_TONE_OFF && gEeprom.BOOT_BEEP_CONTROL) {
-        const bool delayTptSpeaker = sendDtmfPTTID && gEeprom.DTMF_SIDE_TONE;
-        BK4819_PlayTalkPermitToneTx(gEeprom.field38_0x33 & 7, delayTptSpeaker);
+    // For DTMF PRE/BOTH, the pre-ID can act as the talk-permit tone
+    // when D ST is enabled. This avoids a second TPT immediately after
+    // the DTMF ID. If D ST is OFF, keep the normal talk-permit tone.
+    const bool dtmfPreIdIsTalkPermit = sendDtmfPTTID && gEeprom.DTMF_SIDE_TONE;
+
+    if (!dtmfPreIdIsTalkPermit &&
+        (gEeprom.field38_0x33 & 7) != TALK_PERMIT_TONE_OFF &&
+        gEeprom.BOOT_BEEP_CONTROL) {
+        BK4819_PlayTalkPermitToneTx(gEeprom.field38_0x33 & 7, false);
     }
 
 #ifdef ENABLE_MESSENGER
