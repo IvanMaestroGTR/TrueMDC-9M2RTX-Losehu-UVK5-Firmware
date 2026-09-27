@@ -310,8 +310,15 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             //case MENU_VOX:
 #endif
         case MENU_RP_STE:
-            *pMin = 2;
-            *pMax = 10;
+            if (gEeprom.PTT_ID == PTT_ID_MODE_DTMF_PRE ||
+                gEeprom.PTT_ID == PTT_ID_MODE_DTMF_POST ||
+                gEeprom.PTT_ID == PTT_ID_MODE_DTMF_BOTH) {
+                *pMin = 3;
+                *pMax = 99;
+            } else {
+                *pMin = 2;
+                *pMax = 10;
+            }
             break;
 
         case MENU_MEM_CH:
@@ -351,16 +358,6 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
 //			*pMin = 0;
 //			*pMax = ARRAY_SIZE(gSubMenu_BAT_TXT) - 1;
 //			break;
-#ifdef ENABLE_DTMF_CALLING
-            // case MENU_D_HOLD: // DTMF Auto Reset disabled
-            //     *pMin = 5;
-            //     *pMax = 60;
-            //     break;
-#endif
-        case MENU_D_PRE:
-            *pMin = 3;
-            *pMax = 99;
-            break;
 #ifdef ENABLE_DTMF_CALLING
             // case MENU_D_LIST: // DTMF Contact List disabled
             //     *pMin = 1;
@@ -676,14 +673,21 @@ void MENU_AcceptSetting(void) {
             break;
 
         case MENU_RP_STE:
+            if (gEeprom.PTT_ID == PTT_ID_MODE_DTMF_PRE ||
+                gEeprom.PTT_ID == PTT_ID_MODE_DTMF_POST ||
+                gEeprom.PTT_ID == PTT_ID_MODE_DTMF_BOTH) {
+                gEeprom.DTMF_PRELOAD_TIME = gSubMenuSelection * 10;
+            }
 #ifdef ENABLE_FLEETSYNC
-            if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
-                gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
-                gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH)
+            else if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                     gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                     gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH) {
                 gEeprom.FLEETSYNC_PTT_ID_DELAY = gSubMenuSelection;
-            else
+            }
 #endif
+            else {
                 gEeprom.REPEATER_TAIL_TONE_ELIMINATION = gSubMenuSelection;
+            }
             break;
 
         case MENU_MIC:
@@ -732,9 +736,6 @@ void MENU_AcceptSetting(void) {
             //     gEeprom.DTMF_auto_reset_time = gSubMenuSelection;
             //     break;
 #endif
-        case MENU_D_PRE:
-            gEeprom.DTMF_PRELOAD_TIME = gSubMenuSelection * 10;
-            break;
 
         case MENU_PTT_ID:
             gEeprom.PTT_ID = (gSubMenuSelection < ARRAY_SIZE(gSubMenu_PTT_ID))
@@ -1105,14 +1106,21 @@ void MENU_ShowCurrentSetting(void) {
             break;
 
         case MENU_RP_STE:
+            if (gEeprom.PTT_ID == PTT_ID_MODE_DTMF_PRE ||
+                gEeprom.PTT_ID == PTT_ID_MODE_DTMF_POST ||
+                gEeprom.PTT_ID == PTT_ID_MODE_DTMF_BOTH) {
+                gSubMenuSelection = gEeprom.DTMF_PRELOAD_TIME / 10;
+            }
 #ifdef ENABLE_FLEETSYNC
-            if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
-                gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
-                gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH)
+            else if (gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_PRE ||
+                     gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_POST ||
+                     gEeprom.PTT_ID == PTT_ID_MODE_FLEETSYNC_BOTH) {
                 gSubMenuSelection = gEeprom.FLEETSYNC_PTT_ID_DELAY;
-            else
+            }
 #endif
+            else {
                 gSubMenuSelection = gEeprom.REPEATER_TAIL_TONE_ELIMINATION;
+            }
             break;
 
         case MENU_MIC:
@@ -1163,9 +1171,6 @@ void MENU_ShowCurrentSetting(void) {
         //     gSubMenuSelection = gEeprom.DTMF_auto_reset_time;
         //     break;
 #endif
-        case MENU_D_PRE:
-            gSubMenuSelection = gEeprom.DTMF_PRELOAD_TIME / 10;
-            break;
 
         case MENU_PTT_ID:
             gSubMenuSelection = (gEeprom.PTT_ID < ARRAY_SIZE(gSubMenu_PTT_ID))
