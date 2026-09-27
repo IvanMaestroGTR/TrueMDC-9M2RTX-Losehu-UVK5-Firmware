@@ -203,6 +203,7 @@ u8 scanlist_unknown_0xff;
 #seekto 0xf20;
 u8 fleetsync_unit_low;
 u8 fleetsync_unit_high;
+u8 fleetsync_ptt_id_delay;
 
 #seekto 0xf40;
 u8 lock_flock;
@@ -1401,9 +1402,13 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             # if element.get_name() == "reminding_of_end_talk":
             #     _mem.roger = REMENDOFTALK_LIST.index(str(element.value))
 
-            # MDC PRE-ID delay is stored as 2..10 (200..1000 ms).
+            # MDC PTT ID delay is stored as 2..10 (200..1000 ms).
             if element.get_name() == "repeater_tail_elimination":
                 _mem.repeater_tail_elimination = RTE_LIST.index(str(element.value)) + 2
+
+            # FleetSync PTT ID delay is stored as 2..10 (200..1000 ms).
+            if element.get_name() == "fleetsync_ptt_id_delay":
+                _mem.fleetsync_ptt_id_delay = RTE_LIST.index(str(element.value)) + 2
 
             # Logo string 1
             if element.get_name() == "logo1":
@@ -2248,7 +2253,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         #             REMENDOFTALK_LIST[tmpalarmmode]))
         # basic.append(rs)
 
-        # MDC PRE-ID delay
+        # MDC PTT ID delay
         tmprte = _mem.repeater_tail_elimination
         if tmprte < 2 or tmprte > 10:
             tmprte = 2
@@ -2257,6 +2262,17 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 "repeater_tail_elimination",
                 "MDCDly",
                 RadioSettingValueList(RTE_LIST, RTE_LIST[tmprte]))
+        basic.append(rs)
+
+        # FleetSync PTT ID delay
+        tmpfsdly = _mem.fleetsync_ptt_id_delay
+        if tmpfsdly < 2 or tmpfsdly > 10:
+            tmpfsdly = 2
+        tmpfsdly -= 2
+        rs = RadioSetting(
+                "fleetsync_ptt_id_delay",
+                "FleetSyncDly",
+                RadioSettingValueList(RTE_LIST, RTE_LIST[tmpfsdly]))
         basic.append(rs)
 
         # Logo string 1
