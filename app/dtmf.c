@@ -403,7 +403,7 @@ char *pPrintStr = "AB";
 }
 #endif
 
-bool DTMF_Reply() {
+bool DTMF_Reply(const bool force_no_sidetone) {
     uint16_t Delay;
 #ifdef ENABLE_DTMF_CALLING
     char        String[23];
@@ -465,7 +465,7 @@ gEeprom.PTT_ID == PTT_ID_MODE_OFF) {
 
     Delay = (gEeprom.DTMF_PRELOAD_TIME < 200) ? 200 : gEeprom.DTMF_PRELOAD_TIME;
 
-    if (gEeprom.DTMF_SIDE_TONE) {    // the user will also hear the transmitted tones
+    if (gEeprom.DTMF_SIDE_TONE && !force_no_sidetone) {    // the user will also hear the transmitted tones
         AUDIO_AudioPathOn();
         gEnableSpeaker = true;
     }
