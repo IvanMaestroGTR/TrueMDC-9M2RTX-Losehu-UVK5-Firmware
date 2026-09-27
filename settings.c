@@ -180,9 +180,9 @@ void SETTINGS_InitEEPROM(void)
     gEeprom.ALARM_MODE                 = (Data[0] <  2) ? Data[0] : true;
 #endif
     /* Supported Roger values: Off, Pre/Post/Both for MDC and FleetSync. */
-    gEeprom.ROGER                          = (Data[1] >= ROGER_MODE_OFF &&
-                                               Data[1] <= ROGER_MODE_FLEETSYNC_BOTH) ?
-                                              Data[1] : ROGER_MODE_OFF;
+    gEeprom.PTT_ID                          = (Data[1] >= PTT_ID_MODE_OFF &&
+                                               Data[1] <= PTT_ID_MODE_FLEETSYNC_BOTH) ?
+                                              Data[1] : PTT_ID_MODE_OFF;
     gEeprom.REPEATER_TAIL_TONE_ELIMINATION = (Data[2] >= 2 && Data[2] <= 10) ? Data[2] : 2;
     gEeprom.TX_VFO                         = (Data[3] <  2) ? Data[3] : 0;
     gEeprom.BATTERY_TYPE                   = (Data[4] < BATTERY_TYPE_UNKNOWN) ? Data[4] : BATTERY_TYPE_1600_MAH;
@@ -618,7 +618,7 @@ void SETTINGS_SaveSettings(void)
 #else
     State[0] = false;
 #endif
-    State[1] = gEeprom.ROGER;
+    State[1] = gEeprom.PTT_ID;
     State[2] = gEeprom.REPEATER_TAIL_TONE_ELIMINATION;
     State[3] = gEeprom.TX_VFO;
     State[4] = gEeprom.BATTERY_TYPE;
