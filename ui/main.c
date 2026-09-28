@@ -293,23 +293,6 @@ void DisplayRSSIBar(const bool now) {
     }
 
 
-#ifdef ENABLE_FMRADIO
-    if (gFmRadioMode) {
-        const uint16_t status = BK1080_ReadRegister(BK1080_REG_10);
-        const uint8_t rssi = BK1080_REG_10_GET_RSSI(status);
-        static const uint8_t rssi_thresholds[] = {
-            2, 4, 10, 16, 22, 28, 34, 37, 39, 42, 44, 48, 54
-        };
-        uint8_t level = 0;
-
-        for (unsigned int i = 0; i < ARRAY_SIZE(rssi_thresholds); i++) {
-            if (rssi >= rssi_thresholds[i])
-                level = i + 1;
-        }
-
-        DrawLevelBar(bar_x, line, level);
-    } else {
-#endif
         const int16_t s0_dBm = -gEeprom.S0_LEVEL; // S0 .. base level
         const int16_t rssi_dBm =
             BK4819_GetRSSI_dBm()
@@ -331,9 +314,6 @@ void DisplayRSSIBar(const bool now) {
         }
         UI_PrintStringSmall(str, 2, 0, line);
         DrawLevelBar(bar_x, line, s_level + overS9Bars);
-#ifdef ENABLE_FMRADIO
-    }
-#endif
     if (now)
         ST7565_BlitLine(line);
 #else
@@ -785,6 +765,18 @@ void UI_DisplayMain(void) {
         {    // show the TX/RX level
             uint8_t Level = 0;
 
+#ifdef ENABLE_FMRADIO
+            if (isFmVFO) {
+                const uint16_t status = BK1080_ReadRegister(BK1080_REG_10);
+                const uint8_t rssi = BK1080_REG_10_GET_RSSI(status);
+                static const uint8_t fm_small_rssi_thresholds[] = {10, 22, 34, 42, 54, 64};
+
+                for (unsigned int i = 0; i < ARRAY_SIZE(fm_small_rssi_thresholds); i++) {
+                    if (rssi >= fm_small_rssi_thresholds[i])
+                        Level = i + 1;
+                }
+            } else
+#endif
             if (mode == VFO_MODE_TX) {    // TX power level
                 switch (gRxVfo->OUTPUT_POWER) {
                     case OUTPUT_POWER_LOW:
@@ -955,18 +947,10 @@ void UI_DisplayMain(void) {
 #endif
 
 #ifdef ENABLE_RSSI_BAR
-#ifdef ENABLE_FMRADIO
-            if (gFmRadioMode) {
+            if (gToastTimerSingleLine == 0 && rx) {
                 center_line = CENTER_LINE_RSSI;
                 DisplayRSSIBar(false);
             }
-            else
-#endif
-            if (rx) {
-                center_line = CENTER_LINE_RSSI;
-                DisplayRSSIBar(false);
-            }
-            else
 #endif
 
         if (rx || gCurrentFunction == FUNCTION_FOREGROUND || gCurrentFunction == FUNCTION_POWER_SAVE) {

@@ -143,6 +143,8 @@ void FM_Tune(uint16_t Frequency, int8_t Step, bool bFlag)
     gFM_FoundFrequency          = false;
     gAskToSave                  = false;
     gAskToDelete                = false;
+            gToastType = TOAST_NONE;
+            gToastTimerSingleLine = 0;
     gEeprom.FM_FrequencyPlaying = Frequency;
 
     if (!bFlag)
