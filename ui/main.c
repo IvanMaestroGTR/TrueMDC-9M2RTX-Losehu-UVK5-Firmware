@@ -794,11 +794,11 @@ void UI_DisplayMain(void) {
                 const uint16_t status = BK1080_ReadRegister(BK1080_REG_10);
                 const uint8_t rssi = BK1080_REG_10_GET_RSSI(status);
                 static const uint8_t fm_small_rssi_thresholds[] = {
-                    30,  // 2 bars
-                    55,  // 3 bars
-                    80,  // 4 bars
-                    120, // 5 bars
-                    160  // 6 bars
+                    20, // 2 bars
+                    35, // 3 bars
+                    50, // 4 bars
+                    65, // 5 bars
+                    80  // 6 bars / very strong signal
                 };
 
                 // Keep one bar as the noise-floor / no-signal indication.
