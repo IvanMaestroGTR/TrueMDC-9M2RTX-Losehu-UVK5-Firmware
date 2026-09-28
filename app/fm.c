@@ -488,7 +488,10 @@ static void Key_MENU(uint8_t state)
         {
             if (gAskToDelete)
             {
-                if (gInputBoxIndex != 2)
+                // No typed channel means delete the channel currently shown.
+                // If a channel was entered, Key_DIGITS() has already updated
+                // gFM_ChannelPosition to that channel.
+                if (gInputBoxIndex != 0 && gInputBoxIndex != 2)
                 {
                     gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
                     return;
