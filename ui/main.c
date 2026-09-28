@@ -593,7 +593,7 @@ void UI_DisplayMain(void) {
             UI_PrintStringSmall(String, x, 0, line + 1);
         } else if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num])) {    // channel mode
             const unsigned int x = 2;
-            const bool inputting = gInputBoxIndex != 0 && gEeprom.TX_VFO == vfo_num;
+            const bool inputting = !gFmRadioMode && gInputBoxIndex != 0 && gEeprom.TX_VFO == vfo_num;
             if (!inputting) {
                 const char *format = last_rx_vfo == vfo_num ? "M%u." : "M%u";
                 sprintf(String, format, gEeprom.ScreenChannel[vfo_num] + 1);
@@ -612,7 +612,7 @@ void UI_DisplayMain(void) {
 #ifdef ENABLE_NOAA
         else
         {
-            if (gInputBoxIndex == 0 || gEeprom.TX_VFO != vfo_num)
+            if (!gFmRadioMode && (gInputBoxIndex == 0 || gEeprom.TX_VFO != vfo_num))
             {	// channel number
                 sprintf(String, "N%u", 1 + gEeprom.ScreenChannel[vfo_num] - NOAA_CHANNEL_FIRST);
             }
@@ -640,7 +640,7 @@ void UI_DisplayMain(void) {
 
             if (state < ARRAY_SIZE(VfoStateStr))
                 UI_PrintStringSmall(VfoStateStr[state], 31, 0, line);
-        } else if (gInputBoxIndex > 0 && IS_FREQ_CHANNEL(gEeprom.ScreenChannel[vfo_num]) &&
+        } else if (!gFmRadioMode && gInputBoxIndex > 0 && IS_FREQ_CHANNEL(gEeprom.ScreenChannel[vfo_num]) &&
                    gEeprom.TX_VFO == vfo_num) {    // user entering a frequency
 
 
