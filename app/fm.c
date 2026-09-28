@@ -44,7 +44,7 @@ volatile int8_t   gFM_ScanState;
 bool              gFM_AutoScan;
 uint8_t           gFM_ChannelPosition;
 bool              gFM_FoundFrequency;
-bool              gFM_AutoScan;
+
 uint16_t          gFM_RestoreCountdown_10ms;
 
 

@@ -459,47 +459,7 @@ void UI_MAIN_TimeSlice500ms(void) {
 // ***************************************************************************
 
 
-#ifdef ENABLE_FMRADIO
-static void UI_DisplayFMMain(void) {
-    char String[22];
 
-    UI_DisplayClear();
-
-    if (gAskToSave) {
-        UI_PrintStringSmall("SAVE", 2, 0, 1);
-    } else if (gAskToDelete) {
-        UI_PrintStringSmall("DEL", 2, 0, 1);
-    } else if (gFM_ScanState != FM_SCAN_OFF) {
-        UI_PrintStringSmall("SCAN", 2, 0, 1);
-    } else if (gEeprom.FM_IsMrMode) {
-        sprintf(String, "FM%02u", gEeprom.FM_SelectedChannel + 1);
-        UI_PrintStringSmall(String, 2, 0, 1);
-    } else {
-        UI_PrintStringSmall("V-FM", 2, 0, 1);
-    }
-
-    if (gInputBoxIndex == 0) {
-        sprintf(String, "%03u.%03u",
-                gEeprom.FM_FrequencyPlaying / 10,
-                (gEeprom.FM_FrequencyPlaying % 10) * 100);
-    } else {
-        const char *ascii = INPUTBOX_GetAscii();
-        sprintf(String, "%.3s.%.3s", ascii, ascii + 3);
-    }
-
-    UI_DisplayFrequency(String, 32, 0, gInputBoxIndex == 0);
-    UI_PrintStringSmall("WFM", 100, 0, 1);
-
-    if (gFM_ScanState != FM_SCAN_OFF) {
-        UI_PrintStringSmall(gFM_AutoScan ? "A-SCAN" : "M-SCAN", 2, 0, 2);
-    }
-
-    center_line = CENTER_LINE_RSSI;
-    DisplayFMRSSIBar(false);
-
-    ST7565_BlitFullScreen();
-}
-#endif
 
 void UI_DisplayMain(void) {
 
@@ -516,13 +476,6 @@ void UI_DisplayMain(void) {
         ST7565_BlitFullScreen();
         return;
     }
-
-#ifdef ENABLE_FMRADIO
-    if (gFmRadioMode) {
-        UI_DisplayFMMain();
-        return;
-    }
-#endif
 
     if (gEeprom.KEY_LOCK && gKeypadLocked > 0) {    // tell user how to unlock the keyboard
         //translate
@@ -546,6 +499,40 @@ void UI_DisplayMain(void) {
         ST7565_BlitFullScreen();
         return;
     }
+
+#ifdef ENABLE_FMRADIO
+    if (gFmRadioMode) {
+        if (gAskToSave)
+            UI_PrintStringSmall("SAVE", 2, 0, 2);
+        else if (gAskToDelete)
+            UI_PrintStringSmall("DEL", 2, 0, 2);
+        else if (gFM_ScanState != FM_SCAN_OFF)
+            UI_PrintStringSmall(gFM_AutoScan ? "A-SCAN" : "M-SCAN", 2, 0, 2);
+        else if (gEeprom.FM_IsMrMode) {
+            sprintf(String, "FM%02u", gEeprom.FM_SelectedChannel + 1);
+            UI_PrintStringSmall(String, 2, 0, 1);
+        } else {
+            UI_PrintStringSmall("V-FM", 2, 0, 1);
+        }
+
+        if (gInputBoxIndex == 0) {
+            sprintf(String, "%03u.%03u",
+                    gEeprom.FM_FrequencyPlaying / 10,
+                    (gEeprom.FM_FrequencyPlaying % 10) * 100);
+        } else {
+            const char *ascii = INPUTBOX_GetAscii();
+            sprintf(String, "%.3s.%.3s", ascii, ascii + 3);
+        }
+
+        UI_DisplayFrequency(String, 32, 0, gInputBoxIndex == 0);
+        UI_PrintStringSmall("WFM", 100, 0, 1);
+
+        center_line = CENTER_LINE_RSSI;
+        DisplayFMRSSIBar(false);
+        ST7565_BlitFullScreen();
+        return;
+    }
+#endif
 
     unsigned int activeTxVFO = gRxVfoIsActive ? gEeprom.RX_VFO : gEeprom.TX_VFO;
     for (unsigned int vfo_num = 0; vfo_num < 2; vfo_num++) {
