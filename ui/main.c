@@ -293,27 +293,47 @@ void DisplayRSSIBar(const bool now) {
     }
 
 
-    const int16_t s0_dBm = -gEeprom.S0_LEVEL; // S0 .. base level
-    const int16_t rssi_dBm =
-        BK4819_GetRSSI_dBm()
-#ifdef ENABLE_AM_FIX
-        + ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM) ? AM_fix_get_gain_diff() : 0)
-#endif
-        + dBmCorrTable[gRxVfo->Band];
+#ifdef ENABLE_FMRADIO
+    if (gFmRadioMode) {
+        const uint16_t status = BK1080_ReadRegister(BK1080_REG_10);
+        const uint8_t rssi = BK1080_REG_10_GET_RSSI(status);
+        static const uint8_t rssi_thresholds[] = {
+            2, 4, 10, 16, 22, 28, 34, 37, 39, 42, 44, 48, 54
+        };
+        uint8_t level = 0;
 
-    int s0_9 = gEeprom.S0_LEVEL - gEeprom.S9_LEVEL;
-    const uint8_t s_level = MIN(MAX((int32_t)(rssi_dBm - s0_dBm)*100 / (s0_9*100/9), 0), 9); // S0 - S9
-    uint8_t overS9dBm = MIN(MAX(rssi_dBm + gEeprom.S9_LEVEL, 0), 99);
-    uint8_t overS9Bars = MIN(overS9dBm/10, 4);
+        for (unsigned int i = 0; i < ARRAY_SIZE(rssi_thresholds); i++) {
+            if (rssi >= rssi_thresholds[i])
+                level = i + 1;
+        }
 
-    if (overS9Bars == 0) {
-        sprintf(str, "% 4d S%d", rssi_dBm, s_level);
+        DrawLevelBar(bar_x, line, level);
     } else {
-        sprintf(str, "% 4d  %2d", rssi_dBm, overS9dBm);
-        memcpy(p_line + 2 + 7 * 5, &plus, ARRAY_SIZE(plus));
+#endif
+        const int16_t s0_dBm = -gEeprom.S0_LEVEL; // S0 .. base level
+        const int16_t rssi_dBm =
+            BK4819_GetRSSI_dBm()
+#ifdef ENABLE_AM_FIX
+            + ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM) ? AM_fix_get_gain_diff() : 0)
+#endif
+            + dBmCorrTable[gRxVfo->Band];
+
+        int s0_9 = gEeprom.S0_LEVEL - gEeprom.S9_LEVEL;
+        const uint8_t s_level = MIN(MAX((int32_t)(rssi_dBm - s0_dBm)*100 / (s0_9*100/9), 0), 9); // S0 - S9
+        uint8_t overS9dBm = MIN(MAX(rssi_dBm + gEeprom.S9_LEVEL, 0), 99);
+        uint8_t overS9Bars = MIN(overS9dBm/10, 4);
+
+        if (overS9Bars == 0) {
+            sprintf(str, "% 4d S%d", rssi_dBm, s_level);
+        } else {
+            sprintf(str, "% 4d  %2d", rssi_dBm, overS9dBm);
+            memcpy(p_line + 2 + 7 * 5, &plus, ARRAY_SIZE(plus));
+        }
+        UI_PrintStringSmall(str, 2, 0, line);
+        DrawLevelBar(bar_x, line, s_level + overS9Bars);
+#ifdef ENABLE_FMRADIO
     }
-    UI_PrintStringSmall(str, 2, 0, line);
-    DrawLevelBar(bar_x, line, s_level + overS9Bars);
+#endif
     if (now)
         ST7565_BlitLine(line);
 #else
@@ -344,46 +364,6 @@ void DisplayRSSIBar(const bool now) {
 }
 
 
-
-#ifdef ENABLE_FMRADIO
-static void DisplayFMRSSIBar(const bool now) {
-#if defined(ENABLE_RSSI_BAR)
-    const unsigned int line = 3;
-    uint8_t *p_line = gFrameBuffer[line];
-    char String[16];
-
-    if (gEeprom.KEY_LOCK && gKeypadLocked > 0)
-        return;
-
-    if (gScreenToDisplay != DISPLAY_MAIN)
-        return;
-
-    const uint16_t status = BK1080_ReadRegister(BK1080_REG_10);
-    const uint8_t rssi = BK1080_REG_10_GET_RSSI(status);
-    static const uint8_t rssi_thresholds[] = {
-        2, 4, 10, 16, 22, 28, 34, 37, 39, 42, 44, 48, 54
-    };
-    uint8_t level = 0;
-
-    for (unsigned int i = 0; i < ARRAY_SIZE(rssi_thresholds); i++) {
-        if (rssi >= rssi_thresholds[i])
-            level = i + 1;
-    }
-
-    if (now)
-        memset(p_line, 0, LCD_WIDTH);
-
-    sprintf(String, "FM %2u", MIN(rssi, 75u));
-    UI_PrintStringSmall(String, 2, 0, line);
-    DrawLevelBar(35, line, level);
-
-    if (now)
-        ST7565_BlitLine(line);
-#else
-    (void)now;
-#endif
-}
-#endif
 
 #ifdef ENABLE_AGC_SHOW_DATA
 void UI_MAIN_PrintAGC(bool now){
@@ -441,12 +421,6 @@ void UI_MAIN_TimeSlice500ms(void) {
     }
     
     if (gScreenToDisplay == DISPLAY_MAIN) {
-#ifdef ENABLE_FMRADIO
-        if (gFmRadioMode) {
-            DisplayFMRSSIBar(true);
-            return;
-        }
-#endif
 #ifdef ENABLE_AGC_SHOW_DATA
         UI_MAIN_PrintAGC(true);
         return;
@@ -500,42 +474,8 @@ void UI_DisplayMain(void) {
         return;
     }
 
-#ifdef ENABLE_FMRADIO
-    if (gFmRadioMode) {
-        if (gAskToSave)
-            UI_PrintStringSmall("SAVE", 2, 0, 2);
-        else if (gAskToDelete)
-            UI_PrintStringSmall("DEL", 2, 0, 2);
-        else if (gFM_ScanState != FM_SCAN_OFF)
-            UI_PrintStringSmall(gFM_AutoScan ? "A-SCAN" : "M-SCAN", 2, 0, 2);
-        else if (gEeprom.FM_IsMrMode) {
-            sprintf(String, "FM%02u", gEeprom.FM_SelectedChannel + 1);
-            UI_PrintStringSmall(String, 2, 0, 1);
-        } else {
-            UI_PrintStringSmall("V-FM", 2, 0, 1);
-        }
-
-        if (gInputBoxIndex == 0) {
-            sprintf(String, "%03u.%03u",
-                    gEeprom.FM_FrequencyPlaying / 10,
-                    (gEeprom.FM_FrequencyPlaying % 10) * 100);
-        } else {
-            const char *ascii = INPUTBOX_GetAscii();
-            sprintf(String, "%.3s.%.3s", ascii, ascii + 3);
-        }
-
-        UI_DisplayFrequency(String, 32, 0, gInputBoxIndex == 0);
-        UI_PrintStringSmall("WFM", 100, 0, 1);
-
-        center_line = CENTER_LINE_RSSI;
-        DisplayFMRSSIBar(false);
-        ST7565_BlitFullScreen();
-        return;
-    }
-#endif
-
     unsigned int activeTxVFO = gRxVfoIsActive ? gEeprom.RX_VFO : gEeprom.TX_VFO;
-    for (unsigned int vfo_num = 0; vfo_num < 2; vfo_num++) {
+    for (unsigned int vfo_num = 0; vfo_num < (gFmRadioMode ? 1 : 2); vfo_num++) {
         const unsigned int line0 = 0;  // text screen line
         const unsigned int line1 = 4;
 
@@ -637,7 +577,18 @@ void UI_DisplayMain(void) {
             }
         }
 
-        if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num])) {    // channel mode
+        if (gFmRadioMode) {
+            const unsigned int x = 2;
+            if (gInputBoxIndex == 0 || gEeprom.TX_VFO != vfo_num) {
+                if (gEeprom.FM_IsMrMode)
+                    sprintf(String, "FM%02u", gEeprom.FM_SelectedChannel + 1);
+                else
+                    sprintf(String, "V-FM");
+            } else {
+                sprintf(String, "FM%.3s", INPUTBOX_GetAscii());
+            }
+            UI_PrintStringSmall(String, x, 0, line + 1);
+        } else if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num])) {    // channel mode
             const unsigned int x = 2;
             const bool inputting = gInputBoxIndex != 0 && gEeprom.TX_VFO == vfo_num;
             if (!inputting) {
@@ -790,6 +741,11 @@ void UI_DisplayMain(void) {
 
                         break;
                 }
+            } else if (gFmRadioMode) {
+                sprintf(String, "%03u.%03u",
+                        gEeprom.FM_FrequencyPlaying / 10,
+                        (gEeprom.FM_FrequencyPlaying % 10) * 100);
+                UI_DisplayFrequency(String, 32, line, gInputBoxIndex == 0);
             } else {    // frequency mode
 
                 sprintf(String, "%3u.%05u", frequency / 100000, frequency % 100000);
@@ -860,6 +816,11 @@ void UI_DisplayMain(void) {
         // show the modulation symbol
         const char *s = "";
         const ModulationMode_t mod = vfoInfo->Modulation;
+#ifdef ENABLE_FMRADIO
+        if (gFmRadioMode) {
+            s = "WFM";
+        } else
+#endif
         switch (mod) {
             case MODULATION_FM: {
                 const FREQ_Config_t *pConfig = (mode == VFO_MODE_TX) ? vfoInfo->pTX : vfoInfo->pRX;
@@ -991,9 +952,16 @@ void UI_DisplayMain(void) {
 #endif
 
 #ifdef ENABLE_RSSI_BAR
+#ifdef ENABLE_FMRADIO
+            if (gFmRadioMode) {
+                center_line = CENTER_LINE_RSSI;
+                DisplayRSSIBar(false);
+            }
+            else
+#endif
             if (rx) {
                 center_line = CENTER_LINE_RSSI;
-          DisplayRSSIBar(false);
+                DisplayRSSIBar(false);
             }
             else
 #endif
