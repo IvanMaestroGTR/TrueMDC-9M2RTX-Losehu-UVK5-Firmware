@@ -1354,7 +1354,7 @@ gAlarmState = ALARM_STATE_SITE_ALARM;
         if (--gFM_RestoreCountdown_10ms == 0)
         {	// switch back to FM radio mode
             FM_Start();
-            GUI_SelectNextDisplay(DISPLAY_FM);
+            GUI_SelectNextDisplay(DISPLAY_MAIN);
         }
     }
 #endif
@@ -1555,7 +1555,7 @@ void APP_TimeSlice500ms(void) {
 
 #ifdef ENABLE_FMRADIO
             if (gFmRadioMode && ! FUNCTION_IsRx()) {
-                disp = DISPLAY_FM;
+                disp = DISPLAY_MAIN;
             }
 #endif
 
@@ -1579,7 +1579,7 @@ void APP_TimeSlice500ms(void) {
         if (gFmRadioMode && !FUNCTION_IsRx()) {
             // switch back to FM radio mode
             FM_Start();
-            GUI_SelectNextDisplay(DISPLAY_FM);
+            GUI_SelectNextDisplay(DISPLAY_MAIN);
         }
 #endif
     }
