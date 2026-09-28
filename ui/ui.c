@@ -53,9 +53,7 @@ void (*UI_DisplayFunctions[])(void) = {
         [DISPLAY_MENU] = &UI_DisplayMenu,
         [DISPLAY_SCANNER] = &UI_DisplayScanner,
 
-#ifdef ENABLE_FMRADIO
-        [DISPLAY_FM] = &UI_DisplayFM,
-#endif
+#ifdef ENABLE_FMRADIO#endif
 #ifdef ENABLE_AIRCOPY
         [DISPLAY_AIRCOPY] = &UI_DisplayAircopy,
 #endif
