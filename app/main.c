@@ -850,10 +850,9 @@ void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     if (bKeyPressed)
         last_rx_vfo = -1;
 #ifdef ENABLE_FMRADIO
-    if (gFmRadioMode && Key != KEY_PTT && Key != KEY_EXIT)
+    if (gFmRadioMode)
     {
-        if (!bKeyHeld && bKeyPressed)
-            gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+        FM_ProcessKeys(Key, bKeyPressed, bKeyHeld);
         return;
     }
 #endif
