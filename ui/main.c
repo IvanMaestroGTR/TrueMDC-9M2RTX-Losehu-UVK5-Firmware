@@ -425,7 +425,9 @@ void UI_MAIN_TimeSlice500ms(void) {
         UI_MAIN_PrintAGC(true);
         return;
 #endif
-        if (FUNCTION_IsRx()) {
+        if (gFmRadioMode) {
+            DisplayRSSIBar(true);
+        } else if (FUNCTION_IsRx()) {
             DisplayRSSIBar(true);
         }
     }
@@ -475,7 +477,8 @@ void UI_DisplayMain(void) {
     }
 
     unsigned int activeTxVFO = gRxVfoIsActive ? gEeprom.RX_VFO : gEeprom.TX_VFO;
-    for (unsigned int vfo_num = 0; vfo_num < (gFmRadioMode ? 1 : 2); vfo_num++) {
+    for (unsigned int vfo_num = 0; vfo_num < 2; vfo_num++) {
+        const bool isFmVFO = gFmRadioMode && vfo_num == (gEeprom.TX_VFO ^ 1);
         const unsigned int line0 = 0;  // text screen line
         const unsigned int line1 = 4;
 
@@ -577,9 +580,9 @@ void UI_DisplayMain(void) {
             }
         }
 
-        if (gFmRadioMode) {
+        if (isFmVFO) {
             const unsigned int x = 2;
-            if (gInputBoxIndex == 0 || gEeprom.TX_VFO != vfo_num) {
+            if (gInputBoxIndex == 0) {
                 if (gEeprom.FM_IsMrMode)
                     sprintf(String, "FM%02u", gEeprom.FM_SelectedChannel + 1);
                 else
@@ -741,7 +744,7 @@ void UI_DisplayMain(void) {
 
                         break;
                 }
-            } else if (gFmRadioMode) {
+            } else if (isFmVFO) {
                 sprintf(String, "%03u.%03u",
                         gEeprom.FM_FrequencyPlaying / 10,
                         (gEeprom.FM_FrequencyPlaying % 10) * 100);
@@ -817,7 +820,7 @@ void UI_DisplayMain(void) {
         const char *s = "";
         const ModulationMode_t mod = vfoInfo->Modulation;
 #ifdef ENABLE_FMRADIO
-        if (gFmRadioMode) {
+        if (isFmVFO) {
             s = "WFM";
         } else
 #endif
@@ -836,7 +839,7 @@ void UI_DisplayMain(void) {
                 break;
         }
         UI_PrintStringSmall(s, LCD_WIDTH + 24, 0, line + 1); //中文信道1
-        if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) {    // show the TX power
+        if (!isFmVFO && (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)) {    // show the TX power
 
             const char pwr_list[][3] = {"L", "M", "H", "UL"};
             const unsigned int i = vfoInfo->OUTPUT_POWER % 4;
@@ -844,7 +847,7 @@ void UI_DisplayMain(void) {
             UI_PrintStringSmall(pwr_list[i], LCD_WIDTH + 46, 0, line + 1); //中文信道1
         }
 
-        if (vfoInfo->freq_config_RX.Frequency !=
+        if (!isFmVFO && vfoInfo->freq_config_RX.Frequency !=
             vfoInfo->freq_config_TX.Frequency) {    // show the TX offset symbol
             const char dir_list[][2] = {"", "+", "-"};
             const unsigned int i = vfoInfo->TX_OFFSET_FREQUENCY_DIRECTION % 3;
@@ -853,7 +856,7 @@ void UI_DisplayMain(void) {
         }
 
         // show the TX/RX reverse symbol
-        if (vfoInfo->FrequencyReverse) {
+        if (!isFmVFO && vfoInfo->FrequencyReverse) {
             const char *flag = "";
             if (vfoInfo->FrequencyReverse == 1) {
                 flag = "R";
@@ -866,19 +869,19 @@ void UI_DisplayMain(void) {
         }
         {
             // show the narrow band symbol
-            if (vfoInfo->CHANNEL_BANDWIDTH == BANDWIDTH_NARROW) {
+            if (!isFmVFO && vfoInfo->CHANNEL_BANDWIDTH == BANDWIDTH_NARROW) {
                 UI_PrintStringSmall("N", LCD_WIDTH + 70, 0, line + 1);
             }
         }
 #ifdef ENABLE_DTMF_CALLING
         // show the DTMF decoding symbol
-        if (vfoInfo->DTMF_DECODING_ENABLE || gSetting_KILLED) {
+        if (!isFmVFO && (vfoInfo->DTMF_DECODING_ENABLE || gSetting_KILLED)) {
             UI_PrintStringSmall("DTMF", LCD_WIDTH + 78, 0, line + 1);//中文信道1
         }
 
 #endif
         // show the audio scramble symbol
-        if (vfoInfo->SCRAMBLING_TYPE > 0/* && gSetting_ScrambleEnable*/) {
+        if (!isFmVFO && vfoInfo->SCRAMBLING_TYPE > 0/* && gSetting_ScrambleEnable*/) {
             UI_PrintStringSmall("ENC", LCD_WIDTH + 106, 0, line + 1);//中文信道1
         }
     }
