@@ -562,11 +562,13 @@ void UI_DisplayMain(void) {
 
         if (isFmVFO) {
             const unsigned int x = 2;
-            if (gInputBoxIndex == 0) {
-                if (gEeprom.FM_IsMrMode)
+            if (gEeprom.FM_IsMrMode) {
+                if (gInputBoxIndex > 0) {
+                    const char *ascii = INPUTBOX_GetAscii();
+                    snprintf(String, sizeof(String), "FM%c%c", ascii[0], ascii[1]);
+                } else {
                     sprintf(String, "FM%02u", gEeprom.FM_SelectedChannel + 1);
-                else
-                    sprintf(String, "V-FM");
+                }
             } else {
                 sprintf(String, "V-FM");
             }
@@ -654,13 +656,20 @@ void UI_DisplayMain(void) {
             if (isFmVFO) {
                 uint16_t fmFrequency = gEeprom.FM_FrequencyPlaying;
 
-                if (gInputBoxIndex > 0 && !gAskToSave && !gAskToDelete) {
+                if (gInputBoxIndex > 0 && !gEeprom.FM_IsMrMode &&
+                    !gAskToSave && !gAskToDelete) {
                     const char *ascii = INPUTBOX_GetAscii();
 
-                    // Match the normal VFO entry display:
-                    // 0--.--- -> 09-.--- -> 092.--- -> 092.9--.
-                    snprintf(String, sizeof(String), "0%c%c.%c%c%c",
-                             ascii[0], ascii[1], ascii[2], ascii[3], ascii[4]);
+                    if (gInputBox[0] == 1) {
+                        // 1xx is always the MHz portion of a 100.x MHz entry.
+                        snprintf(String, sizeof(String), "%c%c%c.%c%c%c",
+                                 ascii[0], ascii[1], ascii[2], ascii[3], ascii[4], ascii[5]);
+                    } else {
+                        // 0xx.xxx entry: 0--.--- -> 09-.--- -> 092.---
+                        // -> 092.9--.
+                        snprintf(String, sizeof(String), "0%c%c.%c%c%c",
+                                 ascii[0], ascii[1], ascii[2], ascii[3], ascii[4]);
+                    }
 
                     if (gInputBoxIndex >= 3) {
                         uint32_t inputFrequency = StrToUL(ascii);

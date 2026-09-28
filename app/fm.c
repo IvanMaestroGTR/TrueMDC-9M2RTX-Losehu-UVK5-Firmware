@@ -272,68 +272,58 @@ static void Key_DIGITS(KEY_Code_t Key, uint8_t state)
 
             gRequestDisplayScreen = DISPLAY_MAIN;
 
-            if (State == STATE_FREQ_MODE) {
-                if (gInputBoxIndex >= 3) {
-                    uint32_t Frequency = StrToUL(INPUTBOX_GetAscii());
-
-                    // 3 digits represent 64.0-99.9 MHz.
-                    // Keep 1xx input open for the 4th digit (100.0-108.0 MHz).
-                    if (gInputBoxIndex == 3 && gInputBox[0] == 1)
-                        return;
-
-                    if (gInputBoxIndex < 4 &&
-                        (Frequency < gEeprom.FM_LowerLimit || Frequency > 999))
-                        return;
-
-                    if (gInputBoxIndex == 4 &&
-                        (Frequency < 1000 || Frequency > gEeprom.FM_UpperLimit)) {
-                        gInputBoxIndex = 0;
-                        gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-                        gRequestDisplayScreen = DISPLAY_MAIN;
-                        return;
-                    }
+            if (State == STATE_MR_MODE) {
+                if (gInputBoxIndex == 2) {
+                    const uint8_t Channel = ((gInputBox[0] * 10) + gInputBox[1]) - 1;
 
                     gInputBoxIndex = 0;
 
-                    gEeprom.FM_SelectedFrequency = (uint16_t)Frequency;
-#ifdef ENABLE_VOICE
-                    gAnotherVoiceID = (VOICE_ID_t)Key;
-#endif
-                    gEeprom.FM_FrequencyPlaying = gEeprom.FM_SelectedFrequency;
-                    BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
-                    gRequestSaveFM = true;
-                    return;
-                }
-            }
-            else if (gInputBoxIndex == 2) {
-                uint8_t Channel;
-
-                gInputBoxIndex = 0;
-                Channel = ((gInputBox[0] * 10) + gInputBox[1]) - 1;
-
-                if (State == STATE_MR_MODE) {
                     if (FM_CheckValidChannel(Channel)) {
 #ifdef ENABLE_VOICE
                         gAnotherVoiceID = (VOICE_ID_t)Key;
 #endif
-                        gEeprom.FM_SelectedChannel = Channel;
+                        gEeprom.FM_SelectedChannel  = Channel;
                         gEeprom.FM_FrequencyPlaying = gFM_Channels[Channel];
                         BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
                         gRequestSaveFM = true;
                         return;
                     }
+
+                    gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
                 }
-                else if (Channel < 20) {
-#ifdef ENABLE_VOICE
-                    gAnotherVoiceID = (VOICE_ID_t)Key;
-#endif
-                    gRequestDisplayScreen = DISPLAY_MAIN;
+                return;
+            }
+
+            if (gInputBoxIndex >= 3) {
+                uint32_t Frequency = StrToUL(INPUTBOX_GetAscii());
+
+                // 3 digits represent 64.0-99.9 MHz.
+                // Anything starting with 1 is a 100.x MHz entry,
+                // so keep 1xx open for the 4th digit (100.0-108.0 MHz).
+                if (gInputBoxIndex == 3 && gInputBox[0] == 1)
+                    return;
+
+                if (gInputBoxIndex < 4 &&
+                    (Frequency < gEeprom.FM_LowerLimit || Frequency > 999))
+                    return;
+
+                if (gInputBoxIndex == 4 &&
+                    (Frequency < 1000 || Frequency > gEeprom.FM_UpperLimit)) {
                     gInputBoxIndex = 0;
-                    gFM_ChannelPosition = Channel;
+                    gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+                    gRequestDisplayScreen = DISPLAY_MAIN;
                     return;
                 }
 
-                gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+                gInputBoxIndex = 0;
+
+                gEeprom.FM_SelectedFrequency = (uint16_t)Frequency;
+#ifdef ENABLE_VOICE
+                gAnotherVoiceID = (VOICE_ID_t)Key;
+#endif
+                gEeprom.FM_FrequencyPlaying = gEeprom.FM_SelectedFrequency;
+                BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
+                gRequestSaveFM = true;
                 return;
             }
 
