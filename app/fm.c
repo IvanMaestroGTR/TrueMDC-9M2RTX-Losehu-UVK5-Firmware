@@ -254,7 +254,7 @@ static void Key_DIGITS(KEY_Code_t Key, uint8_t state)
 
             INPUTBOX_Append(Key);
 
-            gRequestDisplayScreen = DISPLAY_FM;
+            gRequestDisplayScreen = DISPLAY_MAIN;
 
             if (State == STATE_FREQ_MODE) {
                 if (gInputBoxIndex == 1) {
@@ -272,7 +272,7 @@ static void Key_DIGITS(KEY_Code_t Key, uint8_t state)
 
                     if (Frequency < gEeprom.FM_LowerLimit || gEeprom.FM_UpperLimit < Frequency) {
                         gBeepToPlay           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-                        gRequestDisplayScreen = DISPLAY_FM;
+                        gRequestDisplayScreen = DISPLAY_MAIN;
                         return;
                     }
 
@@ -308,7 +308,7 @@ static void Key_DIGITS(KEY_Code_t Key, uint8_t state)
 #ifdef ENABLE_VOICE
                     gAnotherVoiceID = (VOICE_ID_t)Key;
 #endif
-                    gRequestDisplayScreen = DISPLAY_FM;
+                    gRequestDisplayScreen = DISPLAY_MAIN;
                     gInputBoxIndex = 0;
                     gFM_ChannelPosition = Channel;
                     return;
@@ -335,7 +335,7 @@ if (state == BUTTON_EVENT_SHORT || state == BUTTON_EVENT_HELD)
         gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
         gWasFKeyPressed       = false;
         gUpdateStatus         = true;
-        gRequestDisplayScreen = DISPLAY_FM;
+        gRequestDisplayScreen = DISPLAY_MAIN;
 
         switch (Key) {
             case KEY_0:
@@ -393,13 +393,13 @@ static void Key_EXIT(uint8_t state)
             {
                 if (gInputBoxIndex != 1)
                 {
-                    gRequestDisplayScreen = DISPLAY_FM;
+                    gRequestDisplayScreen = DISPLAY_MAIN;
                     return;
                 }
 
                 if (gInputBox[0] != 0)
                 {
-                    gRequestDisplayScreen = DISPLAY_FM;
+                    gRequestDisplayScreen = DISPLAY_MAIN;
                     return;
                 }
             }
@@ -419,7 +419,7 @@ static void Key_EXIT(uint8_t state)
 #endif
     }
 
-    gRequestDisplayScreen = DISPLAY_FM;
+    gRequestDisplayScreen = DISPLAY_MAIN;
 }
 
 static void Key_MENU(uint8_t state)
@@ -428,7 +428,7 @@ static void Key_MENU(uint8_t state)
         return;
 
 
-    gRequestDisplayScreen = DISPLAY_FM;
+    gRequestDisplayScreen = DISPLAY_MAIN;
     gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
 
     if (gFM_ScanState == FM_SCAN_OFF)
@@ -489,7 +489,7 @@ static void Key_UP_DOWN(uint8_t state, int8_t Step)
     }
 
     if (gAskToSave) {
-        gRequestDisplayScreen = DISPLAY_FM;
+        gRequestDisplayScreen = DISPLAY_MAIN;
         gFM_ChannelPosition   = NUMBER_AddWithWraparound(gFM_ChannelPosition, Step, 0, 19);
         return;
     }
@@ -501,7 +501,7 @@ static void Key_UP_DOWN(uint8_t state, int8_t Step)
         }
 
         FM_Tune(gEeprom.FM_FrequencyPlaying, Step, false);
-        gRequestDisplayScreen = DISPLAY_FM;
+        gRequestDisplayScreen = DISPLAY_MAIN;
         return;
     }
 
@@ -530,7 +530,7 @@ static void Key_UP_DOWN(uint8_t state, int8_t Step)
 Bail:
     BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
 
-    gRequestDisplayScreen = DISPLAY_FM;
+    gRequestDisplayScreen = DISPLAY_MAIN;
 }
 
 void FM_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
@@ -594,7 +594,7 @@ void FM_Play(void)
             AUDIO_AudioPathOn();
             gEnableSpeaker = true;
 
-            GUI_SelectNextDisplay(DISPLAY_FM);
+            GUI_SelectNextDisplay(DISPLAY_MAIN);
             return;
         }
 
@@ -604,7 +604,7 @@ void FM_Play(void)
         if (gFM_ChannelPosition >= 20)
         {
             FM_PlayAndUpdate();
-            GUI_SelectNextDisplay(DISPLAY_FM);
+            GUI_SelectNextDisplay(DISPLAY_MAIN);
             return;
         }
     }
@@ -614,7 +614,7 @@ void FM_Play(void)
     else
         FM_Tune(gEeprom.FM_FrequencyPlaying, gFM_ScanState, false);
 
-    GUI_SelectNextDisplay(DISPLAY_FM);
+    GUI_SelectNextDisplay(DISPLAY_MAIN);
 }
 
 void FM_Start(void)
