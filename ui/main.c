@@ -29,6 +29,10 @@
 #include "bitmaps.h"
 #include "board.h"
 #include "driver/bk4819.h"
+#ifdef ENABLE_FMRADIO
+#include "driver/bk1080.h"
+#include "app/fm.h"
+#endif
 #include "driver/st7565.h"
 #include "external/printf/printf.h"
 #include "functions.h"
@@ -340,6 +344,39 @@ void DisplayRSSIBar(const bool now) {
 }
 
 
+
+#ifdef ENABLE_FMRADIO
+static void DisplayFMRSSIBar(const bool now) {
+#if defined(ENABLE_RSSI_BAR)
+    const unsigned int line = 3;
+    uint8_t *p_line = gFrameBuffer[line];
+    char String[16];
+
+    if (gEeprom.KEY_LOCK && gKeypadLocked > 0)
+        return;
+
+    if (gScreenToDisplay != DISPLAY_MAIN)
+        return;
+
+    const uint16_t status = BK1080_ReadRegister(BK1080_REG_10);
+    const uint8_t rssi = BK1080_REG_10_GET_RSSI(status);
+    const uint8_t level = MIN((uint16_t)13, ((uint16_t)rssi * 13u) / 75u);
+
+    if (now)
+        memset(p_line, 0, LCD_WIDTH);
+
+    sprintf(String, "FM %2u", MIN(rssi, 75u));
+    UI_PrintStringSmall(String, 2, 0, line);
+    DrawLevelBar(35, line, level);
+
+    if (now)
+        ST7565_BlitLine(line);
+#else
+    (void)now;
+#endif
+}
+#endif
+
 #ifdef ENABLE_AGC_SHOW_DATA
 void UI_MAIN_PrintAGC(bool now){
     char buf[20];
@@ -396,6 +433,12 @@ void UI_MAIN_TimeSlice500ms(void) {
     }
     
     if (gScreenToDisplay == DISPLAY_MAIN) {
+#ifdef ENABLE_FMRADIO
+        if (gFmRadioMode) {
+            DisplayFMRSSIBar(true);
+            return;
+        }
+#endif
 #ifdef ENABLE_AGC_SHOW_DATA
         UI_MAIN_PrintAGC(true);
         return;
@@ -406,6 +449,49 @@ void UI_MAIN_TimeSlice500ms(void) {
     }
 }
 // ***************************************************************************
+
+
+#ifdef ENABLE_FMRADIO
+static void UI_DisplayFMMain(void) {
+    char String[22];
+
+    UI_DisplayClear();
+
+    if (gAskToSave) {
+        UI_PrintStringSmall("SAVE", 2, 0, 1);
+    } else if (gAskToDelete) {
+        UI_PrintStringSmall("DEL", 2, 0, 1);
+    } else if (gFM_ScanState != FM_SCAN_OFF) {
+        UI_PrintStringSmall("SCAN", 2, 0, 1);
+    } else if (gEeprom.FM_IsMrMode) {
+        sprintf(String, "FM%02u", gEeprom.FM_SelectedChannel + 1);
+        UI_PrintStringSmall(String, 2, 0, 1);
+    } else {
+        UI_PrintStringSmall("V-FM", 2, 0, 1);
+    }
+
+    if (gInputBoxIndex == 0) {
+        sprintf(String, "%03u.%03u",
+                gEeprom.FM_FrequencyPlaying / 10,
+                (gEeprom.FM_FrequencyPlaying % 10) * 100);
+    } else {
+        const char *ascii = INPUTBOX_GetAscii();
+        sprintf(String, "%.3s.%.3s", ascii, ascii + 3);
+    }
+
+    UI_DisplayFrequency(String, 32, 0, gInputBoxIndex == 0);
+    UI_PrintStringSmall("WFM", 100, 0, 1);
+
+    if (gFM_ScanState != FM_SCAN_OFF) {
+        UI_PrintStringSmall(gFM_AutoScan ? "A-SCAN" : "M-SCAN", 2, 0, 2);
+    }
+
+    center_line = CENTER_LINE_RSSI;
+    DisplayFMRSSIBar(false);
+
+    ST7565_BlitFullScreen();
+}
+#endif
 
 void UI_DisplayMain(void) {
 
@@ -422,6 +508,13 @@ void UI_DisplayMain(void) {
         ST7565_BlitFullScreen();
         return;
     }
+
+#ifdef ENABLE_FMRADIO
+    if (gFmRadioMode) {
+        UI_DisplayFMMain();
+        return;
+    }
+#endif
 
     if (gEeprom.KEY_LOCK && gKeypadLocked > 0) {    // tell user how to unlock the keyboard
         //translate
