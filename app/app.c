@@ -104,10 +104,6 @@ void (*ProcessKeysFunctions[])(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) 
         [DISPLAY_MENU] = &MENU_ProcessKeys,
         [DISPLAY_SCANNER] = &SCANNER_ProcessKeys,
 
-#ifdef ENABLE_FMRADIO
-        [DISPLAY_FM] = &FM_ProcessKeys,
-#endif
-
 #ifdef ENABLE_AIRCOPY
         [DISPLAY_AIRCOPY] = &AIRCOPY_ProcessKeys,
 #endif
