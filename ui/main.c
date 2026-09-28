@@ -671,7 +671,12 @@ void UI_DisplayMain(void) {
                     frequency = gEeprom.VfoInfo[vfo_num].pTX->Frequency;
             }
 
-            if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num])) {    // it's a channel
+            if (isFmVFO) {
+                sprintf(String, "%03u.%03u",
+                        gEeprom.FM_FrequencyPlaying / 10,
+                        (gEeprom.FM_FrequencyPlaying % 10) * 100);
+                UI_DisplayFrequency(String, 32, line, gInputBoxIndex == 0);
+            } else if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num])) {    // it's a channel
 
                 // show the scan list assigment symbols
 
@@ -744,11 +749,6 @@ void UI_DisplayMain(void) {
 
                         break;
                 }
-            } else if (isFmVFO) {
-                sprintf(String, "%03u.%03u",
-                        gEeprom.FM_FrequencyPlaying / 10,
-                        (gEeprom.FM_FrequencyPlaying % 10) * 100);
-                UI_DisplayFrequency(String, 32, line, gInputBoxIndex == 0);
             } else {    // frequency mode
 
                 sprintf(String, "%3u.%05u", frequency / 100000, frequency % 100000);

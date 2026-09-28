@@ -2018,6 +2018,13 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 
         RADIO_SetupRegisters(true);
 
+#ifdef ENABLE_FMRADIO
+        if (gFmRadioMode) {
+            AUDIO_AudioPathOn();
+            gEnableSpeaker = true;
+        }
+#endif
+
 #ifdef ENABLE_DTMF_CALLING
         gDTMF_auto_reset_time_500ms = 0;
         gDTMF_CallState             = DTMF_CALL_STATE_NONE;
