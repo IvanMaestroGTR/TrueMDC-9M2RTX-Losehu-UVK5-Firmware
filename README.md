@@ -5,6 +5,10 @@ Please refer to the releases for the changelog.
 
 CHIRP support is included; the CHIRP module for this repository can be found in the CHIRP Module folder.
 
+SNS Group for this firmware, for discussion and bug reports:
+https://chat.whatsapp.com/ILSZVD0Unua4ATllDHVcUB
+Feel free to join us!
+
 ## Custom Features
 
 ### MDC1200
