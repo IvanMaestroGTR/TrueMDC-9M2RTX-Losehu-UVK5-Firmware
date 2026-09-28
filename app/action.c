@@ -161,7 +161,7 @@ void ACTION_Monitor(void) {
 #ifdef ENABLE_FMRADIO
     if (gFmRadioMode) {
         FM_Start();
-        gRequestDisplayScreen = DISPLAY_FM;
+        gRequestDisplayScreen = DISPLAY_MAIN;
     }
     else
 #endif
@@ -418,7 +418,7 @@ static void ACTION_Scan_FM(bool bRestart)
         return;
 
 
-    GUI_SelectNextDisplay(DISPLAY_FM);
+    GUI_SelectNextDisplay(DISPLAY_MAIN);
     gMonitor = false;
 
     if (gFM_ScanState != FM_SCAN_OFF) {
