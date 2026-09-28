@@ -88,7 +88,7 @@ void GENERIC_Key_F(bool bKeyPressed, bool bKeyHeld) {
     {
 
 #ifdef ENABLE_FMRADIO
-        if (gScreenToDisplay != DISPLAY_FM)
+        if (!gFmRadioMode && gScreenToDisplay != DISPLAY_MAIN)
 #endif
         {
             gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
@@ -152,13 +152,13 @@ void GENERIC_Key_PTT(bool bKeyPressed) {
 #ifdef ENABLE_VOICE
             gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
 #endif
-        gRequestDisplayScreen = DISPLAY_FM;
+        gRequestDisplayScreen = DISPLAY_MAIN;
         goto cancel_tx;
     }
 #endif
 
 #ifdef ENABLE_FMRADIO
-    if (gScreenToDisplay == DISPLAY_FM)
+    if (gFmRadioMode)
         goto start_tx;	// listening to the FM radio .. start TX'ing
 #endif
 
@@ -187,7 +187,7 @@ void GENERIC_Key_PTT(bool bKeyPressed) {
     gPttDebounceCounter = 0;
     if (gScreenToDisplay != DISPLAY_MENU
 #ifdef ENABLE_FMRADIO
-        && gRequestDisplayScreen != DISPLAY_FM
+        && gRequestDisplayScreen != DISPLAY_MAIN
 #endif
             ) {
         // 1of11 .. don't close the menu
