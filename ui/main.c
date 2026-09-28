@@ -360,7 +360,15 @@ static void DisplayFMRSSIBar(const bool now) {
 
     const uint16_t status = BK1080_ReadRegister(BK1080_REG_10);
     const uint8_t rssi = BK1080_REG_10_GET_RSSI(status);
-    const uint8_t level = MIN((uint16_t)13, ((uint16_t)rssi * 13u) / 75u);
+    static const uint8_t rssi_thresholds[] = {
+        2, 4, 10, 16, 22, 28, 34, 37, 39, 42, 44, 48, 54
+    };
+    uint8_t level = 0;
+
+    for (unsigned int i = 0; i < ARRAY_SIZE(rssi_thresholds); i++) {
+        if (rssi >= rssi_thresholds[i])
+            level = i + 1;
+    }
 
     if (now)
         memset(p_line, 0, LCD_WIDTH);
