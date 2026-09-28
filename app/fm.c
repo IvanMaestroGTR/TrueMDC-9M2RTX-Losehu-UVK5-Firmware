@@ -276,28 +276,24 @@ static void Key_DIGITS(KEY_Code_t Key, uint8_t state)
                 if (gInputBoxIndex >= 3) {
                     uint32_t Frequency = StrToUL(INPUTBOX_GetAscii());
 
-                    // 3 digits are enough for 64.0-99.9 MHz.
+                    // 3 digits represent 64.0-99.9 MHz.
                     // Keep 1xx input open for the 4th digit (100.0-108.0 MHz).
-                    if (gInputBoxIndex == 3 && Frequency < gEeprom.FM_LowerLimit) {
-                        if (gInputBox[0] == 1)
-                            return;
+                    if (gInputBoxIndex == 3 && gInputBox[0] == 1)
+                        return;
 
+                    if (gInputBoxIndex < 4 &&
+                        (Frequency < gEeprom.FM_LowerLimit || Frequency > 999))
+                        return;
+
+                    if (gInputBoxIndex == 4 &&
+                        (Frequency < 1000 || Frequency > gEeprom.FM_UpperLimit)) {
                         gInputBoxIndex = 0;
                         gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
                         gRequestDisplayScreen = DISPLAY_MAIN;
                         return;
                     }
 
-                    if (gInputBoxIndex < 4)
-                        return;
-
                     gInputBoxIndex = 0;
-
-                    if (Frequency < gEeprom.FM_LowerLimit || gEeprom.FM_UpperLimit < Frequency) {
-                        gBeepToPlay           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-                        gRequestDisplayScreen = DISPLAY_MAIN;
-                        return;
-                    }
 
                     gEeprom.FM_SelectedFrequency = (uint16_t)Frequency;
 #ifdef ENABLE_VOICE

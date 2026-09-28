@@ -568,7 +568,7 @@ void UI_DisplayMain(void) {
                 else
                     sprintf(String, "V-FM");
             } else {
-                sprintf(String, "FM%.3s", INPUTBOX_GetAscii());
+                sprintf(String, "FM");
             }
             UI_PrintStringSmall(String, x, 0, line + 1);
         } else if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num])) {    // channel mode
@@ -652,9 +652,22 @@ void UI_DisplayMain(void) {
             }
 
             if (isFmVFO) {
+                uint16_t fmFrequency = gEeprom.FM_FrequencyPlaying;
+
+                if (gInputBoxIndex >= 3) {
+                    uint32_t inputFrequency = StrToUL(INPUTBOX_GetAscii());
+
+                    if (gInputBoxIndex == 3 && gInputBox[0] == 1)
+                        inputFrequency *= 10;
+
+                    if (inputFrequency >= gEeprom.FM_LowerLimit &&
+                        inputFrequency <= gEeprom.FM_UpperLimit)
+                        fmFrequency = (uint16_t)inputFrequency;
+                }
+
                 sprintf(String, "%03u.%03u",
-                        gEeprom.FM_FrequencyPlaying / 10,
-                        (gEeprom.FM_FrequencyPlaying % 10) * 100);
+                        fmFrequency / 10,
+                        (fmFrequency % 10) * 100);
                 UI_DisplayFrequency(String, 32, line, gInputBoxIndex == 0);
             } else if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num])) {    // it's a channel
 
