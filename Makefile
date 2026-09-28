@@ -222,7 +222,6 @@ endif
 OBJS += ui/battery.o
 OBJS += ui/battery_check.o
 ifeq ($(ENABLE_FMRADIO),1)
-	OBJS += ui/fmradio.o
 endif
 OBJS += ui/helper.o
 OBJS += ui/inputbox.o
