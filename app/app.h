@@ -27,7 +27,9 @@ typedef enum {
     TOAST_NONE,
     TOAST_NIGHT_MODE,
     TOAST_KEY_BEEP,
-    TOAST_UI_TONE
+    TOAST_UI_TONE,
+    TOAST_SAVE,
+    TOAST_DELETE
 } ToastType_t;
 
 extern ToastType_t gToastType;

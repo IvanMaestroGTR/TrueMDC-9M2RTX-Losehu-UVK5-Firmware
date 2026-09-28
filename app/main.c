@@ -847,28 +847,15 @@ cnt_i--;
 }
 
 void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
+    if (bKeyPressed)
+        last_rx_vfo = -1;
 #ifdef ENABLE_FMRADIO
     if (gFmRadioMode)
     {
-        // FM owns the keypad while active. Only a side key explicitly
-        // assigned to VFO A/B is allowed to affect the radio VFO state.
-#ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
-        if ((Key == KEY_SIDE1 &&
-             (gEeprom.KEY_1_SHORT_PRESS_ACTION == ACTION_OPT_A_B ||
-              gEeprom.KEY_1_LONG_PRESS_ACTION == ACTION_OPT_A_B)) ||
-            (Key == KEY_SIDE2 &&
-             (gEeprom.KEY_2_SHORT_PRESS_ACTION == ACTION_OPT_A_B ||
-              gEeprom.KEY_2_LONG_PRESS_ACTION == ACTION_OPT_A_B))) {
-            ACTION_Handle(Key, bKeyPressed, bKeyHeld);
-            return;
-        }
-#endif
         FM_ProcessKeys(Key, bKeyPressed, bKeyHeld);
         return;
     }
 #endif
-    if (bKeyPressed)
-        last_rx_vfo = -1;
 
     // TODO: ???
 //	if (Key > KEY_PTT)

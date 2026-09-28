@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "app/action.h"
+#include "app/app.h"
 #include "app/fm.h"
 #include "app/generic.h"
 #include "audio.h"
@@ -442,6 +443,8 @@ static void Key_MENU(uint8_t state)
 
             }
 gAskToSave = !gAskToSave;
+gToastType = TOAST_SAVE;
+gToastTimerSingleLine = 4;
         }
         else
         {
@@ -455,6 +458,8 @@ gAskToSave = !gAskToSave;
                 gRequestSaveFM = true;
             }
     gAskToDelete = !gAskToDelete;
+    gToastType = TOAST_DELETE;
+    gToastTimerSingleLine = 4;
         }
     }
     else
@@ -472,6 +477,8 @@ gAskToSave = !gAskToSave;
             gRequestSaveFM = true;
         }
 gAskToSave = !gAskToSave;
+gToastType = TOAST_SAVE;
+gToastTimerSingleLine = 4;
     }
 }
 

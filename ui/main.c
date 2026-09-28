@@ -426,7 +426,7 @@ void UI_MAIN_TimeSlice500ms(void) {
         return;
 #endif
         if (gFmRadioMode) {
-            DisplayRSSIBar(true);
+            gUpdateDisplay = true;
         } else if (FUNCTION_IsRx()) {
             DisplayRSSIBar(true);
         }
@@ -1034,6 +1034,12 @@ void UI_DisplayMain(void) {
                     break;
                 case TOAST_NIGHT_MODE:
                     pToastStr = gEeprom.SCREEN_INVERT ? "<<Night Mode>>" : "<<Day Mode>>";
+                    break;
+                case TOAST_SAVE:
+                    pToastStr = gAskToSave ? "<<Save?>>" : "<<Saved>>";
+                    break;
+                case TOAST_DELETE:
+                    pToastStr = gAskToDelete ? "<<Delete?>>" : "<<Deleted>>";
                     break;
                 default:
                     center_line = CENTER_LINE_NONE;
