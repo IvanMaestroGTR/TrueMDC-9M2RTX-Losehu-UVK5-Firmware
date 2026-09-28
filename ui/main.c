@@ -568,7 +568,7 @@ void UI_DisplayMain(void) {
                 else
                     sprintf(String, "V-FM");
             } else {
-                sprintf(String, "FM");
+                sprintf(String, "V-FM");
             }
             UI_PrintStringSmall(String, x, 0, line + 1);
         } else if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num])) {    // channel mode
@@ -654,21 +654,32 @@ void UI_DisplayMain(void) {
             if (isFmVFO) {
                 uint16_t fmFrequency = gEeprom.FM_FrequencyPlaying;
 
-                if (gInputBoxIndex >= 3) {
-                    uint32_t inputFrequency = StrToUL(INPUTBOX_GetAscii());
+                if (gInputBoxIndex > 0) {
+                    const char *ascii = INPUTBOX_GetAscii();
 
-                    if (gInputBoxIndex == 3 && gInputBox[0] == 1)
-                        inputFrequency *= 10;
+                    // Match the normal VFO entry display:
+                    // 0--.--- -> 09-.--- -> 092.--- -> 092.9--.
+                    snprintf(String, sizeof(String), "0%c%c.%c%c%c",
+                             ascii[0], ascii[1], ascii[2], ascii[3], ascii[4]);
 
-                    if (inputFrequency >= gEeprom.FM_LowerLimit &&
-                        inputFrequency <= gEeprom.FM_UpperLimit)
-                        fmFrequency = (uint16_t)inputFrequency;
+                    if (gInputBoxIndex >= 3) {
+                        uint32_t inputFrequency = StrToUL(ascii);
+
+                        if (gInputBoxIndex == 3 && gInputBox[0] == 1)
+                            inputFrequency *= 10;
+
+                        if (inputFrequency >= gEeprom.FM_LowerLimit &&
+                            inputFrequency <= gEeprom.FM_UpperLimit)
+                            fmFrequency = (uint16_t)inputFrequency;
+                    }
+
+                    UI_DisplayFrequency(String, 32, line, false);
+                } else {
+                    sprintf(String, "%03u.%03u",
+                            fmFrequency / 10,
+                            (fmFrequency % 10) * 100);
+                    UI_DisplayFrequency(String, 32, line, true);
                 }
-
-                sprintf(String, "%03u.%03u",
-                        fmFrequency / 10,
-                        (fmFrequency % 10) * 100);
-                UI_DisplayFrequency(String, 32, line, gInputBoxIndex == 0);
             } else if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num])) {    // it's a channel
 
                 // show the scan list assigment symbols
@@ -782,11 +793,19 @@ void UI_DisplayMain(void) {
             if (isFmVFO) {
                 const uint16_t status = BK1080_ReadRegister(BK1080_REG_10);
                 const uint8_t rssi = BK1080_REG_10_GET_RSSI(status);
-                static const uint8_t fm_small_rssi_thresholds[] = {10, 22, 34, 42, 54, 64};
+                static const uint8_t fm_small_rssi_thresholds[] = {
+                    30,  // 2 bars
+                    55,  // 3 bars
+                    80,  // 4 bars
+                    120, // 5 bars
+                    160  // 6 bars
+                };
 
+                // Keep one bar as the noise-floor / no-signal indication.
+                Level = 1;
                 for (unsigned int i = 0; i < ARRAY_SIZE(fm_small_rssi_thresholds); i++) {
                     if (rssi >= fm_small_rssi_thresholds[i])
-                        Level = i + 1;
+                        Level = i + 2;
                 }
             } else
 #endif
