@@ -559,7 +559,7 @@ static void Key_UP_DOWN(uint8_t state, int8_t Step)
         return;
     }
 
-    if (gAskToSave) {
+    if (gAskToSave || gAskToDelete) {
         gRequestDisplayScreen = DISPLAY_MAIN;
         gFM_ChannelPosition   = NUMBER_AddWithWraparound(gFM_ChannelPosition, Step, 0, 19);
         return;

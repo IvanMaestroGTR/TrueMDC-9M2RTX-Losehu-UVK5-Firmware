@@ -654,7 +654,7 @@ void UI_DisplayMain(void) {
             if (isFmVFO) {
                 uint16_t fmFrequency = gEeprom.FM_FrequencyPlaying;
 
-                if (gInputBoxIndex > 0) {
+                if (gInputBoxIndex > 0 && !gAskToSave && !gAskToDelete) {
                     const char *ascii = INPUTBOX_GetAscii();
 
                     // Match the normal VFO entry display:
@@ -1067,11 +1067,15 @@ void UI_DisplayMain(void) {
                     break;
                 case TOAST_DELETE:
                     if (gAskToDelete) {
-                        char channel[3] = "__";
-                        if (gInputBoxIndex > 0)
-                            channel[0] = '0' + gInputBox[0];
-                        if (gInputBoxIndex > 1)
-                            channel[1] = '0' + gInputBox[1];
+                        char channel[3];
+                        if (gInputBoxIndex == 0) {
+                            // Start with the currently selected channel.
+                            snprintf(channel, sizeof(channel), "%02u", gFM_ChannelPosition + 1);
+                        } else {
+                            channel[0] = (gInputBoxIndex > 0) ? '0' + gInputBox[0] : '_';
+                            channel[1] = (gInputBoxIndex > 1) ? '0' + gInputBox[1] : '_';
+                            channel[2] = '\0';
+                        }
                         snprintf(String, sizeof(String), "Delete? FM%s", channel);
                     } else {
                         snprintf(String, sizeof(String), "Deleted FM%02u", gFM_ChannelPosition + 1);
