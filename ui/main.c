@@ -1036,10 +1036,30 @@ void UI_DisplayMain(void) {
                     pToastStr = gEeprom.SCREEN_INVERT ? "<<Night Mode>>" : "<<Day Mode>>";
                     break;
                 case TOAST_SAVE:
-                    pToastStr = gAskToSave ? "<<Save?>>" : "<<Saved>>";
+                    if (gAskToSave) {
+                        char channel[3] = "__";
+                        if (gInputBoxIndex > 0)
+                            channel[0] = '0' + gInputBox[0];
+                        if (gInputBoxIndex > 1)
+                            channel[1] = '0' + gInputBox[1];
+                        snprintf(String, sizeof(String), "Save? FM%s", channel);
+                    } else {
+                        snprintf(String, sizeof(String), "Saved FM%02u", gFM_ChannelPosition + 1);
+                    }
+                    pToastStr = String;
                     break;
                 case TOAST_DELETE:
-                    pToastStr = gAskToDelete ? "<<Delete?>>" : "<<Deleted>>";
+                    if (gAskToDelete) {
+                        char channel[3] = "__";
+                        if (gInputBoxIndex > 0)
+                            channel[0] = '0' + gInputBox[0];
+                        if (gInputBoxIndex > 1)
+                            channel[1] = '0' + gInputBox[1];
+                        snprintf(String, sizeof(String), "Delete? FM%s", channel);
+                    } else {
+                        snprintf(String, sizeof(String), "Deleted FM%02u", gFM_ChannelPosition + 1);
+                    }
+                    pToastStr = String;
                     break;
                 default:
                     center_line = CENTER_LINE_NONE;

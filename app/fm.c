@@ -236,22 +236,35 @@ static void Key_DIGITS(KEY_Code_t Key, uint8_t state)
     if (state == BUTTON_EVENT_SHORT && !gWasFKeyPressed) {
             uint8_t State;
 
-            if (gAskToDelete) {
-                gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-                return;
-            }
-
-            if (gAskToSave) {
-                State = STATE_SAVE;
-            }
-            else {
-                if (gFM_ScanState != FM_SCAN_OFF) {
+            if (gAskToSave || gAskToDelete) {
+                if (gInputBoxIndex >= 2) {
                     gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
                     return;
                 }
 
-                State = gEeprom.FM_IsMrMode ? STATE_MR_MODE : STATE_FREQ_MODE;
+                INPUTBOX_Append(Key);
+                gRequestDisplayScreen = DISPLAY_MAIN;
+
+                if (gInputBoxIndex == 2) {
+                    const uint8_t Channel = ((gInputBox[0] * 10) + gInputBox[1]) - 1;
+
+                    if (Channel >= ARRAY_SIZE(gFM_Channels)) {
+                        gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+                        return;
+                    }
+
+                    gFM_ChannelPosition = Channel;
+                }
+
+                return;
             }
+
+            if (gFM_ScanState != FM_SCAN_OFF) {
+                gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+                return;
+            }
+
+            State = gEeprom.FM_IsMrMode ? STATE_MR_MODE : STATE_FREQ_MODE;
 
             INPUTBOX_Append(Key);
 
@@ -438,28 +451,54 @@ static void Key_MENU(uint8_t state)
         {
             if (gAskToSave)
             {
-                gFM_Channels[gFM_ChannelPosition] = gEeprom.FM_FrequencyPlaying;
-        gRequestSaveFM = true;
+                if (gInputBoxIndex != 2)
+                {
+                    gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+                    return;
+                }
 
+                gFM_Channels[gFM_ChannelPosition] = gEeprom.FM_FrequencyPlaying;
+                gRequestSaveFM = true;
+                gAskToSave = false;
+                gInputBoxIndex = 0;
             }
-gAskToSave = !gAskToSave;
-gToastType = TOAST_SAVE;
-gToastTimerSingleLine = 4;
+            else
+            {
+                gAskToSave = true;
+                gInputBoxIndex = 0;
+            }
+
+            gToastType = TOAST_SAVE;
+            gToastTimerSingleLine = 4;
         }
         else
         {
             if (gAskToDelete)
             {
-                gFM_Channels[gEeprom.FM_SelectedChannel] = 0xFFFF;
+                if (gInputBoxIndex != 2)
+                {
+                    gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+                    return;
+                }
+
+                gEeprom.FM_SelectedChannel = gFM_ChannelPosition;
+                gFM_Channels[gFM_ChannelPosition] = 0xFFFF;
 
                 FM_ConfigureChannelState();
                 BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
 
                 gRequestSaveFM = true;
+                gAskToDelete = false;
+                gInputBoxIndex = 0;
             }
-    gAskToDelete = !gAskToDelete;
-    gToastType = TOAST_DELETE;
-    gToastTimerSingleLine = 4;
+            else
+            {
+                gAskToDelete = true;
+                gInputBoxIndex = 0;
+            }
+
+            gToastType = TOAST_DELETE;
+            gToastTimerSingleLine = 4;
         }
     }
     else
@@ -473,15 +512,27 @@ gToastTimerSingleLine = 4;
 
         if (gAskToSave)
         {
+            if (gInputBoxIndex != 2)
+            {
+                gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+                return;
+            }
+
             gFM_Channels[gFM_ChannelPosition] = gEeprom.FM_FrequencyPlaying;
             gRequestSaveFM = true;
+            gAskToSave = false;
+            gInputBoxIndex = 0;
         }
-gAskToSave = !gAskToSave;
-gToastType = TOAST_SAVE;
-gToastTimerSingleLine = 4;
+        else
+        {
+            gAskToSave = true;
+            gInputBoxIndex = 0;
+        }
+
+        gToastType = TOAST_SAVE;
+        gToastTimerSingleLine = 4;
     }
 }
-
 static void Key_UP_DOWN(uint8_t state, int8_t Step)
 {
     if (state == BUTTON_EVENT_PRESSED) {
