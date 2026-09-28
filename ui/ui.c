@@ -31,7 +31,6 @@
 #include "ui/aircopy.h"
 #endif
 #ifdef ENABLE_FMRADIO
-#include "ui/fmradio.h"
 #endif
 
 #include "ui/inputbox.h"
