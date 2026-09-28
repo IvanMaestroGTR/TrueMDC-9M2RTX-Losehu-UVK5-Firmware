@@ -30,8 +30,6 @@
 #ifdef ENABLE_AIRCOPY
 #include "ui/aircopy.h"
 #endif
-#ifdef ENABLE_FMRADIO
-#endif
 
 #include "ui/inputbox.h"
 #include "ui/main.h"
@@ -52,7 +50,6 @@ void (*UI_DisplayFunctions[])(void) = {
         [DISPLAY_MENU] = &UI_DisplayMenu,
         [DISPLAY_SCANNER] = &UI_DisplayScanner,
 
-#ifdef ENABLE_FMRADIO#endif
 #ifdef ENABLE_AIRCOPY
         [DISPLAY_AIRCOPY] = &UI_DisplayAircopy,
 #endif
@@ -68,28 +65,3 @@ void GUI_DisplayScreen(void) {
 }
 
 void GUI_SelectNextDisplay(GUI_DisplayType_t Display) {
-    if (Display == DISPLAY_INVALID)
-        return;
-
-    if (gScreenToDisplay != Display) {
-        DTMF_clear_input_box();
-
-        gInputBoxIndex = 0;
-        gIsInSubMenu = false;
-
-        gCssBackgroundScan = false;
-        gScanStateDir = SCAN_OFF;
-#ifdef ENABLE_FMRADIO
-        gFM_ScanState    = FM_SCAN_OFF;
-#endif
-        gAskForConfirmation = 0;
-        gAskToSave = false;
-        gAskToDelete = false;
-        gWasFKeyPressed = false;
-
-        gUpdateStatus = true;
-    }
-
-    gScreenToDisplay = Display;
-    gUpdateDisplay = true;
-}
