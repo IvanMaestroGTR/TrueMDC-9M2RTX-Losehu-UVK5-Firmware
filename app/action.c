@@ -407,7 +407,7 @@ if (gCurrentFunction != FUNCTION_TRANSMIT && gCurrentFunction != FUNCTION_MONITO
 
         FM_Start();
 
-        gRequestDisplayScreen = DISPLAY_FM;
+        gRequestDisplayScreen = DISPLAY_MAIN;
     }
 }
 
