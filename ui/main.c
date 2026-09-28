@@ -1003,7 +1003,8 @@ void UI_DisplayMain(void) {
                 UI_PrintStringSmall(String, 2, 0, 3);
             }
 #endif
-        if (center_line == CENTER_LINE_NONE && gToastTimerSingleLine > 0) {
+        if (center_line == CENTER_LINE_NONE &&
+            (gToastTimerSingleLine > 0 || gAskToSave || gAskToDelete)) {
             center_line = CENTER_LINE_IN_USE;
             
             const char* pToastStr = "";

@@ -429,21 +429,14 @@ static void ACTION_Scan_FM(bool bRestart)
         return;
     }
 
-    uint16_t freq;
+    uint16_t freq = gEeprom.FM_FrequencyPlaying;
 
-    if (bRestart) {
-        gFM_AutoScan        = true;
-        gFM_ChannelPosition = 0;
-        FM_EraseChannels();
-        freq           = gEeprom.FM_LowerLimit;
-    } else {
-        gFM_AutoScan        = false;
-        gFM_ChannelPosition = 0;
-        freq           = gEeprom.FM_FrequencyPlaying;
-    }
+    // FM scan starts from the current VFO frequency and never rebuilds memory.
+    gFM_AutoScan        = false;
+    gFM_ChannelPosition = 0;
 
     BK1080_GetFrequencyDeviation(freq);
-    FM_Tune(freq, 1, bRestart);
+    FM_Tune(freq, 1, false);
 
 #ifdef ENABLE_VOICE
     gAnotherVoiceID = VOICE_ID_SCANNING_BEGIN;

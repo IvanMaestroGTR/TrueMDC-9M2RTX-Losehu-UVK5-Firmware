@@ -273,18 +273,25 @@ static void Key_DIGITS(KEY_Code_t Key, uint8_t state)
             gRequestDisplayScreen = DISPLAY_MAIN;
 
             if (State == STATE_FREQ_MODE) {
-                if (gInputBoxIndex == 1) {
-                    if (gInputBox[0] > 1) {
-                        gInputBox[1] = gInputBox[0];
-                        gInputBox[0] = 0;
-                        gInputBoxIndex = 2;
+                if (gInputBoxIndex >= 3) {
+                    uint32_t Frequency = StrToUL(INPUTBOX_GetAscii());
+
+                    // 3 digits are enough for 64.0-99.9 MHz.
+                    // Keep 1xx input open for the 4th digit (100.0-108.0 MHz).
+                    if (gInputBoxIndex == 3 && Frequency < gEeprom.FM_LowerLimit) {
+                        if (gInputBox[0] == 1)
+                            return;
+
+                        gInputBoxIndex = 0;
+                        gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+                        gRequestDisplayScreen = DISPLAY_MAIN;
+                        return;
                     }
-                }
-                else if (gInputBoxIndex > 3) {
-                    uint32_t Frequency;
+
+                    if (gInputBoxIndex < 4)
+                        return;
 
                     gInputBoxIndex = 0;
-                    Frequency = StrToUL(INPUTBOX_GetAscii());
 
                     if (Frequency < gEeprom.FM_LowerLimit || gEeprom.FM_UpperLimit < Frequency) {
                         gBeepToPlay           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
@@ -400,6 +407,8 @@ static void Key_EXIT(uint8_t state)
 
             gAskToSave   = false;
             gAskToDelete = false;
+            gToastType = TOAST_NONE;
+            gToastTimerSingleLine = 0;
         }
         else
         {
@@ -421,6 +430,12 @@ static void Key_EXIT(uint8_t state)
             }
 
             gInputBoxIndex = 0;
+            if (gAskToSave || gAskToDelete) {
+                gAskToSave = false;
+                gAskToDelete = false;
+                gToastType = TOAST_NONE;
+                gToastTimerSingleLine = 0;
+            }
         }
 
 #ifdef ENABLE_VOICE
@@ -471,7 +486,7 @@ static void Key_MENU(uint8_t state)
             }
 
             gToastType = TOAST_SAVE;
-            gToastTimerSingleLine = 4;
+            gToastTimerSingleLine = gAskToSave ? 0 : 4;
         }
         else
         {
@@ -500,7 +515,7 @@ static void Key_MENU(uint8_t state)
             }
 
             gToastType = TOAST_DELETE;
-            gToastTimerSingleLine = 4;
+            gToastTimerSingleLine = gAskToDelete ? 0 : 4;
         }
     }
     else
