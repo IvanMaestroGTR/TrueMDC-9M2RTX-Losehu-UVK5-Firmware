@@ -62,7 +62,7 @@ void GENERIC_Key_F(bool bKeyPressed, bool bKeyHeld) {
         } else // released
         {
 #ifdef ENABLE_FMRADIO
-            if ((gFmRadioMode || gScreenToDisplay != DISPLAY_MAIN) && gScreenToDisplay != DISPLAY_FM)
+            if (!gFmRadioMode && gScreenToDisplay != DISPLAY_MAIN)
                     return;
 #else
             if (gScreenToDisplay != DISPLAY_MAIN)
