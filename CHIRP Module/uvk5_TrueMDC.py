@@ -1591,21 +1591,14 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         _mem = self._memobj
         basic = RadioSettingGroup("basic", "Basic Settings")
         keya = RadioSettingGroup("keya", "User Defined Sidekeys")
-        signalling = RadioSettingGroup("signalling", "Signalling Settings")
+        # Keep signalling protocols as separate top-level CHIRP groups.
+        # This avoids an extra nested "Signalling Settings" menu and keeps
+        # MDC, FleetSync, and DTMF independently accessible.
         signalling_mdc = RadioSettingGroup("signalling_mdc", "MDC Settings")
         signalling_fleetsync = RadioSettingGroup("signalling_fleetsync", "FleetSync Settings")
         signalling_dtmf = RadioSettingGroup("signalling_dtmf", "DTMF Settings")
         mdcc = RadioSettingGroup("mdcc", "MDC Alias List")
         fleetsync_alias = RadioSettingGroup("fleetsync_alias", "FleetSync Alias List")
-
-        # Keep all signalling configuration inside one clean submenu.
-        # Alias lists are separate from the protocol settings so they
-        # cannot consume/replace the FleetSync settings group.
-        signalling.append(signalling_mdc)
-        signalling.append(signalling_fleetsync)
-        signalling.append(signalling_dtmf)
-        signalling.append(mdcc)
-        signalling.append(fleetsync_alias)
         scanl = RadioSettingGroup("scn", "Scanlists")
         unlock = RadioSettingGroup("unlock", "Unlock settings")
         fmradio = RadioSettingGroup("fmradio", "Broadcast FM")
@@ -1613,7 +1606,17 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         roinfo = RadioSettingGroup("roinfo", "Device Info")
 
         top = RadioSettings(
-                basic, keya, signalling, scanl, unlock, fmradio, roinfo)
+                basic,
+                keya,
+                signalling_mdc,
+                signalling_fleetsync,
+                signalling_dtmf,
+                mdcc,
+                fleetsync_alias,
+                scanl,
+                unlock,
+                fmradio,
+                roinfo)
 
         # Programmable keys
         tmpval = int(_mem.key1_shortpress_action)
