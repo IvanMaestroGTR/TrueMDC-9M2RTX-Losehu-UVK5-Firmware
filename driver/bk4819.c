@@ -2508,24 +2508,27 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
         uint16_t fsk_reg59;
         uint8_t packet[FLEETSYNC_PACKET_SIZE];
         const unsigned int packet_size = FleetSync_encode_ani(packet, fleet, unit, end_of_transmission);
+        const unsigned int data_size = packet_size - 4u; // Hardware sends the 4-byte FleetSync sync.
 
         BK4819_WriteRegister(0x58, (1u << 13) | (7u << 10) | (1u << 1) | (1u << 0));
         BK4819_WriteRegister(0x72, scale_freq(1200));
         BK4819_WriteRegister(0x70, (1u << 7) | MDC_FSK_TX_GAIN);
 
-        // Emit a 5-bit alternating preamble: 0101010101.
+        // Emit the alternating preamble, then the FleetSync sync from the BK4819 hardware.
         fsk_reg59 = (5u << 4) | (1u << 3);
-        BK4819_WriteRegister(0x5A, 0x0000);
-        BK4819_WriteRegister(0x5B, 0x0000);
+        BK4819_WriteRegister(0x5A, 0xAAAA);
+        BK4819_WriteRegister(0x5B, 0x23EB);
         BK4819_WriteRegister(0x5C, 0x5625);
-        BK4819_WriteRegister(0x5D, ((packet_size - 1u) << 8));
+        BK4819_WriteRegister(0x5D, ((data_size - 1u) << 8));
         BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
         BK4819_WriteRegister(0x59, fsk_reg59);
 
-        for (unsigned int i = 0; i < packet_size / 2u; i++)
-            BK4819_WriteRegister(0x5F, (uint16_t)packet[i * 2u] | ((uint16_t)packet[i * 2u + 1u] << 8));
-        if (packet_size & 1u)
-            BK4819_WriteRegister(0x5F, packet[packet_size - 1u]);
+        // FleetSync_encode_ani() keeps the sync in the logical packet, but the
+        // BK4819 already transmits it as hardware sync, so load only the ANI.
+        for (unsigned int i = 0; i < data_size / 2u; i++)
+            BK4819_WriteRegister(0x5F, (uint16_t)packet[4u + i * 2u] | ((uint16_t)packet[4u + i * 2u + 1u] << 8));
+        if (data_size & 1u)
+            BK4819_WriteRegister(0x5F, packet[4u + data_size - 1u]);
 
         BK4819_WriteRegister(0x3F, BK4819_REG_3F_FSK_TX_FINISHED);
         BK4819_WriteRegister(0x59, (1u << 11) | fsk_reg59);
