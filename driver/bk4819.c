@@ -2514,8 +2514,10 @@ static void BK4819_send_FSK_packet(const uint8_t *packet, unsigned int size)
         BK4819_WriteRegister(0x72, scale_freq(1200));
         BK4819_WriteRegister(0x70, (1u << 7) | MDC_FSK_TX_GAIN);
 
-        // Emit the alternating preamble, then the FleetSync sync from the BK4819 hardware.
-        fsk_reg59 = (5u << 4) | (1u << 3);
+        // FleetSync uses a 24-bit alternating 1800/1200 Hz preamble.
+        // REG_59<7:4> is encoded as (preamble_bytes - 1), so 2 = 3 bytes.
+        // Keep the real alternating FFSK preamble; do not disable it.
+        fsk_reg59 = (2u << 4) | (1u << 3);
         BK4819_WriteRegister(0x5A, 0xAAAA);
         BK4819_WriteRegister(0x5B, 0x23EB);
         BK4819_WriteRegister(0x5C, 0x5625);
