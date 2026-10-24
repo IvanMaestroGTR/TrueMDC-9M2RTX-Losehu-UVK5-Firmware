@@ -1,0 +1,56 @@
+
+name: Migrate TrueMDC V2 Branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_overwrite:
+        description: "Replace the V2 repository main branch history?"
+        required: true
+        type: choice
+        options:
+          - "no"
+          - "yes"
+        default: "no"
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    if: ${{ inputs.confirm_overwrite == 'yes' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout V1 staging branch
+        uses: actions/checkout@v4
+        with:
+          ref: v2-standalone-prep
+          fetch-depth: 0
+
+      - name: Verify source branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Source repository: $GITHUB_REPOSITORY"
+          echo "Source branch: $(git branch --show-current)"
+          git log -1 --oneline
+
+      - name: Push staging branch to V2 main
+        env:
+          V2_TOKEN: ${{ secrets.V2_MIGRATION_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$V2_TOKEN" ]]; then
+            echo "::error::V2_MIGRATION_TOKEN secret is missing."
+            exit 1
+          fi
+
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$V2_TOKEN" | base64 -w 0)" \
+            push --force \
+            https://github.com/IvanMaestroGTR/TrueMDC-UVK5-V2-Firmware.git \
+            HEAD:refs/heads/main
+
+          echo "Migration push completed."
