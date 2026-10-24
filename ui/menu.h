@@ -74,6 +74,7 @@ enum {
     //MENU_MIC_BAR,
 //#endif
     MENU_COMPAND,
+    MENU_END_CALL_TONE,
     MENU_1_CALL,
     MENU_S_LIST,
     MENU_SLIST1,

@@ -93,6 +93,9 @@ static bool gRxEndTonePending;
 static bool gRxEndToneWaitForDualWatch;
 static bool gRxTalkPermitPlayed;
 static uint16_t gRxEndToneCountdown_10ms;
+#define CALL_END_TONE_DELAY_10MS 200
+#define CALL_END_TONE_AFTER_TX_DELAY_10MS 300
+#define CALL_END_TONE_DUAL_WATCH_DELAY_10MS 5
 static bool flagSaveVfo;
 static bool flagSaveSettings;
 static bool flagSaveChannel;
@@ -366,12 +369,12 @@ static void HandleReceive(void) {
         case END_OF_RX_MODE_END:
             RADIO_SetupRegisters(true);
 
-            if (gRxVfo->Modulation == MODULATION_FM) {
+            if (gRxVfo->Modulation == MODULATION_FM &&
+                gEeprom.END_CALL_TONE && gEeprom.BOOT_BEEP_CONTROL) {
                 gRxEndTonePending = true;
                 gRxEndToneWaitForDualWatch =
                     gEeprom.DUAL_WATCH != DUAL_WATCH_OFF && gScanStateDir == SCAN_OFF;
-                gRxEndToneCountdown_10ms = gRxEndToneWaitForDualWatch ? 0 :
-                                                dual_watch_count_after_2_10ms;
+                gRxEndToneCountdown_10ms = CALL_END_TONE_DELAY_10MS;
             }
 
 #ifdef ENABLE_NOAA
@@ -706,11 +709,22 @@ static void CheckRadioInterrupts(void) {
 
 
 static void APP_ScheduleCallEndToneAfterTx(void) {
-    if (gRxVfo->Modulation == MODULATION_FM) {
+    if (gRxVfo->Modulation == MODULATION_FM &&
+        gEeprom.END_CALL_TONE && gEeprom.BOOT_BEEP_CONTROL) {
         gRxEndTonePending = true;
-        gRxEndToneCountdown_10ms = dual_watch_count_after_tx_10ms;
+        gRxEndToneCountdown_10ms = CALL_END_TONE_AFTER_TX_DELAY_10MS;
         gRxEndToneWaitForDualWatch = false;
     }
+}
+
+static void APP_PlayCallEndTone(void) {
+    BK4819_ResetTalkPermitToneState();
+    BK4819_PlayRxEndTone();
+    gRxEndTonePending = false;
+    gRxEndToneWaitForDualWatch = false;
+    gRxEndToneCountdown_10ms = 0;
+    BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+    BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
 }
 
 void APP_EndTransmission(bool inmediately) {
@@ -1093,24 +1107,33 @@ void APP_TimeSlice10ms(void) {
     static uint16_t rxBlinkCounter = 0;
 
     if (gRxEndTonePending) {
-        if (gFlagPrepareTX || gCurrentFunction == FUNCTION_TRANSMIT ||
+        if (!gEeprom.END_CALL_TONE || !gEeprom.BOOT_BEEP_CONTROL ||
+            gFlagPrepareTX || gCurrentFunction == FUNCTION_TRANSMIT ||
             gRxVfo->Modulation != MODULATION_FM || g_SquelchLost) {
             gRxEndTonePending = false;
             gRxEndToneWaitForDualWatch = false;
             gRxEndToneCountdown_10ms = 0;
             BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
             BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-        } else if (gRxEndToneWaitForDualWatch && !gDualWatchActive) {
-            // Keep the yellow call-status light on until dual watch resumes.
         } else if (gRxEndToneCountdown_10ms > 0) {
             gRxEndToneCountdown_10ms--;
+            if (gRxEndToneCountdown_10ms == 0) {
+                if (gRxEndToneWaitForDualWatch) {
+                    if (gDualWatchActive) {
+                        gRxEndToneWaitForDualWatch = false;
+                        gRxEndToneCountdown_10ms = CALL_END_TONE_DUAL_WATCH_DELAY_10MS;
+                    }
+                } else {
+                    APP_PlayCallEndTone();
+                }
+            }
+        } else if (gRxEndToneWaitForDualWatch) {
+            if (gDualWatchActive) {
+                gRxEndToneWaitForDualWatch = false;
+                gRxEndToneCountdown_10ms = CALL_END_TONE_DUAL_WATCH_DELAY_10MS;
+            }
         } else {
-            BK4819_ResetTalkPermitToneState();
-            BK4819_PlayRxEndTone();
-            gRxEndTonePending = false;
-            gRxEndToneWaitForDualWatch = false;
-            BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-            BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+            APP_PlayCallEndTone();
         }
     }
 

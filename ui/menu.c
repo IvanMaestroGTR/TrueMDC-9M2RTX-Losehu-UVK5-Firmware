@@ -92,7 +92,7 @@ const t_menu_item MenuList[] =
 
 
                 {/*"STE",*/    VOICE_ID_INVALID, MENU_STE, STR_STE},
-                // {/*"ECT",*/    VOICE_ID_INVALID, MENU_END_CALL_TONE, "ECT"},  // removed
+                {/*"C.End",*/  VOICE_ID_INVALID, MENU_END_CALL_TONE, "C.End"},
                 {/*"1 Call",*/ VOICE_ID_INVALID, MENU_1_CALL, STR_V_1_CALL},
 
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
@@ -789,6 +789,10 @@ void UI_DisplayMenu(void) {
             strcpy(String, gSubMenu_STE[gSubMenuSelection]);
             break;
 
+        case MENU_END_CALL_TONE:
+            strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
+            break;
+
         case MENU_D_ST:
 #ifdef ENABLE_DTMF_CALLING
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
@@ -1309,4 +1313,3 @@ void UI_DisplayMenu(void) {
 }
 
 //
-

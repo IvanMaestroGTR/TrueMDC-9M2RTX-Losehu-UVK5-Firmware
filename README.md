@@ -181,9 +181,11 @@ A nested Signalling menu is planned for version 9.
 
 F + Down toggles the overall UI tone / boot beep control.
 
-When disabled, UI tones such as the Talk Permit Tone and power-on beep are disabled. This does not affect channel audio or voice operation.
+When disabled, UI tones such as the Talk Permit Tone, call-end tone, and power-on beep are disabled. This does not affect channel audio or voice operation.
 
 The setting persists until disabled again.
+
+The `C.End` menu option independently enables or disables the three-note call-end tone. When enabled, it plays after two seconds without receive activity. Turning UI Tone off with F + Down suppresses the tone without changing the `C.End` preference; turning UI Tone back on restores it.
 
 The main screen displays:
 

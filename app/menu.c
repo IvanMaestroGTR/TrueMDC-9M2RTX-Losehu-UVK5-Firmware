@@ -226,6 +226,11 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax) {
             *pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_STE) - 1;
             break;
+
+        case MENU_END_CALL_TONE:
+            *pMin = 0;
+            *pMax = ARRAY_SIZE(gSubMenu_OFF_ON) - 1;
+            break;
 #ifdef ENABLE_CUSTOM_SIDEFUNCTIONS
 
             case MENU_W_N:
@@ -672,6 +677,10 @@ void MENU_AcceptSetting(void) {
             gEeprom.TAIL_TONE_ELIMINATION = gSubMenuSelection;
             break;
 
+        case MENU_END_CALL_TONE:
+            gEeprom.END_CALL_TONE = gSubMenuSelection;
+            break;
+
         case MENU_RP_STE:
             if (gEeprom.PTT_ID == PTT_ID_MODE_DTMF_PRE ||
                 gEeprom.PTT_ID == PTT_ID_MODE_DTMF_POST ||
@@ -939,6 +948,10 @@ void MENU_ShowCurrentSetting(void) {
     switch (UI_MENU_GetCurrentMenuId()) {
         case MENU_SQL:
             gSubMenuSelection = gEeprom.SQUELCH_LEVEL;
+            break;
+
+        case MENU_END_CALL_TONE:
+            gSubMenuSelection = gEeprom.END_CALL_TONE;
             break;
 
         case MENU_STEP:

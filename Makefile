@@ -34,6 +34,7 @@ ENABLE_SHOW_CHARGE_LEVEL      ?= 0
 ENABLE_REVERSE_BAT_SYMBOL     ?= 0
 ENABLE_NO_CODE_SCAN_TIMEOUT   ?= 1
 ENABLE_AM_FIX                 ?= 1
+ENABLE_AM_AUDIO_FILTER        ?= 1
 ENABLE_SQUELCH_MORE_SENSITIVE ?= 1
 ENABLE_FASTER_CHANNEL_SCAN    ?= 1
 ENABLE_RSSI_BAR               ?= 1
@@ -463,6 +464,9 @@ endif
 ifeq ($(ENABLE_AM_FIX),1)
 	CFLAGS  += -DENABLE_AM_FIX
 endif
+ifeq ($(ENABLE_AM_AUDIO_FILTER),1)
+	CFLAGS  += -DENABLE_AM_AUDIO_FILTER
+endif
 ifeq ($(ENABLE_AM_FIX_SHOW_DATA),1)
 	CFLAGS  += -DENABLE_AM_FIX_SHOW_DATA
 endif
@@ -628,4 +632,3 @@ else # 类 Unix 系统（Linux, macOS, 等）
 	chmod +x del_linux.sh
 	sh ./del_linux.sh
 endif
-

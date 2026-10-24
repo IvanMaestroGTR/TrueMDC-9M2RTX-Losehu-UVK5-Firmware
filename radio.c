@@ -431,55 +431,55 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo) {
 
 
 #if ENABLE_SQUELCH_MORE_SENSITIVE
-        // Do the scaling in a wider type.  These fields are uint8_t, so storing
-        // the multiplied values before clamping used to wrap (for example,
-        // 65 * 4 became 4) and could leave the squelch permanently open.
-        uint16_t openRssi = pInfo->SquelchOpenRSSIThresh / 4u;
-        uint16_t closeRssi = pInfo->SquelchCloseRSSIThresh / 4u;
-        uint16_t openNoise = pInfo->SquelchOpenNoiseThresh * 4u;
-        uint16_t closeNoise = pInfo->SquelchCloseNoiseThresh * 4u;
-        uint16_t openGlitch = pInfo->SquelchOpenGlitchThresh * 4u;
-        uint16_t closeGlitch = pInfo->SquelchCloseGlitchThresh * 4u;
+        if (pInfo->Modulation != MODULATION_AM) {
+            // Scale in a wider type to avoid overflow before clamping.
+            uint16_t openRssi = pInfo->SquelchOpenRSSIThresh / 4u;
+            uint16_t closeRssi = pInfo->SquelchCloseRSSIThresh / 4u;
+            uint16_t openNoise = pInfo->SquelchOpenNoiseThresh * 4u;
+            uint16_t closeNoise = pInfo->SquelchCloseNoiseThresh * 4u;
+            uint16_t openGlitch = pInfo->SquelchOpenGlitchThresh * 4u;
+            uint16_t closeGlitch = pInfo->SquelchCloseGlitchThresh * 4u;
 
-        openNoise = openNoise > 127u ? 127u : openNoise;
-        closeNoise = closeNoise > 127u ? 127u : closeNoise;
-        openGlitch = openGlitch > 255u ? 255u : openGlitch;
-        closeGlitch = closeGlitch > 255u ? 255u : closeGlitch;
+            openNoise = openNoise > 127u ? 127u : openNoise;
+            closeNoise = closeNoise > 127u ? 127u : closeNoise;
+            openGlitch = openGlitch > 255u ? 255u : openGlitch;
+            closeGlitch = closeGlitch > 255u ? 255u : closeGlitch;
 
-        // Preserve hysteresis after saturation.  Noise and glitch thresholds
-        // have the opposite sense to RSSI thresholds.
-        if (closeRssi + 4u >= openRssi) {
-            if (openRssi >= 4u)
-                closeRssi = openRssi - 4u;
-            else
-                openRssi = closeRssi + 4u;
+            // Preserve hysteresis after saturation. Noise and glitch thresholds
+            // have the opposite sense to RSSI thresholds.
+            if (closeRssi + 4u >= openRssi) {
+                if (openRssi >= 4u)
+                    closeRssi = openRssi - 4u;
+                else
+                    openRssi = closeRssi + 4u;
+            }
+
+            if (closeGlitch <= openGlitch + 2u) {
+                if (openGlitch <= 253u)
+                    closeGlitch = openGlitch + 2u;
+                else
+                    openGlitch = closeGlitch - 2u;
+            }
+
+            if (closeNoise <= openNoise + 2u) {
+                if (openNoise <= 125u)
+                    closeNoise = openNoise + 2u;
+                else
+                    openNoise = closeNoise - 2u;
+            }
+
+            pInfo->SquelchOpenRSSIThresh = openRssi;
+            pInfo->SquelchCloseRSSIThresh = closeRssi;
+            pInfo->SquelchOpenNoiseThresh = openNoise;
+            pInfo->SquelchCloseNoiseThresh = closeNoise;
+            pInfo->SquelchOpenGlitchThresh = openGlitch;
+            pInfo->SquelchCloseGlitchThresh = closeGlitch;
         }
-
-        if (closeGlitch <= openGlitch + 2u) {
-            if (openGlitch <= 253u)
-                closeGlitch = openGlitch + 2u;
-            else
-                openGlitch = closeGlitch - 2u;
-        }
-
-        if (closeNoise <= openNoise + 2u) {
-            if (openNoise <= 125u)
-                closeNoise = openNoise + 2u;
-            else
-                openNoise = closeNoise - 2u;
-        }
-
-        pInfo->SquelchOpenRSSIThresh = openRssi;
-        pInfo->SquelchCloseRSSIThresh = closeRssi;
-        pInfo->SquelchOpenNoiseThresh = openNoise;
-        pInfo->SquelchCloseNoiseThresh = closeNoise;
-        pInfo->SquelchOpenGlitchThresh = openGlitch;
-        pInfo->SquelchCloseGlitchThresh = closeGlitch;
-#else
+#endif
         pInfo->SquelchOpenNoiseThresh = (pInfo->SquelchOpenNoiseThresh > 127) ? 127 : pInfo->SquelchOpenNoiseThresh;
         pInfo->SquelchCloseNoiseThresh = (pInfo->SquelchCloseNoiseThresh > 127) ? 127 : pInfo->SquelchCloseNoiseThresh;
-#endif
     }
+
     // *******************************
     // output power
 
@@ -559,8 +559,43 @@ void RADIO_SelectVfos(void) {
     RADIO_SelectCurrentVfo();
 }
 
+static void RADIO_SetRxFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const ModulationMode_t modulation)
+{
+#ifdef ENABLE_AM_AUDIO_FILTER
+    if (modulation == MODULATION_AM) {
+        BK4819_SetFilterBandwidth(BK4819_FILTER_BW_AM, false);
+        return;
+    }
+#endif
+
+#ifdef ENABLE_AM_FIX
+    const bool weak_no_different = true;
+#else
+    const bool weak_no_different = false;
+#endif
+
+    switch (Bandwidth) {
+        default:
+        case BK4819_FILTER_BW_WIDE:
+        case BK4819_FILTER_BW_AM:
+            BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE, weak_no_different);
+            break;
+
+        case BK4819_FILTER_BW_NARROW:
+            if (modulation == MODULATION_AM) {
+                BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER, weak_no_different);
+            } else {
+                BK4819_SetFilterBandwidth(Bandwidth, weak_no_different);
+            }
+            break;
+
+        case BK4819_FILTER_BW_NARROWER:
+            BK4819_SetFilterBandwidth(Bandwidth, weak_no_different);
+            break;
+    }
+}
+
 void RADIO_SetupRegisters(bool switchToForeground) {
-    BK4819_FilterBandwidth_t Bandwidth = gRxVfo->CHANNEL_BANDWIDTH;
     uint16_t InterruptMask;
     uint32_t Frequency;
     AUDIO_AudioPathOff();
@@ -569,31 +604,7 @@ void RADIO_SetupRegisters(bool switchToForeground) {
 
     BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
 
-    switch (Bandwidth) {
-        default:
-            Bandwidth = BK4819_FILTER_BW_WIDE;
-            [[fallthrough]];
-        case BK4819_FILTER_BW_WIDE:
-#ifdef ENABLE_AM_FIX
-            //				BK4819_SetFilterBandwidth(Bandwidth, gRxVfo->Modulation == MODULATION_AM && gSetting_AM_fix);
-                BK4819_SetFilterBandwidth(Bandwidth, true);
-#else
-            BK4819_SetFilterBandwidth(Bandwidth, false);
-#endif
-            break;
-
-        case BK4819_FILTER_BW_NARROW:
-            // For AM mode in narrow, use narrower (6.25kHz) for better filtering
-            if (gRxVfo->Modulation == MODULATION_AM) {
-                Bandwidth = BK4819_FILTER_BW_NARROWER;
-            }
-#ifdef ENABLE_AM_FIX
-            BK4819_SetFilterBandwidth(Bandwidth, true);
-#else
-            BK4819_SetFilterBandwidth(Bandwidth, false);
-#endif
-            break;
-    }
+    RADIO_SetRxFilterBandwidth(gRxVfo->CHANNEL_BANDWIDTH, gRxVfo->Modulation);
 
     BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
 
@@ -895,6 +906,7 @@ void RADIO_SetModulation(ModulationMode_t modulation) {
 
     BK4819_SetAF(mod);
 
+    RADIO_SetRxFilterBandwidth(gRxVfo->CHANNEL_BANDWIDTH, modulation);
 
     BK4819_SetRegValue(afDacGainRegSpec, 0xF);
     BK4819_WriteRegister(BK4819_REG_3D, modulation == MODULATION_USB ? 0 : 0x2AAB);

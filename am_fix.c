@@ -216,24 +216,55 @@ typedef union  {
 unsigned int gain_table_index[2] = {0, 0};
 // used simply to detect a changed gain setting
 unsigned int gain_table_index_prev[2] = {0, 0};
-// holds the previous RSSI level .. we do an average of old + new RSSI reading
+// Raw RSSI is retained for the debug display; control uses a smoothed value.
 int16_t prev_rssi[2] = {0, 0};
+int16_t filtered_rssi[2] = {0, 0};
+bool rssi_initialized[2] = {false, false};
 // to help reduce gain hunting, peak hold count down tick
 unsigned int hold_counter[2] = {0, 0};
-// -89dBm, any higher and the AM demodulator starts to saturate/clip/distort
-const int16_t desired_rssi = (-89 + 160) * 2;
+uint8_t gain_step_delay[2] = {0, 0};
+// Keep 6dB of headroom below the previous AM overload point.
+const int16_t desired_rssi = (-95 + 160) * 2;
 
 int8_t currentGainDiff;
 bool enabled = true;
 
+static unsigned int AM_fix_get_initial_gain_index(void)
+{
+    if (gain_table_size <= 1)
+        return 0;
+
+    unsigned int initial_index = 1;
+    int16_t initial_diff = gain_table[initial_index].gain_dB - gain_table[0].gain_dB;
+    uint16_t closest_diff = (initial_diff < 0) ? -initial_diff : initial_diff;
+
+    for (unsigned int i = 2; i < gain_table_size; i++) {
+        int16_t diff = gain_table[i].gain_dB - gain_table[0].gain_dB;
+        uint16_t distance = (diff < 0) ? -diff : diff;
+        if (distance < closest_diff) {
+            initial_index = i;
+            closest_diff = distance;
+        }
+    }
+
+    return initial_index;
+}
+
 void AM_fix_init(void)
 {	// called at boot-up
-    for (int i = 0; i < 2; i++) {
-        gain_table_index[i] = 0;  // re-start with original QS setting
-    }
 #if !LOOKUP_TABLE
     CreateTable();
 #endif
+    const unsigned int initial_index = AM_fix_get_initial_gain_index();
+    for (int i = 0; i < 2; i++) {
+        gain_table_index[i] = initial_index;
+        gain_table_index_prev[i] = initial_index;
+        prev_rssi[i] = 0;
+        filtered_rssi[i] = 0;
+        rssi_initialized[i] = false;
+        hold_counter[i] = 0;
+        gain_step_delay[i] = 0;
+    }
 }
 
 void AM_fix_reset(const unsigned vfo)
@@ -245,9 +276,13 @@ void AM_fix_reset(const unsigned vfo)
         counter = 0;
 #endif
 
+    gain_table_index[vfo] = AM_fix_get_initial_gain_index();
     prev_rssi[vfo] = 0;
+    filtered_rssi[vfo] = 0;
+    rssi_initialized[vfo] = false;
     hold_counter[vfo] = 0;
-    gain_table_index_prev[vfo] = 0;
+    gain_step_delay[vfo] = 0;
+    gain_table_index_prev[vfo] = gain_table_index[vfo];
 }
 
 // adjust the RX gain to try and prevent the AM demodulator from
@@ -293,10 +328,17 @@ break;
 
     int16_t rssi;
     {	// sample the current RSSI level
-        // average it with the previous rssi (a bit of noise/spike immunity)
         const int16_t new_rssi = BK4819_GetRSSI();
-        rssi                   = (prev_rssi[vfo] > 0) ? (prev_rssi[vfo] + new_rssi) / 2 : new_rssi;
-        prev_rssi[vfo]         = new_rssi;
+        prev_rssi[vfo] = new_rssi;
+        if (!rssi_initialized[vfo]) {
+            filtered_rssi[vfo] = new_rssi;
+            rssi_initialized[vfo] = true;
+        } else if (new_rssi > filtered_rssi[vfo]) {
+            filtered_rssi[vfo] = (int16_t)((filtered_rssi[vfo] + new_rssi + 1) / 2);
+        } else {
+            filtered_rssi[vfo] = (int16_t)((3 * (int32_t)filtered_rssi[vfo] + new_rssi + 2) / 4);
+        }
+        rssi = filtered_rssi[vfo];
     }
 
 #ifdef ENABLE_AM_FIX_SHOW_DATA
@@ -319,45 +361,47 @@ break;
     // update the gain hold counter
     if (hold_counter[vfo] > 0)
         hold_counter[vfo]--;
+    if (gain_step_delay[vfo] > 0)
+        gain_step_delay[vfo]--;
 
     // dB difference between actual and desired RSSI level
     int16_t diff_dB = (rssi - desired_rssi) / 2;
 
     if (diff_dB > 0) {	// decrease gain
-        unsigned int index = gain_table_index[vfo];   // current position we're at
+        unsigned int index = gain_table_index[vfo];
+        unsigned int steps = 0;
 
-        if (diff_dB >= 10) {	// jump immediately to a new gain setting
-            // this greatly speeds up initial gain reduction (but reduces noise/spike immunity)
-
-            const int16_t desired_gain_dB = (int16_t)gain_table[index].gain_dB - diff_dB + 8; // get no closer than 8dB (bit of noise/spike immunity)
-
-            // scan the table to see what index to jump straight too
-            while (index > 1)
-                if (gain_table[--index].gain_dB <= desired_gain_dB)
-                    break;
-        }
-        else
-        {	// incrementally reduce the gain .. taking it slow improves noise/spike immunity
-            if (index > 1)
-                index--;     // slow step-by-step gain reduction
+        if (diff_dB >= 12) {
+            steps = MIN(4u, (unsigned int)diff_dB / 6u);
+            gain_step_delay[vfo] = 0;
+        } else if (diff_dB >= 6) {
+            steps = 1;
+            gain_step_delay[vfo] = 0;
+        } else if (gain_step_delay[vfo] == 0) {
+            steps = 1;
+            gain_step_delay[vfo] = 5; // one gain step per 50ms
         }
 
-        index = MAX(1u, index);
+        index = (index > steps) ? index - steps : 1u;
 
         if (gain_table_index[vfo] != index)
         {
             gain_table_index[vfo] = index;
-            hold_counter[vfo] = 30;       // 300ms hold
+            hold_counter[vfo] = (steps > 1 || diff_dB >= 6) ? 10 : 30;
         }
     }
 
-    if (diff_dB >= -6)                    // 6dB hysterisis (help reduce gain hunting)
-        hold_counter[vfo] = 30;           // 300ms hold
+    if (diff_dB >= -6) { // 6dB hysteresis (help reduce gain hunting)
+        hold_counter[vfo] = (diff_dB >= 6) ? 10 : 30;
+    }
 
     if (hold_counter[vfo] == 0)
     {	// hold has been released, we're free to increase gain
-        const unsigned int index = gain_table_index[vfo] + 1;                 // move up to next gain index
-        gain_table_index[vfo] = MIN(index, gain_table_size - 1u);
+        if (diff_dB < -6 && gain_step_delay[vfo] == 0) {
+            const unsigned int index = gain_table_index[vfo] + 1u;
+            gain_table_index[vfo] = MIN(index, gain_table_size - 1u);
+            gain_step_delay[vfo] = 8; // one recovery step per 80ms
+        }
     }
 
 

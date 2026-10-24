@@ -727,6 +727,19 @@ void BK4819_SetFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const b
                         (0u << 0);      //  0
             }
             break;
+
+        case BK4819_FILTER_BW_AM:
+            // Use the 2.0 kHz AM receive filter for both normal and weak signals.
+            val =
+                    (0u << 15) |
+                    (1u << 12) |
+                    (1u << 9) |
+                    (3u << 6) |
+                    (0u << 4) |
+                    (1u << 3) |
+                    (0u << 2) |
+                    (0u << 0);
+            break;
     }
 
     BK4819_WriteRegister(BK4819_REG_43, val);
@@ -1094,7 +1107,30 @@ void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay,
 //}
 
 void BK4819_PlayRxEndTone(void) {
-    /* Call-end toast intentionally disabled: keep only wait/send toasts. */
+    BK4819_EnterTxMute();
+    AUDIO_AudioPathOn();
+    BK4819_SetAF(BK4819_AF_BEEP);
+    BK4819_WriteRegister(BK4819_REG_70,
+                         BK4819_REG_70_ENABLE_TONE1 |
+                         (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+    BK4819_Enable_AfDac_DiscMode_TxDsp();
+    SYSTEM_DelayMs(50);
+
+    static const uint16_t frequencies[] = {1480, 1480, 1397};
+    static const uint16_t durations[] = {100, 50, 50};
+    for (unsigned int i = 0; i < ARRAY_SIZE(frequencies); i++) {
+        BK4819_WriteRegister(BK4819_REG_71, scale_freq(frequencies[i]));
+        BK4819_ExitTxMute();
+        SYSTEM_DelayMs(durations[i]);
+        BK4819_EnterTxMute();
+        if (i + 1 < ARRAY_SIZE(frequencies))
+            SYSTEM_DelayMs(30);
+    }
+
+    AUDIO_AudioPathOff();
+    BK4819_SetAF(BK4819_AF_MUTE);
+    BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+    BK4819_TurnsOffTones_TurnsOnRX();
 }
 
 void BK4819_ResetTalkPermitToneState(void) {
