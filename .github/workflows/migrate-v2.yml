@@ -27,6 +27,7 @@ jobs:
         with:
           ref: v2-standalone-prep
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Verify source branch
         shell: bash
