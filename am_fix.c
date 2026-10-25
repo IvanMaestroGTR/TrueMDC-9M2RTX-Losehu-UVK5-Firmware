@@ -223,8 +223,9 @@ bool rssi_initialized[2] = {false, false};
 // to help reduce gain hunting, peak hold count down tick
 unsigned int hold_counter[2] = {0, 0};
 uint8_t gain_step_delay[2] = {0, 0};
-// Keep 6dB of headroom below the previous AM overload point.
-const int16_t desired_rssi = (-95 + 160) * 2;
+// Keep the controller near the measured AM overload point without backing off
+// moderate-to-strong signals more than necessary.
+const int16_t desired_rssi = (-89 + 160) * 2;
 
 int8_t currentGainDiff;
 bool enabled = true;

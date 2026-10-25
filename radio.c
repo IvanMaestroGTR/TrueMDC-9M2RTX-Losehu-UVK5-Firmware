@@ -647,11 +647,13 @@ void RADIO_SetupRegisters(bool switchToForeground) {
 
     // AF RX Gain and DAC
     //BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);  // 1011 00 111010 1000
+    const uint8_t rxDacGain = (gRxVfo->Modulation == MODULATION_AM && gEeprom.DAC_GAIN < 15u)
+                                ? gEeprom.DAC_GAIN + 1u : gEeprom.DAC_GAIN;
     BK4819_WriteRegister(BK4819_REG_48,
                          (11u << 12) |     // ??? .. 0 ~ 15, doesn't seem to make any difference
                          (0u << 10) |     // AF Rx Gain-1
                          (gEeprom.VOLUME_GAIN << 4) |     // AF Rx Gain-2
-                         (gEeprom.DAC_GAIN << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
+                         (rxDacGain << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
 
 
     InterruptMask = BK4819_REG_3F_SQUELCH_FOUND | BK4819_REG_3F_SQUELCH_LOST;
