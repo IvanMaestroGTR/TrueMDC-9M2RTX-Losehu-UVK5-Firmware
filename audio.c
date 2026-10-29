@@ -168,8 +168,6 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep) {
 }
 
 void AUDIO_PlayBootBeep(void) {
-    // Classic Motorola boot beep: ascending tone pattern (440Hz -> 880Hz -> 1320Hz)
-    
     if (!gEeprom.BOOT_BEEP_CONTROL)
         return;
 
@@ -194,51 +192,9 @@ void AUDIO_PlayBootBeep(void) {
     SYSTEM_DelayMs(20);
 
     uint16_t ToneConfig = BK4819_ReadRegister(BK4819_REG_71);
-    
-    // Maximum gain for loud loud beep (127 = max gain, shifted appropriately)
-    uint16_t MaxGainConfig = BK4819_REG_70_ENABLE_TONE1 | (50 << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN);
-
-    // First beep: 262Hz - 200ms
-    BK4819_PlayTone(523, true);
-    BK4819_WriteRegister(BK4819_REG_70, MaxGainConfig);
-    SYSTEM_DelayMs(2);
-    AUDIO_AudioPathOn();
-    SYSTEM_DelayMs(60);
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(200);
-    BK4819_EnterTxMute();
-
-    // Second beep: 392Hz - 200ms
-    BK4819_PlayTone(784, true);
-    BK4819_WriteRegister(BK4819_REG_70, MaxGainConfig);
-    SYSTEM_DelayMs(2);
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(200);
-    BK4819_EnterTxMute();
-
-    // Third beep: 330Hz - 200ms
-    BK4819_PlayTone(660, true);
-    BK4819_WriteRegister(BK4819_REG_70, MaxGainConfig);
-    SYSTEM_DelayMs(2);
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(200);
-    BK4819_EnterTxMute();
-
-    // Fourth beep: 526Hz - 150ms
-    BK4819_PlayTone(1046, true);
-    BK4819_WriteRegister(BK4819_REG_70, MaxGainConfig);
-    SYSTEM_DelayMs(2);
-    BK4819_ExitTxMute();
-    SYSTEM_DelayMs(150);
-    BK4819_EnterTxMute();
-    SYSTEM_DelayMs(20);
-    
-
-    AUDIO_AudioPathOff();
-
-    SYSTEM_DelayMs(5);
-    BK4819_TurnsOffTones_TurnsOnRX();
-    SYSTEM_DelayMs(5);
+    static const uint16_t frequencies[] = {523, 784, 660, 1046};
+    static const uint16_t durations[] = {270, 200, 200, 150};
+    BK4819_PlayToneSequence(frequencies, durations, ARRAY_SIZE(frequencies), 50);
     BK4819_WriteRegister(BK4819_REG_71, ToneConfig);
 
     if (gEnableSpeaker)

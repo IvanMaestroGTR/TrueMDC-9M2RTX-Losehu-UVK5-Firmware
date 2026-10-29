@@ -1088,6 +1088,34 @@ void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay,
     }
 }
 
+void BK4819_PlayToneSequence(const uint16_t *frequencies, const uint16_t *durations, unsigned int count,
+                             uint8_t toneGain) {
+    BK4819_EnterTxMute();
+    AUDIO_AudioPathOn();
+    BK4819_SetAF(BK4819_AF_BEEP);
+    BK4819_Enable_AfDac_DiscMode_TxDsp();
+
+    for (unsigned int i = 0; i < count; i++) {
+        if (frequencies[i] != 0) {
+            BK4819_WriteRegister(BK4819_REG_70,
+                                 BK4819_REG_70_ENABLE_TONE1 |
+                                     (toneGain << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+            BK4819_WriteRegister(BK4819_REG_71, scale_freq(frequencies[i]));
+            BK4819_ExitTxMute();
+        } else {
+            BK4819_WriteRegister(BK4819_REG_70, 0);
+        }
+
+        SYSTEM_DelayMs(durations[i]);
+        BK4819_EnterTxMute();
+    }
+
+    AUDIO_AudioPathOff();
+    BK4819_SetAF(BK4819_AF_MUTE);
+    BK4819_WriteRegister(BK4819_REG_70, 0);
+    BK4819_TurnsOffTones_TurnsOnRX();
+}
+
 //void BK4819_PlaySquelchTailBeep(void) {
 //    BK4819_EnterTxMute();
 //    AUDIO_AudioPathOn();
@@ -1188,28 +1216,7 @@ void BK4819_PlayTalkPermitTone(uint8_t mode) {
         return;
     }
 
-    BK4819_EnterTxMute();
-    AUDIO_AudioPathOn();
-    BK4819_SetAF(BK4819_AF_BEEP);
-    BK4819_Enable_AfDac_DiscMode_TxDsp();
-
-    for (unsigned int i = 0; i < count; i++) {
-        if (frequencies[i] != 0) {
-            BK4819_WriteRegister(BK4819_REG_70, BK4819_REG_70_ENABLE_TONE1 | (55u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-            BK4819_WriteRegister(BK4819_REG_71, scale_freq(frequencies[i]));
-            BK4819_ExitTxMute();
-        } else {
-            BK4819_WriteRegister(BK4819_REG_70, 0);
-        }
-
-        SYSTEM_DelayMs(durations[i]);
-        BK4819_EnterTxMute();
-    }
-
-    AUDIO_AudioPathOff();
-    BK4819_SetAF(BK4819_AF_MUTE);
-    BK4819_WriteRegister(BK4819_REG_70, 0);
-    BK4819_TurnsOffTones_TurnsOnRX();
+    BK4819_PlayToneSequence(frequencies, durations, count, 55);
 
     if (mode == TALK_PERMIT_TONE_KENW)
         gKenwSecondaryTone = true;
